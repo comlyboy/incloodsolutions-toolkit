@@ -1,8 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 
 import { Request, Response } from 'express';
-import { ApiResponseBuilder, ApiResult } from 'src/dto/response.dto';
-import { ObjectType } from 'src/interface';
+import { ObjectType } from 'src/types';
 
 
 @Catch(HttpException)
@@ -34,6 +33,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
 			message
 		};
 
-		new ApiResponseBuilder(response, statusCode, new ApiResult({ error, message }));
+		response.status(statusCode).json({ error, message });
 	}
 }

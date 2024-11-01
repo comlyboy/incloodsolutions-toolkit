@@ -12,6 +12,7 @@
 		"baseUrl": "./",
 		"incremental": true,
 		"skipLibCheck": true,
+		"importHelpers": true,
 		"noUnusedLocals": true,
 		"strictNullChecks": false,
 		"noImplicitAny": true,

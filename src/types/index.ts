@@ -2,6 +2,7 @@ export interface IErrorResponse {
 	statusCode: number;
 	timestamp: string,
 	method: string;
+	path: string;
 	message: string;
 }
 
