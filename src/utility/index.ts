@@ -137,7 +137,6 @@ export async function generateQrCode<TData>(qrData: TData, options?: QRCodeToDat
 
 /** Get Current IP address from express.Request */
 export function getIpAddress(req: Request) {
-	let ip = '';
 	const ipAddress = req.ip;
 	const remoteAddress = req.socket?.remoteAddress;
 	const xForwardedFor = req.headers["x-forwarded-for"];
@@ -145,19 +144,19 @@ export function getIpAddress(req: Request) {
 	if (xForwardedFor && typeof xForwardedFor === "string") {
 		const ipCurrent = xForwardedFor.split(",")[0].trim();
 		if (validator.isIP(ipCurrent)) {
-			ip = ipCurrent;
+			return ipCurrent;
 		}
 	}
 
 	if (remoteAddress && typeof remoteAddress === "string" && validator.isIP(remoteAddress)) {
-		ip = remoteAddress;
+		return remoteAddress;
 	}
 
 	if (ipAddress && typeof ipAddress === "string" && validator.isIP(ipAddress)) {
-		ip = ipAddress;
+		return ipAddress;
 	}
 
-	return ip;
+	return ''
 }
 
 /** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */
