@@ -6,8 +6,9 @@
 	"private": false,
 	"license": "UNLICENSED",
 	"scripts": {
-		"build": "tsc",
-		"prebuild": "rimraf dist",
+		"build": "rimraf ./dist && tsc -b",
+		"prepare": "npm run build",
+		"publish": "npm publish --access=public",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
@@ -22,7 +23,6 @@
 		"pdfkit": "^0.15.1",
 		"qr-code-styling": "^1.8.4",
 		"qrcode": "^1.5.4",
-		"tslib": "^2.8.1",
 		"uuid": "^11.0.3",
 		"validator": "^13.12.0"
 	},

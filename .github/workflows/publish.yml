@@ -1,0 +1,46 @@
+name: Publish library to npm
+
+on:
+  push:
+    branches:
+      - publish
+
+jobs:
+  publish-library-to-npm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code (make repo branch code available in this pipeline)
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Authenticate with npm
+        run: |
+          echo "*** Authenticating with npm ***"
+          echo "//registry.npmjs.org/:_authToken=" >> .npmrc
+          echo "*** Authenticate with npm successfull!!! ***"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bump version
+        run: npm version patch
+        env:
+          CI: true
+
+      - name: Publish
+        run: npm run publish
+
+      # - name: Commit version changes
+      #   run: |
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
+      #     git add package.json package-lock.json
+      #     git commit -m "ci: bump version [skip ci]"
+      #     git push
+      #   env:
+      #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
