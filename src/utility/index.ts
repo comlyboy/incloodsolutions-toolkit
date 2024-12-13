@@ -1,4 +1,4 @@
-export function verifyJwt(text: string, format: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize') {
+export function transformText(text: string, format: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize') {
 	if (!text || typeof text === 'object') return text;
 	if (format === 'uppercase') {
 		text = text.toUpperCase();
