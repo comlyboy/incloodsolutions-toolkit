@@ -2,9 +2,9 @@
 	"name": "@incloodsolutions/toolkit",
 	"version": "0.0.8",
 	"description": "",
+	"main": "dist/index.js",
 	"author": "",
 	"private": false,
-	"license": "ISC",
 	"files": [
 		"dist"
 	],
@@ -15,6 +15,7 @@
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
 	},
+	"license": "ISC",
 	"dependencies": {
 		"axios": "^1.7.9",
 		"base64-stream": "^1.0.0",
