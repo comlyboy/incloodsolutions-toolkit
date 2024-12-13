@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.8",
+	"version": "0.0.3",
 	"description": "",
 	"author": "",
 	"private": false,
@@ -10,7 +10,7 @@
 	],
 	"scripts": {
 		"build": "rimraf ./dist && tsc -b",
-		"publish": "npm version patch && npm run build && npm publish --access=public",
+		"publishing": "npm version patch && npm run build && npm publish --access=public",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
