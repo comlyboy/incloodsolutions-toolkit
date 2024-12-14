@@ -5,6 +5,8 @@ import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import validator from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { Request } from 'express';
+import { compare, genSalt, hash } from 'bcryptjs';
+import cloneDeep from 'lodash.clonedeep';
 
 import { ObjectType } from 'src/types';
 
@@ -84,8 +86,9 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	data: TData;
 	keysToRemove?: string[];
 }): TData {
+	if (!Object.keys(data).length) return data;
 	return Object.fromEntries(
-		Object.entries(data).filter(
+		Object.entries(cloneDeep(data)).filter(
 			([_, value]) => ![undefined, null, '', 'undefined'].includes(value)
 		)
 	) as TData;
@@ -175,4 +178,18 @@ export function generateDateInNumber({ date, withSeparation = false }: {
 	const seconds = time.split(':').at(2).slice(0, 2);
 	const milliseconds = time.split('.').at(1).slice(0, 3);
 	return `${year}${month}${day}${hour}${minute}${seconds}${milliseconds}`;
+}
+
+/** Hashes string */
+export async function hashWithBcrypt(password: string): Promise<string> {
+	const salt = await genSalt();
+	return await hash(password, salt);
+}
+
+/** Validates hashed string */
+export async function validateWithBcrypt({ passwordFromClient, passwordInDatabase }: {
+	passwordFromClient: string;
+	passwordInDatabase: string;
+}): Promise<boolean> {
+	return compare(passwordFromClient, passwordInDatabase);
 }
