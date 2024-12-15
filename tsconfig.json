@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
+		"module": "ESNext",
+		"target": "ES2022",
 		"lib": [
 			"esnext",
 			"dom"
@@ -10,7 +11,6 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"allowSyntheticDefaultImports": true,
-		"target": "ES2022",
 		"sourceMap": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
@@ -19,7 +19,9 @@
 		"importHelpers": true,
 		"noUnusedLocals": true,
 		"strictNullChecks": false,
+		"moduleResolution": "node",
 		"noImplicitAny": true,
+		"esModuleInterop": true,
 		"strictBindCallApply": false,
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false,

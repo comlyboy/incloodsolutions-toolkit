@@ -8,19 +8,20 @@ import { Request } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import cloneDeep from 'lodash.clonedeep';
 
-import { ObjectType } from 'src/types';
+import { ObjectType } from 'src/interfaces';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
 	return date ? new Date(date).toISOString() : new Date().toISOString();
 }
 
+/** Transform text */
 export function transformText({ text, format, trim = false }: {
 	text: string;
 	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize';
 	trim?: boolean
 }) {
-	if (!text || typeof text === 'object') return text;
+	if (!text || typeof text !== 'string') return text;
 	if (format === 'uppercase') {
 		text = text.toUpperCase();
 	}
@@ -86,12 +87,14 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	data: TData;
 	keysToRemove?: string[];
 }): TData {
-	if (!Object.keys(data).length) return data;
+	const isValidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
+	if (isValidObject) return data;
 	return Object.fromEntries(
-		Object.entries(cloneDeep(data)).filter(
-			([_, value]) => ![undefined, null, '', 'undefined'].includes(value)
-		)
+		Object.entries(data)
+			.filter(([_, value]) => ![undefined, null, '', 'undefined'].includes(value))
+			.map(([key, value]) => [key, sanitizeObject(value)])
 	) as TData;
+
 }
 
 /** Encrypted data using crypto-js. */
@@ -124,6 +127,7 @@ export function decryptData<TResponse>({ hashedData, secret }: {
 	}
 }
 
+/** Generate qrcode as base64 string */
 export async function generateQrCode<TData>(qrData: TData, options?: QRCodeToDataURLOptions): Promise<string> {
 	const payload = typeof qrData === 'string' ? qrData : JSON.stringify(qrData);
 	let qrImage = await toDataURL(payload, {
@@ -180,16 +184,21 @@ export function generateDateInNumber({ date, withSeparation = false }: {
 	return `${year}${month}${day}${hour}${minute}${seconds}${milliseconds}`;
 }
 
-/** Hashes string */
-export async function hashWithBcrypt(password: string): Promise<string> {
-	const salt = await genSalt();
-	return await hash(password, salt);
+/** Hash string using bcrypt-js */
+export async function hashWithBcrypt(data: string, saltRounds?: number): Promise<string> {
+	const salt = await genSalt(saltRounds);
+	return await hash(data, salt);
 }
 
-/** Validates hashed string */
-export async function validateWithBcrypt({ passwordFromClient, passwordInDatabase }: {
-	passwordFromClient: string;
-	passwordInDatabase: string;
-}): Promise<boolean> {
-	return compare(passwordFromClient, passwordInDatabase);
+/** Validates hashed string using bcrypt-js */
+export async function validateWithBcrypt(plainData: string, hashedData: string) {
+	return compare(plainData, hashedData);
+}
+
+/** Clone object/array deep */
+export function deepClone<TData = ObjectType>(data: TData) {
+	// const objectIsValid = typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0;
+	// const arrayIsValid = Array.isArray(data) && data?.length > 0;
+	if (!data || typeof data !== 'object') return data
+	return cloneDeep(data);
 }

@@ -1,10 +1,10 @@
-import { ObjectType } from "src/types";
+import { ObjectType } from "src/interfaces";
 
 require('dotenv').config();
 
 const cachedEnvironmentVariables: ObjectType<string, string> = {};
 
-export function initEnvironmentVariables<TSchema extends ObjectType>(importantFields: (keyof TSchema)[] = []) {
+export function initEnvironmentVariables<TSchema extends ObjectType>(validation: TSchema, importantFields: (keyof TSchema)[] = []) {
 	Object.entries(process.env).forEach(([key, envValue]) => {
 		if (!envValue && importantFields.includes(key)) {
 			throw new Error(`Environment variable " ${key} " cannot be null/undefined!`);
