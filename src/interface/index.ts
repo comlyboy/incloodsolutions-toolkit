@@ -1,4 +1,4 @@
-import { ApplicationEnvironmentEnum } from "src/constant";
+import { AppEnvironmentEnum } from "src/constant";
 
 export interface IBaseId<TType = string> {
 	id: TType;
@@ -12,6 +12,6 @@ export interface IBasePassword {
 	password: string;
 }
 
-export type ApplicationEnvironmentType = `${ApplicationEnvironmentEnum}`;
+export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;

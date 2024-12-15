@@ -1,4 +1,4 @@
-export enum ApplicationEnvironmentEnum {
+export enum AppEnvironmentEnum {
 	QA = 'qa',
 	TEST = 'test',
 	LOCAL = 'local',

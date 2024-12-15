@@ -1,6 +1,6 @@
-import { ObjectType } from "src/interfaces";
-
-require('dotenv').config();
+import { ObjectType } from "src/interface";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const cachedEnvironmentVariables: ObjectType<string, string> = {};
 

@@ -1,14 +1,14 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { AES, enc } from 'crypto-js';
-import parsePhoneNumberFromString, { CountryCode, PhoneNumber, parsePhoneNumberWithError } from 'libphonenumber-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
-import validator from 'validator';
+import { isIP } from 'validator';
 import { v4 as uuidv4 } from 'uuid';
 import { Request } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import cloneDeep from 'lodash.clonedeep';
+import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
-import { ObjectType } from 'src/interfaces';
+import { ObjectType } from 'src/interface';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -150,16 +150,16 @@ export function getIpAddress(req: Request) {
 
 	if (xForwardedFor && typeof xForwardedFor === "string") {
 		const ipCurrent = xForwardedFor.split(",")[0].trim();
-		if (validator.isIP(ipCurrent)) {
+		if (isIP(ipCurrent)) {
 			return ipCurrent;
 		}
 	}
 
-	if (remoteAddress && typeof remoteAddress === "string" && validator.isIP(remoteAddress)) {
+	if (remoteAddress && typeof remoteAddress === "string" && isIP(remoteAddress)) {
 		return remoteAddress;
 	}
 
-	if (ipAddress && typeof ipAddress === "string" && validator.isIP(ipAddress)) {
+	if (ipAddress && typeof ipAddress === "string" && isIP(ipAddress)) {
 		return ipAddress;
 	}
 
