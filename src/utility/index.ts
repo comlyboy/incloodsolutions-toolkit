@@ -163,7 +163,7 @@ export function getIpAddress(req: Request) {
 		return ipAddress;
 	}
 
-	return ''
+	return '';
 }
 
 /** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */
