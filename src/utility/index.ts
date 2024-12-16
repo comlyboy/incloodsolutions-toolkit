@@ -59,13 +59,13 @@ export function generateCustomUUID({ asUpperCase = false, symbol = '' }: {
 }
 
 /** Send Http request with Axios. */
-export async function sendHttpRequest<TResponse = any, TBody extends Record<string, any> = any>(options: AxiosRequestConfig<TBody>) {
+export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
 	try {
 		const response = await axios({ ...options }) as unknown as AxiosResponse<TResponse, TBody>;
 		return response.data as TResponse;
 	} catch (error) {
 		const errorObject = error?.response.data;
-		const message = errorObject?.message || errorObject || error.message || 'Http call errored out!';
+		const message = errorObject?.message || errorObject || error?.message || 'Http call errored out!';
 		throw { ...errorObject, message };
 	}
 }

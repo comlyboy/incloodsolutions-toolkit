@@ -2,14 +2,21 @@ import { ObjectType } from "src/interface";
 import dotenv from 'dotenv';
 dotenv.config();
 
-const cachedEnvironmentVariables: ObjectType<string, string> = {};
+const cachedEnvironmentVariables: ObjectType = {};
 
-export function initEnvironmentVariables<TSchema extends ObjectType>(validation: TSchema, importantFields: (keyof TSchema)[] = []) {
-	Object.entries(process.env).forEach(([key, envValue]) => {
-		if (!envValue && importantFields.includes(key)) {
-			throw new Error(`Environment variable " ${key} " cannot be null/undefined!`);
+/** Initialize environment variable */
+export function initEnvironmentVariables<TSchema extends ObjectType = ObjectType>(schema: {
+	[key in keyof Partial<TSchema>]: {
+		required: boolean;
+		defaultValue?: number | string | boolean;
+	};
+}) {
+	Object.entries(schema).forEach(([key, config]) => {
+		const envValue = process.env[key];
+		if (!envValue && config?.required && !config?.defaultValue) {
+			throw new Error(`Environment variable "${key}" cannot be null/undefined!`);
 		}
-		cachedEnvironmentVariables[key] = envValue;
+		cachedEnvironmentVariables[key] = envValue || config?.defaultValue;
 	});
 	return cachedEnvironmentVariables as TSchema;
 }

@@ -1,4 +1,3 @@
-import { AppEnvironmentEnum } from "src/constant";
 
 export interface IBaseId<TType = string> {
 	id: TType;
@@ -10,6 +9,15 @@ export interface IBaseName {
 
 export interface IBasePassword {
 	password: string;
+}
+
+export enum AppEnvironmentEnum {
+	QA = 'qa',
+	TEST = 'test',
+	LOCAL = 'local',
+	STAGING = 'staging',
+	PRODUCTION = 'production',
+	DEVELOPMENT = 'development'
 }
 
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
