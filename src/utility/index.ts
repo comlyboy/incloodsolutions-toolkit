@@ -202,3 +202,15 @@ export function deepClone<TData = ObjectType>(data: TData) {
 	if (!data || typeof data !== 'object') return data
 	return cloneDeep(data);
 }
+
+/** Remoce duplicate from an array */
+export function removeDuplicates<TData extends any[]>(dataList: TData, property?: string[]) {
+	if (!dataList || !dataList.length || !Array.isArray(dataList)) return dataList;
+	const dataSet = new Set();
+	return dataList.filter(data => {
+		const condition = (property.length && typeof data === 'object') ? property.toString() : data;
+		if (dataSet.has(condition)) return false;
+		dataSet.add(condition);
+		return true;
+	});
+}
