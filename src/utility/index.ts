@@ -214,3 +214,21 @@ export function removeDuplicates<TData extends any[]>(dataList: TData, property?
 		return true;
 	});
 }
+
+
+/** Send message to telegram */
+export function sendMessageToTelegram<TData extends any[]>({ chatId, secret, message }: {
+	chatId: string;
+	secret: string;
+	message: string;
+}) {
+	return sendHttpRequest({
+		url: `https://api.telegram.org/bot${secret}/sendMessage`,
+		method: 'post',
+		data: {
+			chat_id: chatId,
+			text: message,
+			parse_mode: 'Markdown'
+		}
+	});
+}
