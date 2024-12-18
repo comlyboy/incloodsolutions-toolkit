@@ -203,7 +203,7 @@ export function deepClone<TData = ObjectType>(data: TData) {
 	return cloneDeep(data);
 }
 
-/** Remoce duplicate from an array */
+/** Remove duplicate from an array */
 export function removeDuplicates<TData extends any[]>(dataList: TData, property?: string[]) {
 	if (!dataList || !dataList.length || !Array.isArray(dataList)) return dataList;
 	const dataSet = new Set();

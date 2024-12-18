@@ -1,6 +1,6 @@
+require('dotenv').config();
+
 import { ObjectType } from "src/interface";
-import dotenv from 'dotenv';
-dotenv.config();
 
 const cachedEnvironmentVariables: ObjectType = {};
 
@@ -10,9 +10,9 @@ export function initEnvironmentVariables<TSchema extends ObjectType = ObjectType
 		required: boolean;
 		defaultValue?: number | string | boolean;
 	};
-}) {
+}, options?: { debug?: boolean; }) {
 	Object.entries(schema).forEach(([key, config]) => {
-		const envValue = process.env[key];
+		const envValue = process?.env[key];
 		if (!envValue && config?.required && !config?.defaultValue) {
 			throw new Error(`Environment variable "${key}" cannot be null/undefined!`);
 		}
