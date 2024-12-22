@@ -236,7 +236,7 @@ export function removeDuplicates<TData extends any[]>(dataList: TData, property?
 	});
 }
 
-/** Send message to telegram */
+/** Send message to Telegram */
 export async function sendMessageToTelegram({ chatId, secret, message }: {
 	chatId: string;
 	secret: string;
@@ -260,6 +260,7 @@ export async function writeFileToLambda({ fileName, file }: {
 }) {
 	return new Promise<string>(async (resolve, reject) => {
 		try {
+			if (!file) return null;
 			if (!isLambdaEnvironment()) {
 				reject('Not in lambda environment!');
 			}
@@ -283,6 +284,7 @@ export async function writeFileToLambda({ fileName, file }: {
 export async function readFileFromLambda(fileName: string) {
 	return new Promise<Buffer>((resolve, reject) => {
 		try {
+			if (!fileName) return null;
 			if (!isLambdaEnvironment()) {
 				reject('Not in lambda environment!');
 			}
