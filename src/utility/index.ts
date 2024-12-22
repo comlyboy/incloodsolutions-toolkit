@@ -1,5 +1,8 @@
+import fs from 'fs';
+import path from 'path';
+
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AES, enc } from 'crypto-js';
+import { AES, enc, lib, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { isIP } from 'validator';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,8 +21,8 @@ export function generateISODate(date?: string | number | Date) {
 /** Transform text */
 export function transformText({ text, format, trim = false }: {
 	text: string;
+	trim?: boolean;
 	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize';
-	trim?: boolean
 }) {
 	if (!text || typeof text !== 'string') return text;
 	if (format === 'uppercase') {
@@ -62,7 +65,7 @@ export function generateCustomUUID({ asUpperCase = false, symbol = '' }: {
 export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
 	try {
 		const response = await axios({ ...options }) as unknown as AxiosResponse<TResponse, TBody>;
-		return response.data as TResponse;
+		return await response.data as TResponse;
 	} catch (error) {
 		const errorObject = error?.response.data;
 		const message = errorObject?.message || errorObject || error?.message || 'Http call errored out!';
@@ -85,26 +88,41 @@ export function parsePhonenumber(phoneNumber: string, defaultCountry?: CountryCo
 /** Removes properties with values `undefined`, `null`, or `' '` */
 export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
 	data: TData;
-	keysToRemove?: string[];
+	keysToRemove?: (keyof TData)[];
 }): TData {
 	const isValidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
 	if (isValidObject) return data;
-	return Object.fromEntries(
-		Object.entries(data)
-			.filter(([_, value]) => ![undefined, null, '', 'undefined'].includes(value))
-			.map(([key, value]) => [key, sanitizeObject(value)])
+	return Object.fromEntries(Object.entries(data)
+		.filter(([key, value]) => ![undefined, null, '', 'undefined'].includes(value) || !keysToRemove.includes(key))
+		.map(([key, value]) => [key, sanitizeObject(value)])
 	) as TData;
-
 }
 
 /** Encrypted data using crypto-js. */
-export function encryptData<TData>({ data, secret }: {
+export function encryptData<TData>({ data, secret, options }: {
 	data: TData;
 	secret: string;
+	options?: {
+		iv?: lib.WordArray;
+		format?: {
+			stringify?: () => string;
+			parse?: (str: string) => lib.CipherParams;
+		}
+	} & ObjectType
 }): string {
 	try {
 		if (!data) return null;
+		if (!secret) {
+			throw new Error('Secret key is required for encryption!');
+		}
 		const dataToString = typeof data === 'string' ? data : JSON.stringify(data);
+		// const updatedOptions = {
+		// 	...options,
+		// 	format: {
+		// 		stringify: options?.format?.stringify || ((cipherParams: any) => cipherParams.toString()),
+		// 		parse: options?.format?.parse
+		// 	}
+		// };
 		return AES.encrypt(dataToString, secret).toString();
 	} catch (error) {
 		error['message'] = 'Encryption errored out!';
@@ -119,6 +137,9 @@ export function decryptData<TResponse>({ hashedData, secret }: {
 }): TResponse {
 	try {
 		if (!hashedData) return null;
+		if (secret) {
+			throw new Error('Secret key is required for decryption!');
+		}
 		const dataInBytes = AES.decrypt(hashedData, secret);
 		return JSON.parse(dataInBytes.toString(enc.Utf8)) as TResponse;
 	} catch (error) {
@@ -127,7 +148,7 @@ export function decryptData<TResponse>({ hashedData, secret }: {
 	}
 }
 
-/** Generate qrcode as base64 string */
+/** Generate QR-Code as base64 string */
 export async function generateQrCode<TData>(qrData: TData, options?: QRCodeToDataURLOptions): Promise<string> {
 	const payload = typeof qrData === 'string' ? qrData : JSON.stringify(qrData);
 	let qrImage = await toDataURL(payload, {
@@ -192,7 +213,7 @@ export async function hashWithBcrypt(data: string, saltRounds?: number): Promise
 
 /** Validates hashed string using bcrypt-js */
 export async function validateWithBcrypt(plainData: string, hashedData: string) {
-	return compare(plainData, hashedData);
+	return await compare(plainData, hashedData);
 }
 
 /** Clone object/array deep */
@@ -215,14 +236,13 @@ export function removeDuplicates<TData extends any[]>(dataList: TData, property?
 	});
 }
 
-
 /** Send message to telegram */
-export function sendMessageToTelegram<TData extends any[]>({ chatId, secret, message }: {
+export async function sendMessageToTelegram({ chatId, secret, message }: {
 	chatId: string;
 	secret: string;
 	message: string;
 }) {
-	return sendHttpRequest({
+	return await sendHttpRequest({
 		url: `https://api.telegram.org/bot${secret}/sendMessage`,
 		method: 'post',
 		data: {
@@ -231,4 +251,52 @@ export function sendMessageToTelegram<TData extends any[]>({ chatId, secret, mes
 			parse_mode: 'Markdown'
 		}
 	});
+}
+
+/** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
+export async function writeFileToLambda({ fileName, file }: {
+	fileName?: string;
+	file: string | NodeJS.ArrayBufferView | File;
+}) {
+	return new Promise<string>(async (resolve, reject) => {
+		try {
+			if (!isLambdaEnvironment()) {
+				reject('Not in lambda environment!');
+			}
+			const inferredName = file instanceof File ? file.name : fileName;
+			const filePath = path.join('/tmp', inferredName);
+			if (file instanceof File) {
+				const arrayBuffer = await file.arrayBuffer();
+				const buffer = Buffer.from(arrayBuffer);
+				fs.writeFileSync(filePath, buffer);
+			} else {
+				fs.writeFileSync(filePath, file);
+			}
+			resolve(filePath);
+		} catch (error) {
+			reject(error);
+		}
+	});
+}
+
+/** Get file from lambda function `/tmp` folder... Errors if not in lambda environment */
+export async function readFileFromLambda(fileName: string) {
+	return new Promise<Buffer>((resolve, reject) => {
+		try {
+			if (!isLambdaEnvironment()) {
+				reject('Not in lambda environment!');
+			}
+			const filePath = path.join('/tmp', fileName);
+			if (!fs.existsSync(filePath)) return resolve(null);
+			const file = fs.readFileSync(filePath);
+			resolve(file);
+		} catch (error) {
+			reject(error);
+		}
+	});
+}
+
+/** Check if API is running in Lambda environment */
+export async function isLambdaEnvironment() {
+	return process.env?.LAMBDA_TASK_ROOT !== undefined;
 }
