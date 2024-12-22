@@ -300,5 +300,5 @@ export async function readFileFromLambda(fileName: string) {
 
 /** Check if API is running in Lambda environment */
 export async function isLambdaEnvironment() {
-	return process.env?.LAMBDA_TASK_ROOT !== undefined;
+	return process.env?.LAMBDA_TASK_ROOT !== undefined || process.env?.AWS_LAMBDA_FUNCTION_NAME !== undefined;
 }
