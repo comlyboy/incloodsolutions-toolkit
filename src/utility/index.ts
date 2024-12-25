@@ -298,11 +298,12 @@ export async function readFileFromLambda(fileName: string) {
 	});
 }
 
-/** Check if API is running in Lambda environment */
+/** Check if currently in Lambda environment */
 export async function isLambdaEnvironment() {
 	return process.env?.LAMBDA_TASK_ROOT !== undefined || process.env?.AWS_LAMBDA_FUNCTION_NAME !== undefined;
 }
 
+/** Map and return API operation results */
 export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, message, error }: {
 	data?: TBody;
 	message?: string;
@@ -315,9 +316,7 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, messa
 	} as const;
 }
 
+/** Return API call response */
 export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: { data?: TBody; message?: string; error?: ObjectType; }, statusCode = 200) {
 	return res.status(statusCode).json({ statusCode, ...data });
 }
-
-
-returnApiResponse('res' as any, apiResult({ data: null, message: 'Success' }), 200);
