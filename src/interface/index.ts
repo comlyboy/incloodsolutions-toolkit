@@ -11,6 +11,14 @@ export interface IBasePassword {
 	password: string;
 }
 
+export interface IErrorResponse {
+	statusCode: number;
+	timestamp: string,
+	method: string;
+	path: string;
+	message: string;
+}
+
 export interface IBaseConstructProps<TOptions extends ObjectType = any> {
 	readonly stage?: AppEnvironmentType;
 	readonly options?: TOptions;

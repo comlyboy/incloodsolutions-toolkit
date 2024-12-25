@@ -6,7 +6,7 @@ import { AES, enc, lib, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { isIP } from 'validator';
 import { v4 as uuidv4 } from 'uuid';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import cloneDeep from 'lodash.clonedeep';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
@@ -302,3 +302,22 @@ export async function readFileFromLambda(fileName: string) {
 export async function isLambdaEnvironment() {
 	return process.env?.LAMBDA_TASK_ROOT !== undefined || process.env?.AWS_LAMBDA_FUNCTION_NAME !== undefined;
 }
+
+export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, message, error }: {
+	data?: TBody;
+	message?: string;
+	error?: ObjectType;
+}) {
+	return {
+		data: data || null,
+		message: message || null,
+		error: error || null
+	} as const;
+}
+
+export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: { data?: TBody; message?: string; error?: ObjectType; }, statusCode = 200) {
+	return res.status(statusCode).json({ statusCode, ...data });
+}
+
+
+returnApiResponse('res' as any, apiResult({ data: null, message: 'Success' }), 200);
