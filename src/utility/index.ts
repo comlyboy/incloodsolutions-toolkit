@@ -207,12 +207,16 @@ export function generateDateInNumber({ date, withSeparation = false }: {
 
 /** Hash string using bcrypt-js */
 export async function hashWithBcrypt(data: string, saltRounds?: number): Promise<string> {
+	if (!data) {
+		throw new Error('Cannot hash a null/undefined data!')
+	}
 	const salt = await genSalt(saltRounds);
 	return await hash(data, salt);
 }
 
 /** Validates hashed string using bcrypt-js */
-export async function validateWithBcrypt(plainData: string, hashedData: string) {
+export async function validateHashWithBcrypt(plainData: string, hashedData: string) {
+	if (!plainData || !hashedData) return false;
 	return await compare(plainData, hashedData);
 }
 
