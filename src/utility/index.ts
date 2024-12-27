@@ -125,7 +125,7 @@ export function encryptData<TData>({ data, secret, options }: {
 		// };
 		return AES.encrypt(dataToString, secret).toString();
 	} catch (error) {
-		error['message'] = 'Encryption errored out!';
+		error['message'] = error?.message || 'Encryption errored out!';
 		throw error;
 	}
 }
@@ -137,13 +137,13 @@ export function decryptData<TResponse>({ hashedData, secret }: {
 }): TResponse {
 	try {
 		if (!hashedData) return null;
-		if (secret) {
+		if (!secret) {
 			throw new Error('Secret key is required for decryption!');
 		}
 		const dataInBytes = AES.decrypt(hashedData, secret);
 		return JSON.parse(dataInBytes.toString(enc.Utf8)) as TResponse;
 	} catch (error) {
-		error['message'] = 'Decryption errored out!';
+		error['message'] = error?.message || 'Encryption errored out!';
 		throw error;
 	}
 }
