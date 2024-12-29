@@ -18,6 +18,7 @@ export function generateISODate(date?: string | number | Date) {
 	return date ? new Date(date).toISOString() : new Date().toISOString();
 }
 
+
 /** Transform text */
 export function transformText({ text, format, trim = false }: {
 	text: string;
@@ -43,7 +44,7 @@ export function transformText({ text, format, trim = false }: {
 	return text;
 }
 
-export function isISODate(date: string): boolean {
+export function isIsoDate(date: string): boolean {
 	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
 }
 

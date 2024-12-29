@@ -1,4 +1,3 @@
-require('dotenv').config();
 
 import { ObjectType } from "src/interface";
 
@@ -11,6 +10,7 @@ export function initEnvironmentVariables<TSchema extends ObjectType = ObjectType
 		defaultValue?: number | string | boolean;
 	};
 }, options?: { debug?: boolean; }) {
+	require('dotenv').config();
 	Object.entries(schema).forEach(([key, config]) => {
 		const envValue = process?.env[key];
 		if (!envValue && config?.required && !config?.defaultValue) {
