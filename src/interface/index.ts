@@ -1,3 +1,4 @@
+import { CountryCode, TimezoneName } from "countries-and-timezones";
 
 export interface IBaseId<TType = string> {
 	id: TType;
@@ -33,6 +34,9 @@ export enum AppEnvironmentEnum {
 	PRODUCTION = 'production',
 	DEVELOPMENT = 'development'
 }
+
+export type TimezoneType = TimezoneName;
+export type CountryCodeType = CountryCode;
 
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 

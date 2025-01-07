@@ -12,6 +12,7 @@ import cloneDeep from 'lodash.clonedeep';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
 import { ObjectType } from 'src/interface';
+import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -324,4 +325,11 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, messa
 /** Return API call response */
 export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: { data?: TBody; message?: string; error?: ObjectType; }, statusCode = 200) {
 	return res.status(statusCode).json({ statusCode, ...data });
+}
+
+export function getCountryTimezones(withDeprecated?: boolean) {
+	return {
+		countries: getAllCountries({ deprecated: withDeprecated }),
+		timezones: getAllTimezones({ deprecated: withDeprecated })
+	}
 }
