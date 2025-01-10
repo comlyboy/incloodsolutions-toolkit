@@ -327,6 +327,7 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: 
 	return res.status(statusCode).json({ statusCode, ...data });
 }
 
+/** Get all country names and timezones */
 export function getCountryTimezones(withDeprecated?: boolean) {
 	return {
 		countries: getAllCountries({ deprecated: withDeprecated }),
