@@ -313,7 +313,10 @@ export async function isLambdaEnvironment() {
 export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, message, error }: {
 	data?: TBody;
 	message?: string;
-	error?: ObjectType;
+	error?: ObjectType & {
+		statusCode?: number;
+		message?: string;
+	};
 }) {
 	return {
 		data: data || null,
