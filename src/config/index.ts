@@ -1,11 +1,11 @@
 import { ObjectType } from "src/interface";
 
-require('dotenv').config();
-
-const cachedEnvironmentVariables: ObjectType = {};
+const cachedEnvironmentVariables: ObjectType = {
+	...process?.env
+};
 
 /** Initialize environment variable */
-export function initEnvironmentVariables<TSchema extends ObjectType = ObjectType>(schema: {
+export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
 	[key in keyof Partial<TSchema>]: {
 		required: boolean;
 		defaultValue?: number | string | boolean;
@@ -18,5 +18,5 @@ export function initEnvironmentVariables<TSchema extends ObjectType = ObjectType
 		}
 		cachedEnvironmentVariables[key] = envValue || config?.defaultValue;
 	});
-	return cachedEnvironmentVariables as TSchema;
+	return cachedEnvironmentVariables as TSchema & ObjectType;
 }

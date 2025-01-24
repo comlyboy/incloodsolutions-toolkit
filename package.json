@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.155",
+	"version": "0.0.16",
 	"description": "",
 	"main": "dist/index.js",
 	"author": "",
@@ -24,7 +24,6 @@
 		"bcryptjs": "^2.4.3",
 		"countries-and-timezones": "^3.7.2",
 		"crypto-js": "^4.2.0",
-		"dotenv": "^16.4.7",
 		"express": "^4.21.2",
 		"libphonenumber-js": "^1.11.17",
 		"lodash.clonedeep": "^4.5.0",
@@ -37,7 +36,6 @@
 	"devDependencies": {
 		"@types/bcryptjs": "^2.4.6",
 		"@types/crypto-js": "^4.2.2",
-		"@types/dotenv": "^8.2.3",
 		"@types/express": "^5.0.0",
 		"@types/jest": "^29.5.14",
 		"@types/lodash.clonedeep": "^4.5.9",

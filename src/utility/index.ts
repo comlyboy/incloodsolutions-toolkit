@@ -19,6 +19,27 @@ export function generateISODate(date?: string | number | Date) {
 	return date ? new Date(date).toISOString() : new Date().toISOString();
 }
 
+/** Generates random ID, number or alphabet*/
+export function generateRandomId({ length = 6, isAlphabet = false }: {
+	length?: number;
+	isAlphabet?: boolean;
+} = {}) {
+	let randomId = '';
+	const randomUuid = generateCustomUUID();
+	function getRandomAlpha(): string {
+		const letters = 'abcdefghijklmnopqrstuvwxyz';
+		return letters[Math.floor(Math.random() * letters.length)];
+	}
+	while (randomId.length < length) {
+		if (isAlphabet) {
+			randomId += getRandomAlpha();
+		} else {
+			randomId += randomUuid.replace(/[^0-9]/g, '');
+		}
+	}
+	return randomId.slice(0, length).trim();
+}
+
 
 /** Transform text */
 export function transformText({ text, format, trim = false }: {
@@ -92,8 +113,8 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	data: TData;
 	keysToRemove?: (keyof TData)[];
 }): TData {
-	const isValidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
-	if (isValidObject) return data;
+	const isInvalidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
+	if (isInvalidObject) return data;
 	return Object.fromEntries(Object.entries(data)
 		.filter(([key, value]) => ![undefined, null, '', 'undefined'].includes(value) || !keysToRemove.includes(key))
 		.map(([key, value]) => [key, sanitizeObject(value)])
@@ -145,7 +166,7 @@ export function decryptData<TResponse>({ hashedData, secret }: {
 		const dataInBytes = AES.decrypt(hashedData, secret);
 		return JSON.parse(dataInBytes.toString(enc.Utf8)) as TResponse;
 	} catch (error) {
-		error['message'] = error?.message || 'Encryption errored out!';
+		error['message'] = error?.message || 'Decryption errored out!';
 		throw error;
 	}
 }
@@ -167,9 +188,9 @@ export async function generateQrCode<TData>(qrData: TData, options?: QRCodeToDat
 
 /** Get Current IP address from express.Request */
 export function getIpAddress(req: Request) {
-	const ipAddress = req.ip;
-	const remoteAddress = req.socket?.remoteAddress;
-	const xForwardedFor = req.headers["x-forwarded-for"];
+	const ipAddress = req?.ip;
+	const remoteAddress = req?.socket?.remoteAddress;
+	const xForwardedFor = req?.headers["x-forwarded-for"];
 
 	if (xForwardedFor && typeof xForwardedFor === "string") {
 		const ipCurrent = xForwardedFor.split(",")[0].trim();
@@ -226,7 +247,7 @@ export async function validateHashWithBcrypt(plainData: string, hashedData: stri
 export function deepClone<TData = ObjectType>(data: TData) {
 	// const objectIsValid = typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0;
 	// const arrayIsValid = Array.isArray(data) && data?.length > 0;
-	if (!data || typeof data !== 'object') return data
+	if (!data || typeof data !== 'object') return data;
 	return cloneDeep(data);
 }
 
