@@ -10,9 +10,9 @@ import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import cloneDeep from 'lodash.clonedeep';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
+import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 
 import { ObjectType } from 'src/interface';
-import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -87,7 +87,7 @@ export function generateCustomUUID({ asUpperCase = false, symbol = '' }: {
 /** Send Http request with Axios. */
 export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
 	try {
-		const response = await axios({ ...options }) as unknown as AxiosResponse<TResponse, TBody>;
+		const response = await axios({headers:{}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
 		return await response.data as TResponse;
 	} catch (error) {
 		const errorObject = error?.response.data;
@@ -357,4 +357,14 @@ export function getCountryTimezones(withDeprecated?: boolean) {
 		countries: getAllCountries({ deprecated: withDeprecated }),
 		timezones: getAllTimezones({ deprecated: withDeprecated })
 	}
+}
+
+/** Get all country names and timezones */
+export function encodeUrlComponent<TData = any>(data: TData) {
+	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
+}
+
+/** Get all country names and timezones */
+export function decodeUrlComponent<TType>(data: string) {
+	return JSON.parse(decodeURIComponent(data)) as TType;
 }
