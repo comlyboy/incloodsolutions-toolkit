@@ -4,11 +4,11 @@ const cachedEnvironmentVariables: ObjectType = {
 	...process?.env
 };
 
-/** Initialize environment variable */
+/** Initialize environment variable, no dotenv library */
 export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
 	[key in keyof Partial<TSchema>]: {
 		required: boolean;
-		defaultValue?: number | string | boolean;
+		defaultValue?: number | string | boolean | ObjectType;
 	};
 }, options?: { debug?: boolean; }) {
 	Object.entries(schema).forEach(([key, config]) => {

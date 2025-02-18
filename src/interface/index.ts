@@ -20,7 +20,7 @@ export interface IErrorResponse {
 	message: string;
 }
 
-export interface IBaseConstructProps<TOptions extends ObjectType = any> {
+export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> {
 	readonly stage?: AppEnvironmentType;
 	readonly options?: TOptions;
 	readonly stackName?: string;
