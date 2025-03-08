@@ -22,17 +22,25 @@ export function generateISODate(date?: string | number | Date) {
 /** Generates random ID, number, alphabet, or mixed */
 export function generateRandomId({ length = 6, variant = 'numeric' }: {
 	length?: number;
-	variant?: 'alphabet' | 'numeric' | 'mixed';
+	variant?: 'alphabet' | 'numeric' | 'alphanumeric';
 } = {}) {
 	let randomId = '';
+	const numbers = '0123456789';
+	const letters = 'abcdefghijklmnopqrstuvwxyz';
+	let toggle = true; // Helps alternate letters and numbers in 'mixed'
+
 	while (randomId.length < length) {
-		const uuid = generateCustomUUID().replace(/-/g, '');
-		// Append only the required characters based on variant
-		randomId += variant === 'alphabet'
-			? uuid.replace(/[^a-zA-Z]/g, '') // Letters only
-			: variant === 'numeric'
-				? uuid.replace(/[^0-9]/g, '') // Numbers only
-				: uuid.replace(/[^a-zA-Z0-9]/g, ''); // Alphanumeric
+		if (variant === 'alphabet') {
+			randomId += letters[Math.floor(Math.random() * letters.length)];
+		} else if (variant === 'numeric') {
+			randomId += numbers[Math.floor(Math.random() * numbers.length)];
+		} else {
+			// Ensures alternating between letters and numbers for a fair mix
+			randomId += toggle
+				? letters[Math.floor(Math.random() * letters.length)]
+				: numbers[Math.floor(Math.random() * numbers.length)];
+			toggle = !toggle; // Flip for next iteration
+		}
 	}
 	// Slice the accumulated ID to maintain exact length
 	return randomId.slice(0, length);
