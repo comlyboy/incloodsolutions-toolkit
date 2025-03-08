@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AES, enc, lib, } from 'crypto-js';
+import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { isIP } from 'validator';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,25 +19,23 @@ export function generateISODate(date?: string | number | Date) {
 	return date ? new Date(date).toISOString() : new Date().toISOString();
 }
 
-/** Generates random ID, number or alphabet*/
-export function generateRandomId({ length = 6, isAlphabet = false }: {
+/** Generates random ID, number, alphabet, or mixed */
+export function generateRandomId({ length = 6, variant = 'numeric' }: {
 	length?: number;
-	isAlphabet?: boolean;
+	variant?: 'alphabet' | 'numeric' | 'mixed';
 } = {}) {
 	let randomId = '';
-	const randomUuid = generateCustomUUID();
-	function getRandomAlpha(): string {
-		const letters = 'abcdefghijklmnopqrstuvwxyz';
-		return letters[Math.floor(Math.random() * letters.length)];
-	}
 	while (randomId.length < length) {
-		if (isAlphabet) {
-			randomId += getRandomAlpha();
-		} else {
-			randomId += randomUuid.replace(/[^0-9]/g, '');
-		}
+		const uuid = generateCustomUUID().replace(/-/g, '');
+		// Append only the required characters based on variant
+		randomId += variant === 'alphabet'
+			? uuid.replace(/[^a-zA-Z]/g, '') // Letters only
+			: variant === 'numeric'
+				? uuid.replace(/[^0-9]/g, '') // Numbers only
+				: uuid.replace(/[^a-zA-Z0-9]/g, ''); // Alphanumeric
 	}
-	return randomId.slice(0, length).trim();
+	// Slice the accumulated ID to maintain exact length
+	return randomId.slice(0, length);
 }
 
 
@@ -87,7 +85,7 @@ export function generateCustomUUID({ asUpperCase = false, symbol = '' }: {
 /** Send Http request with Axios. */
 export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
 	try {
-		const response = await axios({headers:{}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
+		const response = await axios({ headers: {}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
 		return await response.data as TResponse;
 	} catch (error) {
 		const errorObject = error?.response.data;
@@ -122,19 +120,15 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 }
 
 /** Encrypted data using crypto-js. */
-export function encryptData<TData>({ data, secret, options }: {
-	data: TData;
+export function encryptData<TData>({ data, secret, type = 'aes256' }: {
+	data?: TData;
 	secret: string;
-	options?: {
-		iv?: lib.WordArray;
-		format?: {
-			stringify?: () => string;
-			parse?: (str: string) => lib.CipherParams;
-		}
-	} & ObjectType
+	type?: 'hmacSha512' | 'aes256' | 'sha512' | 'sha256';
 }): string {
 	try {
-		if (!data) return null;
+		if (!data) {
+			throw new Error('No data for encrption!');
+		};
 		if (!secret) {
 			throw new Error('Secret key is required for encryption!');
 		}
@@ -146,7 +140,13 @@ export function encryptData<TData>({ data, secret, options }: {
 		// 		parse: options?.format?.parse
 		// 	}
 		// };
-		return AES.encrypt(dataToString, secret).toString();
+		if (type === 'hmacSha512') {
+			return HmacSHA512(dataToString, secret).toString(enc.Hex);
+		} else if (type === 'sha512') {
+			return SHA512(dataToString).toString(enc.Hex);
+		} else {
+			return AES.encrypt(dataToString, secret).toString();
+		}
 	} catch (error) {
 		error['message'] = error?.message || 'Encryption errored out!';
 		throw error;
@@ -154,9 +154,10 @@ export function encryptData<TData>({ data, secret, options }: {
 }
 
 /** Decrypted data using crypto-js. */
-export function decryptData<TResponse>({ hashedData, secret }: {
-	hashedData: string;
+export function decryptData<TResponse>({ hashedData, secret, type = 'aes256' }: {
 	secret: string;
+	hashedData: string;
+	type?: 'aes256';
 }): TResponse {
 	try {
 		if (!hashedData) return null;
@@ -348,7 +349,11 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, messa
 
 /** Return API call response */
 export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: { data?: TBody; message?: string; error?: ObjectType; }, statusCode = 200) {
-	return res.status(statusCode).json({ statusCode, ...data });
+	return res.status(statusCode).json({
+		...data,
+		statusCode,
+		success: statusCode < 400
+	});
 }
 
 /** Get all country names and timezones */
@@ -359,12 +364,12 @@ export function getCountryTimezones(withDeprecated?: boolean) {
 	}
 }
 
-/** Get all country names and timezones */
+/** Encode URL */
 export function encodeUrlComponent<TData = any>(data: TData) {
 	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
 }
 
-/** Get all country names and timezones */
+/** Decode URL */
 export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
 }
