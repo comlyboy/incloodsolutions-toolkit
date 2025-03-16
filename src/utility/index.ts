@@ -11,6 +11,7 @@ import { compare, genSalt, hash } from 'bcryptjs';
 import cloneDeep from 'lodash.clonedeep';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
+import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 
 import { ObjectType } from 'src/interface';
 
@@ -380,4 +381,19 @@ export function encodeUrlComponent<TData = any>(data: TData) {
 /** Decode URL */
 export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
+}
+
+export function xmlToJson<TResponse>(xmlData: string, options: ParserOptions) {
+	return new Parser(options).parseStringPromise(xmlData) as TResponse;
+}
+
+export async function jsonToXml<TData>(dataObject: TData, options: BuilderOptions) {
+	return new Promise<string>((resolve, reject) => {
+		try {
+			const builder = new Builder(options);
+			resolve(builder.buildObject(dataObject));
+		} catch (error) {
+			reject(error);
+		}
+	});
 }
