@@ -11,12 +11,21 @@ export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
 		defaultValue?: number | string | boolean | ObjectType;
 	};
 }, options?: { debug?: boolean; }) {
-	Object.entries(schema).forEach(([key, config]) => {
+	Object.entries(schema).map(([key, config]) => {
 		const envValue = process?.env[key];
 		if (!envValue && config?.required && !config?.defaultValue) {
 			throw new Error(`Environment variable "${key}" cannot be null/undefined!`);
 		}
-		cachedEnvironmentVariables[key] = envValue || config?.defaultValue;
+		const finalValue = envValue || config?.defaultValue;
+		cachedEnvironmentVariables[key] = finalValue;
+
+		if (options?.debug) {
+			console.log(
+				`[DEBUG] ENV: ${key} | Value: ${finalValue !== undefined ? JSON.stringify(finalValue) : "undefined"
+				} | Source: ${envValue !== undefined ? "process.env" : "defaultValue"}`
+			);
+		}
+
 	});
 	return cachedEnvironmentVariables as TSchema & ObjectType;
 }
