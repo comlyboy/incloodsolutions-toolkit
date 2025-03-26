@@ -19,7 +19,7 @@ export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
 		const finalValue = envValue || config?.defaultValue;
 		cachedEnvironmentVariables[key] = finalValue;
 
-		if (options?.debug) {
+		if (options?.debug && process?.env?.NODE_ENV !== 'production') {
 			console.log(
 				`[DEBUG] ENV: ${key} | Value: ${finalValue !== undefined ? JSON.stringify(finalValue) : "undefined"
 				} | Source: ${envValue !== undefined ? "process.env" : "defaultValue"}`
