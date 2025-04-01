@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.16",
+	"version": "0.0.171",
 	"description": "",
 	"main": "dist/index.js",
 	"author": "",
@@ -10,7 +10,7 @@
 	],
 	"scripts": {
 		"build": "rimraf ./dist && tsc -b",
-		"version:patch": "npm version patch",
+		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"publishing": "npm run build && npm publish --access=public",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

@@ -21,6 +21,7 @@
 		"noImplicitAny": true,
 		"esModuleInterop": true,
 		"strictBindCallApply": false,
+		"allowUnreachableCode": false,
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false,

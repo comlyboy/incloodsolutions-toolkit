@@ -11,21 +11,28 @@ export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
 		defaultValue?: number | string | boolean | ObjectType;
 	};
 }, options?: { debug?: boolean; }) {
+	const redColor = '\x1b[31m';
+	const yellowColor = "\x1b[33m";
+	const resetColor = '\x1b[0m';
+	const greenColor = '\x1b[32m';
+	const cyanColor = "\x1b[36m";
+	const grayColor = "\x1b[90m";
+
 	Object.entries(schema).map(([key, config]) => {
 		const envValue = process?.env[key];
 		if (!envValue && config?.required && !config?.defaultValue) {
-			throw new Error(`Environment variable "${key}" cannot be null/undefined!`);
+			throw new Error(`${greenColor}[ENV Error]${resetColor} | ${redColor} Environment variable "${key}" cannot be null/undefined!${resetColor}`);
 		}
 		const finalValue = envValue || config?.defaultValue;
 		cachedEnvironmentVariables[key] = finalValue;
 
 		if (options?.debug && process?.env?.NODE_ENV !== 'production') {
 			console.log(
-				`[DEBUG] ENV: ${key} | Value: ${finalValue !== undefined ? JSON.stringify(finalValue) : "undefined"
-				} | Source: ${envValue !== undefined ? "process.env" : "defaultValue"}`
+				`${greenColor}[ENV]${resetColor} ${yellowColor}${key.padEnd(20)}${resetColor} | ${greenColor}Value:${resetColor} ${yellowColor}${String(finalValue).padEnd(30)}${resetColor} | ${greenColor}Source:${resetColor} ${envValue !== undefined ? `${cyanColor}process.env${resetColor}` : `${grayColor}defaultValue${resetColor}`
+				}`
 			);
 		}
 
 	});
-	return cachedEnvironmentVariables as TSchema & ObjectType;
+	return cachedEnvironmentVariables as TSchema;
 }

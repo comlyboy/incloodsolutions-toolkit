@@ -65,7 +65,7 @@ export function transformText({ text, format, trim = false }: {
 		text = text.toLowerCase().replace(/\b\w/g, (match: string) => match.toUpperCase());
 	}
 	if (format === 'titlecase') {
-		text = text.replace(/^./, text[0].toUpperCase());
+		text = text.toLowerCase().replace(/^./, text[0].toUpperCase());
 	}
 	if (trim) {
 		text.trim();
@@ -78,17 +78,12 @@ export function isIsoDate(date: string): boolean {
 }
 
 /** Generates customized uuid. */
-export function generateCustomUUID({ asUpperCase = false, symbol = '' }: {
+export function generateCustomUUID({ asUpperCase = false, symbol }: {
 	asUpperCase?: boolean;
 	symbol?: string;
 } = {}): string {
-	let identity = uuidv4();
-	if (symbol !== '') {
-		if (symbol === ' ') symbol = '';
-		identity = identity.replace(/-/gi, symbol);
-	}
-	if (asUpperCase) { identity = identity.toUpperCase(); }
-	return identity;
+	const uuid = symbol && symbol.trim() ? uuidv4().replace(/-/g, symbol) : uuidv4();
+	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 
 /** Send Http request with Axios. */
