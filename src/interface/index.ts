@@ -12,7 +12,12 @@ export interface IBasePassword {
 	password: string;
 }
 
-export interface IErrorResponse {
+export interface IBaseEnvironmentVariable {
+	NODE_ENV: AppEnvironmentType;
+	TELEGRAM_BOT_TOKEN: string;
+}
+
+export interface IBaseErrorResponse {
 	statusCode: number;
 	timestamp: string,
 	method: string;
