@@ -19,9 +19,11 @@
 	},
 	"license": "ISC",
 	"dependencies": {
+		"aws-cdk-lib": "^2.187.0",
 		"axios": "^1.8.4",
 		"base64-stream": "^1.0.0",
 		"bcryptjs": "^3.0.2",
+		"constructs": "^10.4.2",
 		"countries-and-timezones": "^3.7.2",
 		"crypto-js": "^4.2.0",
 		"express": "^5.1.0",
