@@ -1,43 +1,49 @@
 import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
-import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, QueryCommandInput, QueryCommandOutput, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 import { plainToInstance } from "class-transformer";
 import { validateOrReject, ValidatorOptions } from "class-validator";
 
 import { IBaseId, ObjectType } from "src/interface";
 
-export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>({ databaseTableName, schema, config, schemaConfig, translationOptions }: {
-	databaseTableName: string;
-	schema: new () => TSchema;
-	config?: DynamoDBClientConfig;
-	schemaConfig?: ValidatorOptions;
-	translationOptions?: TranslateConfig;
+
+export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>(options: {
+	readonly databaseTableName: string;
+	readonly schema: new () => TSchema;
+	readonly config?: DynamoDBClientConfig;
+	readonly schemaConfig?: ValidatorOptions;
+	readonly sortKeyName?: string;
+	readonly primaryKeyName: string;
+	readonly translationConfig?: TranslateConfig;
+	readonly tableIndexNames?: ObjectType<string>;
 }) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names'];
 
-	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(config), translationOptions);
+	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
 	return {
 		put: async ({ data }: { data: TSchema; }) => {
-			const instance = plainToInstance(schema, data);
+			const instance = plainToInstance(options?.schema, data);
+
 			await validateOrReject(instance, {
-				...schemaConfig,
-				whitelist: schemaConfig?.whitelist === false ? schemaConfig?.whitelist : true,
-				forbidUnknownValues: schemaConfig?.forbidUnknownValues === false ? schemaConfig?.forbidUnknownValues : true
+				...options?.schemaConfig,
+				whitelist: options?.schemaConfig?.whitelist === false ? options?.schemaConfig?.whitelist : true,
+				forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options?.schemaConfig?.forbidUnknownValues : true
 			});
 
 			await dynamoDbClientInstance.send(new PutCommand({
 				Item: { ...data },
-				TableName: databaseTableName
+				TableName: options?.databaseTableName
 			}));
 			return data;
 		},
+
 		getById: async ({ id, select = [] }: {
 			select?: (keyof TSchema)[];
 		} & IBaseId) => {
 			const response = await dynamoDbClientInstance.send(new GetCommand({
 				Key: { id },
 				ProjectionExpression: select.length ? [...new Set(['id', ...select])].toString() : undefined,
-				TableName: databaseTableName
+				TableName: options?.databaseTableName
 			}));
 			return response.Item as TSchema;
 		},
@@ -46,15 +52,19 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 		getManyByIds: async ({ ids, select = [] }: {
 			ids: string[];
 			select?: (keyof TSchema)[];
+			returnAll?: boolean;
 		}) => {
 			let queryResponse: BatchGetCommandOutput;
 			let responseData: TSchema[] = [];
 
-			if (!ids || !ids.length) return [] as TSchema[];
+			if (!ids || !ids.length) return [{
+				data: [] as TSchema[],
+				nextPageData: null as string
+			}];
 
 			const batchGetInput: BatchGetCommandInput = {
 				RequestItems: {
-					[databaseTableName]: {
+					[options?.databaseTableName]: {
 						Keys: [...new Set(ids)].map(id => ({ id })),
 						ProjectionExpression: select.length ? [...new Set(['id', ...select])].toString() : undefined
 					}
@@ -63,7 +73,7 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 
 			do {
 				queryResponse = await dynamoDbClientInstance.send(new BatchGetCommand(batchGetInput));
-				responseData = [...responseData, ...queryResponse.Responses[databaseTableName] as TSchema[]];
+				responseData = [...responseData, ...queryResponse.Responses[options?.databaseTableName] as TSchema[]];
 				batchGetInput.RequestItems = queryResponse.UnprocessedKeys;
 			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
 
@@ -72,32 +82,102 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 				nextPageData: queryResponse.UnprocessedKeys
 			}
 		},
-		query: () => { },
-		updateOne: async ({ id, data }: {
-			data: Partial<TSchema>;
-		} & IBaseId) => {
 
-			const updateParam: UpdateCommandInput = {
-				Key: { id },
-				TableName: databaseTableName,
-				ReturnValues: 'ALL_NEW',
-				// ReturnConsumedCapacity: 'TOTAL'
+		query: async ({ filter, indexName, limit, returnAll, paginationData, searchTerms, select }: {
+			filter: Partial<ObjectType<keyof TSchema>>;
+			limit?: number;
+			indexName: typeof options.tableIndexNames[keyof typeof options.tableIndexNames];
+			returnAll?: boolean;
+			paginationData?: ObjectType;
+			select?: (keyof TSchema)[];
+			searchTerms?: { properties: (keyof TSchema)[], value: string | number | boolean };
+		}) => {
+			let exclusiveStartKey: TSchema;
+			let queryResponse: QueryCommandOutput;
+			let responseData: TSchema[] = [];
+
+			const queryParam: QueryCommandInput = {
+				IndexName: indexName,
+				TableName: options?.databaseTableName,
+				// KeyConditionExpression: 'entityName = :entityName',
+				// ExpressionAttributeValues: { ':entityName': entityName }
 			}
 
-			Object.entries(data).map(([key, value]) => {
-				const rawKey = key;
-				if (AWS_DYNAMODB_RESERVED_WORDS.includes(key)) {
-					key = `#${key}_`;
+			if (limit) {
+				queryParam.Limit = limit;
+			}
+
+			if (select.length) {
+				queryParam.ProjectionExpression = select.length ? [...new Set(['id', ...select])].toString() : undefined;
+			}
+
+			if (paginationData) {
+				queryParam.ExclusiveStartKey = paginationData;
+			}
+
+			// uses only contain operator cus is search
+			if (searchTerms?.properties.length && searchTerms?.value) {
+				const properties = [...new Set(searchTerms.properties.filter(property => property !== 'password'))];
+
+				properties.map((property, index) => {
+					const rawProperty = property
+					// first check if aws dynamoDB reserved key is presence
+					if (this.AWS_DYNAMODB_RESERVED_KEYS.includes(String(property))) {
+						property = `#${String(property)}_`;
+						queryParam.ExpressionAttributeNames = {
+							...queryParam.ExpressionAttributeNames,
+							[property]: rawProperty as string
+						};
+					}
+					queryParam.FilterExpression = index === 0 ? `contains(${String(property)}, :searchKeyword)` : queryParam.FilterExpression += ` OR contains(${String(property)}, :searchKeyword)`;
+					queryParam.ExpressionAttributeValues = {
+						...queryParam.ExpressionAttributeValues,
+						':searchKeyword': searchTerms.value
+					};
+				});
+			}
+
+			if (filter && Object.keys(filter).length) {
+				Object.entries(filter).map(([key, value]) => {
+					const filterValue = `${key} = :${key}`;
+					queryParam.FilterExpression ? queryParam.FilterExpression += ` AND ${filterValue}` : queryParam.FilterExpression = filterValue
+					queryParam.ExpressionAttributeValues = {
+						...queryParam.ExpressionAttributeValues,
+						[`:${key}`]: value
+					}
+				});
+			}
+
+			do {
+				queryResponse = await dynamoDbClientInstance.send(new QueryCommand(queryParam));
+				responseData = [...responseData, ...queryResponse.Items as TSchema[]];
+				exclusiveStartKey = queryResponse.LastEvaluatedKey as TSchema;
+				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TSchema;
+			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
+			return { data: responseData, nextPageToken: exclusiveStartKey };
+		},
+
+		updateOneById: async ({ id, data }: { data: Partial<TSchema>; } & IBaseId) => {
+			const updateParam: UpdateCommandInput = {
+				Key: { id },
+				TableName: options?.databaseTableName,
+				ReturnValues: 'ALL_NEW',
+			};
+
+			Object.entries(data).map(([propertyKey, value]) => {
+				const rawKey = propertyKey;
+				if (AWS_DYNAMODB_RESERVED_WORDS.includes(propertyKey)) {
+					propertyKey = `#${propertyKey}_`;
 					updateParam.ExpressionAttributeNames = {
 						...updateParam.ExpressionAttributeNames,
-						[key]: rawKey
+						[propertyKey]: rawKey
 					};
 				}
-				const filterValue = `${key} = :${key}`;
+				const filterValue = `${propertyKey} = :${propertyKey}`;
 				updateParam.UpdateExpression ? updateParam.UpdateExpression += `, ${filterValue}` : updateParam.UpdateExpression = `SET ${filterValue}`;
 				updateParam.ExpressionAttributeValues = {
 					...updateParam.ExpressionAttributeValues,
-					[`:${key}`]: value
+					[`:${propertyKey}`]: value
 				}
 			});
 
@@ -106,7 +186,8 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 		},
 		delete: async ({ id }: { id: string; }) => {
 			await dynamoDbClientInstance.send(new DeleteCommand({
-				Key: { id }, TableName: databaseTableName
+				Key: { id },
+				TableName: options?.databaseTableName
 			}));
 			return true;
 		}

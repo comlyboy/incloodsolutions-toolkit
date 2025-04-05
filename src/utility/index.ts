@@ -378,10 +378,12 @@ export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
 }
 
-export function xmlToJson<TResponse>(xmlData: string, options: ParserOptions) {
+/** Converts XML data format into JSON format */
+export async function xmlToJson<TResponse>(xmlData: string, options: ParserOptions) {
 	return new Parser(options).parseStringPromise(xmlData) as TResponse;
 }
 
+/** Converts JSON data format into XML format */
 export async function jsonToXml<TData>(dataObject: TData, options: BuilderOptions) {
 	return new Promise<string>((resolve, reject) => {
 		try {
@@ -391,4 +393,32 @@ export async function jsonToXml<TData>(dataObject: TData, options: BuilderOption
 			reject(error);
 		}
 	});
+}
+
+/** Detects duplicated object property. Throws error when found */
+export function detectDuplicateProperties<TObject extends ObjectType = any>({ data, parentKey = '' }: { data: TObject; parentKey?: string; }): void {
+	const seen = new Set<string>();
+	const duplicateKeys: string[] = [];
+
+	function traverse(obj: ObjectType, parentKey: string) {
+		Object.entries(obj).map(([key, value]) => {
+			const fullKey = parentKey ? `${parentKey}.${key}` : key;
+
+			if (seen.has(fullKey)) {
+				duplicateKeys.push(fullKey);
+			} else {
+				seen.add(fullKey);
+			}
+
+			if (typeof value === 'object' && !Array.isArray(value) && (value !== null || value !== undefined)) {
+				traverse(value, fullKey);
+			}
+		});
+	}
+
+	traverse(data, parentKey);
+
+	if (duplicateKeys.length > 0) {
+		throw new Error(`Duplicate properties detected: ${duplicateKeys.join(', ')}`);
+	}
 }
