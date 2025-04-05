@@ -6,7 +6,7 @@ import { IBaseCdkConstructProps } from 'src/interface';
 
 
 
-interface ILambdaConstructProps extends IBaseCdkConstructProps<Partial<FunctionProps>> { }
+interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<FunctionProps>>, 'appName'> { }
 
 export class LambdaConstruct extends Construct {
 	readonly handler: Function;
@@ -15,14 +15,14 @@ export class LambdaConstruct extends Construct {
 
 		this.handler = new Function(this, id, {
 			...props.options,
-			functionName: props.stackName,
+			functionName: props.options?.functionName || props.stackName,
 			description: props.options?.description || 'A lambda function',
 			handler: props.options?.handler || 'lambda.handler',
-			runtime: Runtime.NODEJS_22_X,
-			timeout: Duration.seconds(props.stage === 'production' ? 30 : 15),
-			memorySize: 1024,
-			architecture: Architecture.ARM_64,
-			code: Code.fromAsset('dist'),
+			runtime: props?.options?.runtime || Runtime.NODEJS_22_X,
+			timeout: props?.options?.timeout || Duration.seconds(props.stage === 'production' ? 30 : 15),
+			memorySize: props?.options?.memorySize | 1024,
+			architecture: props?.options?.architecture || Architecture.ARM_64,
+			code: props?.options?.code || Code.fromAsset('dist'),
 			environment: {
 				...props.options?.environment,
 				NODE_ENV: props.stage,

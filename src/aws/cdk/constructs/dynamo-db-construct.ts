@@ -3,11 +3,11 @@ import { BillingMode, GlobalSecondaryIndexProps, LocalSecondaryIndexProps, Table
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface IDynamoDBConstructProps extends IBaseCdkConstructProps<{
+interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	tableOptions?: TableProps;
 	globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 	localSecondaryIndexes?: LocalSecondaryIndexProps[];
-}> { }
+}>, 'appName' | 'stackName'> { }
 
 export class DynamoDBConstruct extends Construct {
 	readonly table: Table;
@@ -17,19 +17,19 @@ export class DynamoDBConstruct extends Construct {
 		this.table = new Table(this, id, {
 			...props.options?.tableOptions,
 			billingMode: props.options?.tableOptions?.billingMode || BillingMode.PAY_PER_REQUEST,
-			deletionProtection: props.stage === 'production',
-			// removalPolicy: props.stage === 'production' ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+			deletionProtection: (props.options?.tableOptions?.deletionProtection === false || props.options?.tableOptions?.deletionProtection === true) ? props.options?.tableOptions?.deletionProtection : props.stage === 'production',
 		});
 
 		if (props?.options?.globalSecondaryIndexes?.length) {
-			props.options.globalSecondaryIndexes.forEach((globalIndex) => {
+			props.options.globalSecondaryIndexes.map(globalIndex => {
 				this.table.addGlobalSecondaryIndex(globalIndex);
 			});
 		}
-		// if (props?.options?.localSecondaryIndexes?.length) {
-		// 	props.options.localSecondaryIndexes.forEach((localIndex) => {
-		// 		this.table.addLocalSecondaryIndex(localIndex);
-		// 	});
-		// }
+
+		if (props?.options?.localSecondaryIndexes?.length) {
+			props.options.localSecondaryIndexes.map(localIndex => {
+				this.table.addLocalSecondaryIndex(localIndex);
+			});
+		}
 	}
 }

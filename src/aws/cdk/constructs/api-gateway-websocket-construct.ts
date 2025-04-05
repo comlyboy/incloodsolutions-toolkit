@@ -7,10 +7,10 @@ import { WebSocketApi, WebSocketApiProps, WebSocketRouteOptions, WebSocketStage,
 import { IBaseCdkConstructProps } from 'src/interface';
 
 
-interface IApiGatewayWebsocketConstructProps extends IBaseCdkConstructProps<{
-	webSocketApiOption: WebSocketApiProps;
-	webSocketStageOption: WebSocketStageProps;
-}> {
+interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps<{
+	webSocketApiOptions: WebSocketApiProps;
+	webSocketStageOptions: WebSocketStageProps;
+}>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlers: {
 		readonly connect: {
 			option: WebSocketRouteOptions;
@@ -38,7 +38,7 @@ export class ApiGatewayWebSocketConstruct extends Construct {
 		super(scope, id);
 
 		this.socketApi = new WebSocketApi(this, id, {
-			...props.options.webSocketApiOption,
+			...props.options.webSocketApiOptions,
 			connectRouteOptions: {
 				...props.handlers.connect?.option,
 				integration: new WebSocketLambdaIntegration('connectIntegration', props.handlers.connect.function),
@@ -60,7 +60,7 @@ export class ApiGatewayWebSocketConstruct extends Construct {
 
 		// Deploy WebSocket API
 		const webSocketStage = new WebSocketStage(this, `${id}_stage`, {
-			...props.options?.webSocketStageOption,
+			...props.options?.webSocketStageOptions,
 			webSocketApi: this.socketApi,
 			autoDeploy: true
 		});

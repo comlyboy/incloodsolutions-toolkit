@@ -9,7 +9,7 @@ import { IBaseCdkConstructProps } from 'src/interface';
 interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
 	gatewayOptions: HttpApiProps;
 	routeOptions: Partial<AddRoutesOptions>;
-}>, 'stage' | 'stackName'> {
+}>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlerFunction: Function;
 }
 
@@ -22,7 +22,7 @@ export class ApiGatewayV2Construct extends Construct {
 		this.api = new HttpApi(this, id, {
 			...props?.options?.gatewayOptions,
 			corsPreflight: {
-				...props.options.gatewayOptions?.corsPreflight,
+				...props.options?.gatewayOptions?.corsPreflight,
 				allowHeaders: [
 					...props.options?.gatewayOptions?.corsPreflight?.allowHeaders,
 					'Content-Type',

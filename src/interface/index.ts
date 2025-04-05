@@ -29,6 +29,7 @@ export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> {
 	readonly stage?: AppEnvironmentType;
 	readonly options?: TOptions;
 	readonly stackName?: string;
+	readonly appName?: string;
 }
 
 export enum AppEnvironmentEnum {

@@ -6,21 +6,22 @@ import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface IEventBridgeConstructProps extends IBaseCdkConstructProps<{
+interface IEventBridgeConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly targetFunctions: Function[];
 	readonly eventBridgeOptions: RuleProps;
-}> { }
+}>, 'appName' | 'stage' | 'stackName'> { }
 
 export class EventBridgeConstruct extends Construct {
 	readonly eventSchedule: Rule;
 	constructor(scope: Construct, id: string, props: IEventBridgeConstructProps) {
 		super(scope, id);
 		this.eventSchedule = new Rule(this, id, {
-			...props.options?.eventBridgeOptions
+			...props.options?.eventBridgeOptions,
+			description: props?.options?.eventBridgeOptions?.description || 'An Event-bridge rule'
 		});
 
 		if (props.options?.targetFunctions?.length) {
-			props.options.targetFunctions.forEach((targetFunction) => {
+			props.options.targetFunctions.map((targetFunction) => {
 				this.eventSchedule.addTarget(new LambdaFunction(targetFunction));
 			});
 		}

@@ -4,7 +4,7 @@ import { LogGroup, LogGroupProps, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface ILogGroupConstructProps extends IBaseCdkConstructProps<LogGroupProps> { }
+interface ILogGroupConstructProps extends Omit<IBaseCdkConstructProps<LogGroupProps>, 'appName' | 'stage' | 'stackName'> { }
 
 export class CloudWatchLogGroupConstruct extends Construct {
 	readonly logGroup: LogGroup;
