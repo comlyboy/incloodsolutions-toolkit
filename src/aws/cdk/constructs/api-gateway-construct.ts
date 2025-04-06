@@ -16,9 +16,9 @@ interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
 
 export class ApiGatewayV2Construct extends Construct {
 	readonly api: HttpApi;
+
 	constructor(scope: Construct, id: string, props: IApiGatewayConstructProps) {
 		super(scope, id);
-
 		this.api = new HttpApi(this, id, {
 			...props?.options?.gatewayOptions,
 			corsPreflight: {

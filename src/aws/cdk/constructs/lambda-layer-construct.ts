@@ -10,7 +10,6 @@ export class LambdaLayerConstruct extends Construct {
 
 	constructor(scope: Construct, id: string, props?: ILambdaLayerConstructProps) {
 		super(scope, id);
-
 		this.layer = new LayerVersion(this, id, {
 			...props.options,
 			code: props?.options?.code || Code.fromAsset('./dist-layer'),

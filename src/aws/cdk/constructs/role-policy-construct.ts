@@ -11,9 +11,9 @@ interface IDynamoDBConstructProps extends IBaseCdkConstructProps<RoleProps> {
 
 export class RolePolicyConstruct extends Construct {
 	readonly role: Role;
+
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
-
 		this.role = new Role(this, id, {
 			...props.options,
 			managedPolicies: [

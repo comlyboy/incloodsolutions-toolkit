@@ -11,9 +11,9 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 
 export class DynamoDBConstruct extends Construct {
 	readonly table: Table;
+
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
-
 		this.table = new Table(this, id, {
 			...props.options?.tableOptions,
 			billingMode: props.options?.tableOptions?.billingMode || BillingMode.PAY_PER_REQUEST,

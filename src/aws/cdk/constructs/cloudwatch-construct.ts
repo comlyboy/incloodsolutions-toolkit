@@ -8,6 +8,7 @@ interface ILogGroupConstructProps extends Omit<IBaseCdkConstructProps<LogGroupPr
 
 export class CloudWatchLogGroupConstruct extends Construct {
 	readonly logGroup: LogGroup;
+
 	constructor(scope: Construct, id: string, props: ILogGroupConstructProps) {
 		super(scope, id);
 		this.logGroup = new LogGroup(this, id, {

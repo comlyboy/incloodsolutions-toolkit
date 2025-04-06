@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
-
 import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
+
 import { IBaseCdkConstructProps } from 'src/interface';
 import { detectDuplicateProperties } from 'src/utility';
 
@@ -11,6 +11,7 @@ interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<Func
 
 export class LambdaConstruct extends Construct {
 	readonly handler: Function;
+
 	constructor(scope: Construct, id: string, props: ILambdaConstructProps) {
 		super(scope, id);
 

@@ -13,6 +13,7 @@ interface IEventBridgeConstructProps extends Omit<IBaseCdkConstructProps<{
 
 export class EventBridgeConstruct extends Construct {
 	readonly eventSchedule: Rule;
+
 	constructor(scope: Construct, id: string, props: IEventBridgeConstructProps) {
 		super(scope, id);
 		this.eventSchedule = new Rule(this, id, {

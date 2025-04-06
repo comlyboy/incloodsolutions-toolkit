@@ -17,7 +17,6 @@ export class S3DeploymentConstruct extends Construct {
 
 	constructor(scope: Construct, id: string, props: IS3DeploymentConstructProps) {
 		super(scope, id);
-
 		this.bucket = new Bucket(this, id, {
 			...props.options?.bucketOptions,
 			removalPolicy: props.options?.bucketOptions?.removalPolicy || props.stage === 'production' ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY

@@ -36,7 +36,6 @@ export class ApiGatewayWebSocketConstruct extends Construct {
 
 	constructor(scope: Construct, id: string, props: IApiGatewayWebsocketConstructProps) {
 		super(scope, id);
-
 		this.socketApi = new WebSocketApi(this, id, {
 			...props.options.webSocketApiOptions,
 			connectRouteOptions: {

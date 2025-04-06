@@ -8,6 +8,22 @@ export interface IBaseName {
 	name: string;
 }
 
+export interface IBaseRoles {
+	roles: string[];
+}
+
+export interface IBaseTimestamp {
+	timestamp: string;
+}
+
+export interface IBaseStatus<TEntity> {
+	status: TEntity;
+}
+
+export interface IBaseDescription {
+	description: string;
+}
+
 export interface IBasePassword {
 	password: string;
 }
