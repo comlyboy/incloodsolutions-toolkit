@@ -1,4 +1,5 @@
 export * from './api-gateway-construct';
+export * from './api-gateway-v2-construct';
 export * from './api-gateway-websocket-construct';
 export * from './cloudwatch-construct';
 export * from './dynamo-db-construct';

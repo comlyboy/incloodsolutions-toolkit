@@ -422,3 +422,17 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 		throw new Error(`Duplicate properties detected: ${duplicateKeys.join(', ')}`);
 	}
 }
+
+export function createLogger(context?: string) {
+	function logMessage(level: string, message: string) {
+		const ctx = context ? `[${context}]` : '';
+		return console.log(`${new Date().toISOString()} - ${level.toUpperCase()} ${ctx} ${message}`);
+	}
+
+	return {
+		log: (message: string) => logMessage('log', message),
+		info: (message: string) => logMessage('info', message),
+		debug: (message: string) => logMessage('debug', message),
+		error: (message: string) => logMessage('error', message)
+	};
+}

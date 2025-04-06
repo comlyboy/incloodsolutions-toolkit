@@ -27,6 +27,9 @@ export interface IBaseDescription {
 export interface IBasePassword {
 	password: string;
 }
+export interface IBaseConstruct {
+	readonly isDebugMode: boolean;
+}
 
 export interface IBaseEnvironmentVariable {
 	NODE_ENV: AppEnvironmentType;
@@ -46,6 +49,7 @@ export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> {
 	readonly options?: TOptions;
 	readonly stackName?: string;
 	readonly appName?: string;
+	readonly enableDebugMode?: boolean;
 }
 
 export enum AppEnvironmentEnum {

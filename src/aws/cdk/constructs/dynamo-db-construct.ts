@@ -1,7 +1,8 @@
 import { Construct } from 'constructs';
 import { BillingMode, GlobalSecondaryIndexProps, LocalSecondaryIndexProps, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps, IBaseConstruct } from 'src/interface';
+import { logDebugger } from 'src/aws/helper';
 
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	tableOptions?: TableProps;
@@ -9,11 +10,16 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	localSecondaryIndexes?: LocalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
-export class DynamoDBConstruct extends Construct {
+export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 	readonly table: Table;
+
+	isDebugMode = false;
 
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
+
+		this.isDebugMode = props?.enableDebugMode;
+
 		this.table = new Table(this, id, {
 			...props.options?.tableOptions,
 			billingMode: props.options?.tableOptions?.billingMode || BillingMode.PAY_PER_REQUEST,
@@ -21,14 +27,20 @@ export class DynamoDBConstruct extends Construct {
 		});
 
 		if (props?.options?.globalSecondaryIndexes?.length) {
-			props.options.globalSecondaryIndexes.map(globalIndex => {
+			props.options.globalSecondaryIndexes.forEach(globalIndex => {
 				this.table.addGlobalSecondaryIndex(globalIndex);
+				if (this.isDebugMode) {
+					logDebugger(DynamoDBConstruct.name, `Added LSI: ${globalIndex.indexName}`);
+				}
 			});
 		}
 
 		if (props?.options?.localSecondaryIndexes?.length) {
-			props.options.localSecondaryIndexes.map(localIndex => {
+			props.options.localSecondaryIndexes.forEach(localIndex => {
 				this.table.addLocalSecondaryIndex(localIndex);
+				if (this.isDebugMode) {
+					logDebugger(DynamoDBConstruct.name, `Added LSI: ${localIndex.indexName}`);
+				}
 			});
 		}
 	}
