@@ -5,14 +5,13 @@ import { validateOrReject, ValidatorOptions } from "class-validator";
 
 import { IBaseId, ObjectType } from "src/interface";
 
-
 export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>(options: {
-	readonly databaseTableName: string;
+	readonly databaseTableName?: string;
 	readonly schema: new () => TSchema;
 	readonly config?: DynamoDBClientConfig;
 	readonly schemaConfig?: ValidatorOptions;
 	readonly sortKeyName?: string;
-	readonly primaryKeyName: string;
+	readonly primaryKeyName?: string;
 	readonly translationConfig?: TranslateConfig;
 	readonly tableIndexNames?: ObjectType<string>;
 }) {
