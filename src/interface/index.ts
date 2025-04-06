@@ -28,7 +28,7 @@ export interface IBasePassword {
 	password: string;
 }
 export interface IBaseConstruct {
-	readonly isDebugMode: boolean;
+	isDebugMode: boolean;
 }
 
 export interface IBaseEnvironmentVariable {

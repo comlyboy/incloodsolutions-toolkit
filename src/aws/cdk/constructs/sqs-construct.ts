@@ -5,10 +5,10 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface ISqsConstructProps extends IBaseCdkConstructProps<{
+interface ISqsConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly queueOptions?: QueueProps;
 	readonly eventSourceMappingOptions?: Omit<EventSourceMappingProps, 'eventSourceArn' | 'target'>;
-}> {
+}>, 'appName' | 'stage' | 'stackName'> {
 	readonly receivingFunctions?: Function[];
 }
 

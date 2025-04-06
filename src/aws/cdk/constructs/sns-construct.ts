@@ -4,7 +4,7 @@ import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface ISnsConstructProps extends IBaseCdkConstructProps<TopicProps> { }
+interface ISnsConstructProps extends Omit<IBaseCdkConstructProps<TopicProps>, 'appName' | 'stage' | 'stackName'> { }
 
 export class SnsConstruct extends Construct {
 	readonly topic: Topic;

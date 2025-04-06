@@ -5,10 +5,10 @@ import { BucketDeployment, BucketDeploymentProps } from 'aws-cdk-lib/aws-s3-depl
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface IS3DeploymentConstructProps extends IBaseCdkConstructProps<{
+interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly bucketOptions?: BucketProps;
 	readonly bucketDeploymentOptions?: Partial<BucketDeploymentProps>;
-}> {
+}>, 'appName' | 'stackName'> {
 	readonly withBucketDeployment?: boolean;
 }
 export class S3DeploymentConstruct extends Construct {

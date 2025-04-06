@@ -5,7 +5,7 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { IBaseCdkConstructProps } from 'src/interface';
 
 
-interface IDynamoDBConstructProps extends IBaseCdkConstructProps<RoleProps> {
+interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<RoleProps>, 'appName' | 'stage' | 'stackName'> {
 	readonly policies?: PolicyStatementProps[];
 }
 

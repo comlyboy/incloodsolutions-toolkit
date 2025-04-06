@@ -3,7 +3,7 @@ import { Architecture, Code, LayerVersion, LayerVersionProps, Runtime } from 'aw
 
 import { IBaseCdkConstructProps } from 'src/interface';
 
-interface ILambdaLayerConstructProps extends IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName'>> & Pick<LayerVersionProps, 'layerVersionName'>> { }
+interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName'>> & Pick<LayerVersionProps, 'layerVersionName'>>, 'appName' | 'stage' | 'stackName'> { }
 
 export class LambdaLayerConstruct extends Construct {
 	readonly layer: LayerVersion;

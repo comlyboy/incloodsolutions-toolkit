@@ -12,8 +12,6 @@ interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<Func
 export class LambdaConstruct extends Construct {
 	readonly handler: Function;
 
-
-
 	constructor(scope: Construct, id: string, props: ILambdaConstructProps) {
 		super(scope, id);
 
