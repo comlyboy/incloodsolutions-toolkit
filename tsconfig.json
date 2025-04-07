@@ -19,7 +19,7 @@
 		"strictNullChecks": false,
 		"moduleResolution": "node",
 		"noImplicitAny": true,
-		"esModuleInterop": true,
+		"noEmitOnError": true,
 		"strictBindCallApply": false,
 		"allowUnreachableCode": false,
 		"allowSyntheticDefaultImports": true,
@@ -27,9 +27,7 @@
 		"noFallthroughCasesInSwitch": false,
 		"useUnknownInCatchVariables": false
 	},
-	"include": [
-		"./src"
-	],
+	"include": ["./src"],
 	"exclude": [
 		"node_modules",
 		"./dist"

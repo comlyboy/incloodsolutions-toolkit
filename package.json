@@ -10,6 +10,8 @@
 	],
 	"scripts": {
 		"build": "rimraf ./dist && tsc -b",
+		"build:esbuild": "rimraf ./dist && ts-node build.ts",
+		"build:tsup": "rimraf ./dist && tsup && tsc --emitDeclarationOnly",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"publishing": "npm run build && npm publish --access=public",
@@ -45,6 +47,7 @@
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
+		"@esbuild-plugins/tsconfig-paths": "^0.1.2",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/crypto-js": "^4.2.2",
 		"@types/express": "^5.0.1",
@@ -57,6 +60,7 @@
 		"@types/xml2js": "^0.4.14",
 		"@typescript-eslint/eslint-plugin": "^8.29.0",
 		"@typescript-eslint/parser": "^8.29.0",
+		"esbuild": "^0.25.2",
 		"eslint": "^9.24.0",
 		"eslint-config-prettier": "^10.1.1",
 		"eslint-plugin-prettier": "^5.2.6",
@@ -67,6 +71,7 @@
 		"ts-jest": "^29.3.1",
 		"ts-node": "^10.9.2",
 		"tsconfig-paths": "^4.2.0",
+		"tsup": "^8.4.0",
 		"typescript": "^5.8.3"
 	},
 	"jest": {
