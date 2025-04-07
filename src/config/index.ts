@@ -1,11 +1,11 @@
-import { ObjectType } from "src/interface";
+import { ObjectType } from "../interface";
 
 const cachedEnvironmentVariables: ObjectType = {
 	...process?.env
 };
 
 /** Initialize environment variable, no dotenv library */
-export function initEnvironmentVariables<TSchema extends ObjectType>(schema: {
+export function initEnvironmentVariables<TSchema extends ObjectType = any>(schema: {
 	[key in keyof Partial<TSchema>]: {
 		required: boolean;
 		defaultValue?: number | string | boolean | ObjectType;

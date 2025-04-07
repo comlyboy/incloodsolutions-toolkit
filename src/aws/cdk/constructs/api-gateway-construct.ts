@@ -4,8 +4,8 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
-import { IBaseCdkConstructProps, IBaseConstruct, } from 'src/interface';
-import { logDebugger } from 'src/aws';
+import { IBaseCdkConstructProps, IBaseConstruct, } from '../../../interface';
+import { logDebugger } from '../../../aws';
 
 interface IRouteOption {
 	name: string

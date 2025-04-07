@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ISnsConstructProps extends Omit<IBaseCdkConstructProps<TopicProps>, 'appName' | 'stage' | 'stackName'> { }
 

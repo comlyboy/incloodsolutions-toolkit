@@ -3,7 +3,7 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, BucketDeploymentProps } from 'aws-cdk-lib/aws-s3-deployment';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly bucketOptions?: BucketProps;

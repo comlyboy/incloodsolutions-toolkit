@@ -4,7 +4,7 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { WebSocketApi, WebSocketApiProps, WebSocketRouteOptions, WebSocketStage, WebSocketStageProps } from 'aws-cdk-lib/aws-apigatewayv2';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 
 interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps<{

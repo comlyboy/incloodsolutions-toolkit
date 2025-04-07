@@ -3,7 +3,7 @@ import { EventSourceMapping, EventSourceMappingProps, Function } from 'aws-cdk-l
 import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ISqsConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly queueOptions?: QueueProps;

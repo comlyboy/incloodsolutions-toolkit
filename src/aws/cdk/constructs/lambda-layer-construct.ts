@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { Architecture, Code, LayerVersion, LayerVersionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName'>> & Pick<LayerVersionProps, 'layerVersionName'>>, 'appName' | 'stage' | 'stackName'> { }
 

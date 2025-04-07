@@ -3,7 +3,7 @@ import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCom
 import { plainToInstance } from "class-transformer";
 import { validateOrReject, ValidatorOptions } from "class-validator";
 
-import { IBaseId, ObjectType } from "src/interface";
+import { IBaseId, ObjectType } from "../../interface";
 
 export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>(options: {
 	readonly databaseTableName?: string;

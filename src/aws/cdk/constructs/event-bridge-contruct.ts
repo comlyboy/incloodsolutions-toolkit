@@ -4,7 +4,7 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { Rule, RuleProps } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface IEventBridgeConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly targetFunctions: Function[];

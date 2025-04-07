@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpLambdaAuthorizer, HttpLambdaAuthorizerProps, HttpLambdaResponseType } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILambdaAuthoriserV2ConstructProps extends Omit<IBaseCdkConstructProps<HttpLambdaAuthorizerProps>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlerFunction: Function;

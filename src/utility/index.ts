@@ -13,7 +13,7 @@ import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberW
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 
-import { ObjectType } from 'src/interface';
+import { ObjectType } from '../interface';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {

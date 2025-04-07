@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { LogGroup, LogGroupProps, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILogGroupConstructProps extends Omit<IBaseCdkConstructProps<LogGroupProps>, 'appName' | 'stage' | 'stackName'> { }
 

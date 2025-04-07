@@ -2,8 +2,9 @@ import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
 import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
-import { IBaseCdkConstructProps } from 'src/interface';
-import { detectDuplicateProperties } from 'src/utility';
+import { IBaseCdkConstructProps } from '../../../interface';
+import { detectDuplicateProperties } from '../../../utility';
+
 
 
 

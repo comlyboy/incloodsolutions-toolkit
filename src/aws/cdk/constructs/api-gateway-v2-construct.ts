@@ -4,7 +4,7 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { AddRoutesOptions, CorsHttpMethod, HttpApi, HttpApiProps } from 'aws-cdk-lib/aws-apigatewayv2';
 
-import { IBaseCdkConstructProps, IBaseConstruct } from 'src/interface';
+import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 
 interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 	gatewayOptions: HttpApiProps;

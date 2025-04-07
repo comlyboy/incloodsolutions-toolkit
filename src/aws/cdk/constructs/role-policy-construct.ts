@@ -2,7 +2,7 @@ import { ManagedPolicy, PolicyStatement, PolicyStatementProps, Role, RoleProps }
 import { Construct } from 'constructs';
 import { RemovalPolicy } from 'aws-cdk-lib';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<RoleProps>, 'appName' | 'stage' | 'stackName'> {

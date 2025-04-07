@@ -1,7 +1,7 @@
 import { Construct } from 'constructs';
 import { TokenAuthorizer, TokenAuthorizerProps } from 'aws-cdk-lib/aws-apigateway';
 
-import { IBaseCdkConstructProps } from 'src/interface';
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILambdaAuthoriserConstructProps extends Omit<IBaseCdkConstructProps<TokenAuthorizerProps>, 'appName' | 'stage' | 'stackName'> { }
 
