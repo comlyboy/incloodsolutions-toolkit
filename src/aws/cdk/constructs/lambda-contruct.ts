@@ -5,9 +5,6 @@ import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-li
 import { IBaseCdkConstructProps } from '../../../interface';
 import { detectDuplicateProperties } from '../../../utility';
 
-
-
-
 interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<FunctionProps>>, 'appName'> { }
 
 export class LambdaConstruct extends Construct {
