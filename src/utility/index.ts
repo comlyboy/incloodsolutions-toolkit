@@ -13,7 +13,7 @@ import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberW
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 
-import { ObjectType } from '../interface';
+import { IBaseErrorResponse, ObjectType } from '../interface';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -92,7 +92,7 @@ export async function sendHttpRequest<TResponse = any, TBody extends ObjectType 
 		const response = await axios({ headers: {}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
 		return await response.data as TResponse;
 	} catch (error) {
-		const errorObject = error?.response.data;
+		const errorObject = error?.response?.data;
 		const message = errorObject?.message || errorObject || error?.message || 'Http call errored out!';
 		throw { ...errorObject, message };
 	}
@@ -136,7 +136,6 @@ export function encryptData<TData>({ data, secret, type = 'aes256' }: {
 		if (!secret) {
 			throw new Error('Secret key is required for encryption!');
 		}
-		const dataToString = typeof data === 'string' ? data : JSON.stringify(data);
 		// const updatedOptions = {
 		// 	...options,
 		// 	format: {
@@ -144,6 +143,8 @@ export function encryptData<TData>({ data, secret, type = 'aes256' }: {
 		// 		parse: options?.format?.parse
 		// 	}
 		// };
+
+		const dataToString = JSON.stringify({ payload: data });
 		if (type === 'hmacSha512') {
 			return HmacSHA512(dataToString, secret).toString(enc.Hex);
 		} else if (type === 'sha512') {
@@ -157,7 +158,7 @@ export function encryptData<TData>({ data, secret, type = 'aes256' }: {
 	}
 }
 
-/** Decrypted data using crypto-js. */
+/** Decrypted data using crypto-js. aes256 type alone */
 export function decryptData<TResponse>({ hashedData, secret, type = 'aes256' }: {
 	secret: string;
 	hashedData: string;
@@ -169,7 +170,7 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256' }: 
 			throw new Error('Secret key is required for decryption!');
 		}
 		const dataInBytes = AES.decrypt(hashedData, secret);
-		return JSON.parse(dataInBytes.toString(enc.Utf8)) as TResponse;
+		return JSON.parse(dataInBytes.toString(enc.Utf8)).payload as TResponse;
 	} catch (error) {
 		error['message'] = error?.message || 'Decryption errored out!';
 		throw error;
@@ -274,15 +275,24 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 	secret: string;
 	message: string;
 }) {
-	return await sendHttpRequest({
-		url: `https://api.telegram.org/bot${secret}/sendMessage`,
-		method: 'post',
-		data: {
-			chat_id: chatId,
-			text: message,
-			parse_mode: 'Markdown'
+	try {
+		return await sendHttpRequest({
+			url: `https://api.telegram.org/bot${secret}/sendMessage`,
+			method: 'post',
+			data: {
+				chat_id: chatId,
+				text: message,
+				parse_mode: 'Markdown'
+			}
+		});
+	} catch (error) {
+		throw {
+			...error,
+			status: error.error_code,
+			message: error.description,
+			statusCode: error.error_code
 		}
-	});
+	}
 }
 
 /** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
@@ -331,18 +341,15 @@ export async function readFileFromLambda(fileName: string) {
 }
 
 /** Check if currently in Lambda environment */
-export async function isLambdaEnvironment() {
-	return process.env?.LAMBDA_TASK_ROOT !== undefined || process.env?.AWS_LAMBDA_FUNCTION_NAME !== undefined;
+export function isLambdaEnvironment() {
+	return Boolean(process.env?.LAMBDA_TASK_ROOT || process.env?.AWS_LAMBDA_FUNCTION_NAME);
 }
 
 /** Map and return API operation results */
 export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, message, error }: {
-	data?: TBody;
 	message?: string;
-	error?: ObjectType & {
-		statusCode?: number;
-		message?: string;
-	};
+	data?: TBody;
+	error?: IBaseErrorResponse & ObjectType;
 }) {
 	return {
 		data: data || null,
@@ -352,10 +359,12 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, messa
 }
 
 /** Return API call response */
-export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: { data?: TBody; message?: string; error?: ObjectType; }, statusCode = 200) {
+export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: {
+	message?: string; data?: TBody;
+	error?: IBaseErrorResponse & ObjectType;
+}, statusCode = 200) {
 	return res.status(statusCode).json({
-		...data,
-		statusCode,
+		...data, statusCode,
 		success: statusCode < 400
 	});
 }
@@ -423,6 +432,7 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 	}
 }
 
+/** Create a custom logger instance */
 export function createLogger(context?: string) {
 	function logMessage(level: string, message: string) {
 		const ctx = context ? `[${context}]` : '';
@@ -435,4 +445,83 @@ export function createLogger(context?: string) {
 		debug: (message: string) => logMessage('debug', message),
 		error: (message: string) => logMessage('error', message)
 	};
+}
+
+
+export function returnApiOverview({ name, docsUrl, description }: {
+	name: string;
+	docsUrl?: string;
+	description?: string;
+}) {
+	return `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>${name} summary</title>
+	<meta content="IE=edge" http-equiv="X-UA-Compatible">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		body {
+			font-family: monospace;
+			background: #e3e8f1;
+			margin: 0;
+			padding: .5rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100vh;
+		}
+
+		.card {
+			border-left: 5px solid #4f46e5;
+			max-width: 550px;
+			width: 100%;
+			background: #ffffff;
+			padding: 2rem 1.5rem .6rem;
+			border-radius: 10px;
+			box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+		}
+
+		h2 {
+			margin-top: 0;
+			font-size: 1.5rem;
+			color: #384353;
+			text-decoration: underline;
+		}
+
+		.row {
+			color: #62748e;
+			margin-bottom: 1rem;
+		}
+
+		.label {
+			display: inline-block;
+			font-weight: bold;
+		}
+
+		a {
+			color: #2563eb;
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="card">
+		<h2>API Overview</h2>
+		<div class="row"><span class="label">Name:</span> ${name}</div>
+		<div class="row"><span class="label">Description:</span> ${description || ' '}</div>
+		<div class="row"><span class="label">Docs URL:</span> <a href=${docsUrl || ' '} target="_blank">${docsUrl || ' '}</a></div>
+		<div class="row"><span class="label">Environment:</span> ${process.env?.NODE_ENV}</div>
+		<div class="row"><span class="label">Status:</span> 200</div>
+		<div class="row"><span class="label">Timestamp:</span> ${new Date().toISOString()}</div>
+	</div>
+</body>
+
+</html>`
 }

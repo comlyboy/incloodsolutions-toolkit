@@ -3,10 +3,10 @@ import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCom
 import { plainToInstance } from "class-transformer";
 import { validateOrReject, ValidatorOptions } from "class-validator";
 
-import { IBaseId, ObjectType } from "../../interface";
+import { ObjectType } from "../../interface";
 
 export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>(options: {
-	readonly databaseTableName?: string;
+	readonly tableName: string;
 	readonly schema: new () => TSchema;
 	readonly config?: DynamoDBClientConfig;
 	readonly schemaConfig?: ValidatorOptions;
@@ -20,59 +20,61 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
 	return {
-		put: async ({ data }: { data: TSchema; }) => {
-			const instance = plainToInstance(options?.schema, data);
 
+		/** Put command */
+		put: async ({ data }: { data: TSchema; }) => {
+			const instance = plainToInstance(options.schema, data);
 			await validateOrReject(instance, {
 				...options?.schemaConfig,
-				whitelist: options?.schemaConfig?.whitelist === false ? options?.schemaConfig?.whitelist : true,
-				forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options?.schemaConfig?.forbidUnknownValues : true
+				whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
+				forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options.schemaConfig.forbidUnknownValues : true
 			});
 
 			await dynamoDbClientInstance.send(new PutCommand({
 				Item: { ...data },
-				TableName: options?.databaseTableName
+				TableName: options.tableName
 			}));
 			return data;
 		},
 
-		getById: async ({ id, select = [] }: {
+		getByOne: async ({ key, select = [] }: {
+			key: ObjectType;
 			select?: (keyof TSchema)[];
-		} & IBaseId) => {
+		}) => {
 			const response = await dynamoDbClientInstance.send(new GetCommand({
-				Key: { id },
-				ProjectionExpression: select.length ? [...new Set(['id', ...select])].toString() : undefined,
-				TableName: options?.databaseTableName
+				Key: key,
+				ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined,
+				TableName: options.tableName
 			}));
 			return response.Item as TSchema;
 		},
 
 		/** Get many by ids is basically a BatchGet in Dynamo-DB */
-		getManyByIds: async ({ ids, select = [] }: {
-			ids: string[];
+		getMany: async ({ keys, select = [] }: {
+			keys: ObjectType<string, keyof TSchema>[];
 			select?: (keyof TSchema)[];
 			returnAll?: boolean;
 		}) => {
 			let queryResponse: BatchGetCommandOutput;
 			let responseData: TSchema[] = [];
 
-			if (!ids || !ids.length) return [{
+			if (!keys || !keys.length) return [{
 				data: [] as TSchema[],
 				nextPageData: null as string
 			}];
 
 			const batchGetInput: BatchGetCommandInput = {
 				RequestItems: {
-					[options?.databaseTableName]: {
-						Keys: [...new Set(ids)].map(id => ({ id })),
-						ProjectionExpression: select.length ? [...new Set(['id', ...select])].toString() : undefined
+					[options.tableName]: {
+						Keys: keys,
+						ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined
 					}
 				}
 			}
 
 			do {
 				queryResponse = await dynamoDbClientInstance.send(new BatchGetCommand(batchGetInput));
-				responseData = [...responseData, ...queryResponse.Responses[options?.databaseTableName] as TSchema[]];
+				responseData = [...responseData, ...queryResponse.Responses[options?.tableName] as TSchema[]];
 				batchGetInput.RequestItems = queryResponse.UnprocessedKeys;
 			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
 
@@ -97,7 +99,7 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 
 			const queryParam: QueryCommandInput = {
 				IndexName: indexName,
-				TableName: options?.databaseTableName,
+				TableName: options.tableName,
 				// KeyConditionExpression: 'entityName = :entityName',
 				// ExpressionAttributeValues: { ':entityName': entityName }
 			}
@@ -107,7 +109,7 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 			}
 
 			if (select.length) {
-				queryParam.ProjectionExpression = select.length ? [...new Set(['id', ...select])].toString() : undefined;
+				queryParam.ProjectionExpression = select.length ? [...new Set(select)].toString() : undefined;
 			}
 
 			if (paginationData) {
@@ -156,11 +158,14 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 			return { data: responseData, nextPageToken: exclusiveStartKey };
 		},
 
-		updateOneById: async ({ id, data }: { data: Partial<TSchema>; } & IBaseId) => {
+		updateOne: async ({ key, data }: {
+			key: ObjectType<string, keyof TSchema>;
+			data: Partial<TSchema>;
+		}) => {
 			const updateParam: UpdateCommandInput = {
-				Key: { id },
-				TableName: options?.databaseTableName,
+				Key: key,
 				ReturnValues: 'ALL_NEW',
+				TableName: options.tableName
 			};
 
 			Object.entries(data).map(([propertyKey, value]) => {
@@ -183,10 +188,12 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 			const response = await dynamoDbClientInstance.send(new UpdateCommand(updateParam))
 			return response.Attributes as TSchema;
 		},
-		delete: async ({ id }: { id: string; }) => {
+		delete: async ({ key }: {
+			key: ObjectType<string, keyof TSchema>;
+		}) => {
 			await dynamoDbClientInstance.send(new DeleteCommand({
-				Key: { id },
-				TableName: options?.databaseTableName
+				Key: key,
+				TableName: options?.tableName
 			}));
 			return true;
 		}

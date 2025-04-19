@@ -33,7 +33,7 @@ export interface IBaseConstruct {
 
 export interface IBaseEnvironmentVariable {
 	NODE_ENV: AppEnvironmentType;
-	TELEGRAM_BOT_TOKEN: string;
+	TELEGRAM_BOT_TOKEN?: string;
 }
 
 export interface IBaseErrorResponse {
