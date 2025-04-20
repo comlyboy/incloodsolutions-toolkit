@@ -5,15 +5,15 @@ import { validateOrReject, ValidatorOptions } from "class-validator";
 
 import { ObjectType } from "../../interface";
 
-export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectType>(options: {
+export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema extends ObjectType = ObjectType>(options: {
 	readonly tableName: string;
 	readonly schema: new () => TSchema;
+	readonly sortKeyName?: string;
+	readonly primaryKeyName: string;
 	readonly config?: DynamoDBClientConfig;
 	readonly schemaConfig?: ValidatorOptions;
-	readonly sortKeyName?: string;
-	readonly primaryKeyName?: string;
 	readonly translationConfig?: TranslateConfig;
-	readonly tableIndexNames?: ObjectType<string>;
+	readonly tableIndexNames?: string[];
 }) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names'];
 
@@ -22,7 +22,7 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 	return {
 
 		/** Put command */
-		put: async ({ data }: { data: TSchema; }) => {
+		put: async ({ data }: { data: TType; }) => {
 			const instance = plainToInstance(options.schema, data);
 			await validateOrReject(instance, {
 				...options?.schemaConfig,
@@ -37,31 +37,35 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 			return data;
 		},
 
-		getByOne: async ({ key, select = [] }: {
+		getOne: async ({ key, select = [] }: {
+			/** primaryKey and sortKey alone */
 			key: ObjectType;
-			select?: (keyof TSchema)[];
+			select?: (keyof TType)[];
 		}) => {
 			const response = await dynamoDbClientInstance.send(new GetCommand({
 				Key: key,
 				ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined,
 				TableName: options.tableName
 			}));
-			return response.Item as TSchema;
+			return response.Item as TType;
 		},
 
 		/** Get many by ids is basically a BatchGet in Dynamo-DB */
 		getMany: async ({ keys, select = [] }: {
-			keys: ObjectType<string, keyof TSchema>[];
-			select?: (keyof TSchema)[];
+			/** Array of primaryKey and sortKey alone */
+			keys: Partial<ObjectType<string, keyof TType>>[];
+			select?: (keyof TType)[];
 			returnAll?: boolean;
 		}) => {
 			let queryResponse: BatchGetCommandOutput;
-			let responseData: TSchema[] = [];
+			let responseData: TType[] = [];
 
-			if (!keys || !keys.length) return [{
-				data: [] as TSchema[],
-				nextPageData: null as string
-			}];
+			if (!keys || !keys.length) {
+				return {
+					data: [] as TType[],
+					nextPageData: undefined
+				}
+			};
 
 			const batchGetInput: BatchGetCommandInput = {
 				RequestItems: {
@@ -74,34 +78,39 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 
 			do {
 				queryResponse = await dynamoDbClientInstance.send(new BatchGetCommand(batchGetInput));
-				responseData = [...responseData, ...queryResponse.Responses[options?.tableName] as TSchema[]];
+				responseData = [...responseData, ...queryResponse.Responses[options?.tableName] as TType[]];
 				batchGetInput.RequestItems = queryResponse.UnprocessedKeys;
 			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
 
 			return {
 				data: responseData,
-				nextPageData: queryResponse.UnprocessedKeys
+				nextPageData: queryResponse.UnprocessedKeys ? JSON.stringify(queryResponse.UnprocessedKeys) : undefined
 			}
 		},
 
 		query: async ({ filter, indexName, limit, returnAll, paginationData, searchTerms, select }: {
-			filter: Partial<ObjectType<keyof TSchema>>;
+			filter: Partial<ObjectType<keyof TType>>;
 			limit?: number;
-			indexName: typeof options.tableIndexNames[keyof typeof options.tableIndexNames];
+			indexName?: string;
 			returnAll?: boolean;
 			paginationData?: ObjectType;
-			select?: (keyof TSchema)[];
-			searchTerms?: { properties: (keyof TSchema)[], value: string | number | boolean };
+			select?: (keyof TType)[];
+			searchTerms?: { properties: (keyof TType)[], value: string | number | boolean };
 		}) => {
-			let exclusiveStartKey: TSchema;
+			let exclusiveStartKey: TType;
 			let queryResponse: QueryCommandOutput;
-			let responseData: TSchema[] = [];
+			let responseData: TType[] = [];
+
+			if (options.tableIndexNames && options.tableIndexNames.length && indexName && !options.tableIndexNames.some(index => indexName)) {
+				throw Error
+			}
 
 			const queryParam: QueryCommandInput = {
-				IndexName: indexName,
-				TableName: options.tableName,
-				// KeyConditionExpression: 'entityName = :entityName',
-				// ExpressionAttributeValues: { ':entityName': entityName }
+				TableName: options.tableName
+			}
+
+			if (indexName) {
+				queryParam.IndexName = indexName;
 			}
 
 			if (limit) {
@@ -151,16 +160,17 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 
 			do {
 				queryResponse = await dynamoDbClientInstance.send(new QueryCommand(queryParam));
-				responseData = [...responseData, ...queryResponse.Items as TSchema[]];
-				exclusiveStartKey = queryResponse.LastEvaluatedKey as TSchema;
-				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TSchema;
+				responseData = [...responseData, ...queryResponse.Items as TType[]];
+				exclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
+				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
 			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
 			return { data: responseData, nextPageToken: exclusiveStartKey };
 		},
 
 		updateOne: async ({ key, data }: {
-			key: ObjectType<string, keyof TSchema>;
-			data: Partial<TSchema>;
+			/** primaryKey and sortKey alone */
+			key: Partial<ObjectType<string, keyof TType>>;
+			data: Partial<TType>;
 		}) => {
 			const updateParam: UpdateCommandInput = {
 				Key: key,
@@ -186,10 +196,12 @@ export function initDynamoDbClientWrapper<TSchema extends ObjectType = ObjectTyp
 			});
 
 			const response = await dynamoDbClientInstance.send(new UpdateCommand(updateParam))
-			return response.Attributes as TSchema;
+			return response.Attributes as TType;
 		},
+
 		delete: async ({ key }: {
-			key: ObjectType<string, keyof TSchema>;
+			/** primaryKey and sortKey alone */
+			key: Partial<ObjectType<string, keyof TType>>;
 		}) => {
 			await dynamoDbClientInstance.send(new DeleteCommand({
 				Key: key,
