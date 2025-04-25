@@ -170,7 +170,7 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256' }: 
 			throw new Error('Secret key is required for decryption!');
 		}
 		const dataInBytes = AES.decrypt(hashedData, secret);
-		return JSON.parse(dataInBytes.toString(enc.Utf8)).payload as TResponse;
+		return JSON.parse(dataInBytes.toString(enc.Utf8))?.payload as TResponse;
 	} catch (error) {
 		error['message'] = error?.message || 'Decryption errored out!';
 		throw error;

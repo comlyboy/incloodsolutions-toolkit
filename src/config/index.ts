@@ -7,7 +7,7 @@ const cachedEnvironmentVariables: ObjectType = {
 /** Initialize environment variable, no dotenv library */
 export function initEnvironmentVariables<TSchema extends ObjectType = any>(schema: {
 	[key in keyof Partial<TSchema>]: {
-		required: boolean;
+		required?: boolean;
 		defaultValue?: number | string | boolean | ObjectType;
 	};
 }, options?: { debug?: boolean; }) {
@@ -32,7 +32,6 @@ export function initEnvironmentVariables<TSchema extends ObjectType = any>(schem
 				}`
 			);
 		}
-
 	});
 	return cachedEnvironmentVariables as TSchema;
 }

@@ -5,15 +5,28 @@ import { validateOrReject, ValidatorOptions } from "class-validator";
 
 import { ObjectType } from "../../interface";
 
-export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema extends ObjectType = ObjectType>(options: {
+export function initDynamoDbClientWrapper<TType extends ObjectType, TTableIndexType = string>(options: {
+	/** Dynamo-db table name */
 	readonly tableName: string;
-	readonly schema: new () => TSchema;
-	readonly sortKeyName?: string;
+	/** Class with class-validator decorators */
+	readonly schema: new () => ObjectType;
+	/** Dynamo-db primary key name */
 	readonly primaryKeyName: string;
+	/** Dynamo-db sort key name */
+	readonly sortKeyName?: string;
+	/** Dynamo-db client configuration */
 	readonly config?: DynamoDBClientConfig;
+	/** Schema validation options */
 	readonly schemaConfig?: ValidatorOptions;
+	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
-	readonly tableIndexNames?: string[];
+	/** options */
+	readonly options?: {
+		/** Primary key ID type, @default uuid */
+		readonly primaryKeyIdType?: 'uuid' | 'customUuid' | 'epochTimestamp';
+		/** To check  */
+		readonly autoGeneratePrimaryKeyId?: boolean;
+	};
 }) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names'];
 
@@ -22,7 +35,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 	return {
 
 		/** Put command */
-		put: async ({ data }: { data: TType; }) => {
+		put: async ({ data }: { data: Partial<TType>; }) => {
 			const instance = plainToInstance(options.schema, data);
 			await validateOrReject(instance, {
 				...options?.schemaConfig,
@@ -34,12 +47,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 				Item: { ...data },
 				TableName: options.tableName
 			}));
-			return data;
+			return data as TType;
 		},
 
 		getOne: async ({ key, select = [] }: {
-			/** primaryKey and sortKey alone */
-			key: ObjectType;
+			/** primaryKey and sortKey only */
+			key: Partial<TType>;
 			select?: (keyof TType)[];
 		}) => {
 			const response = await dynamoDbClientInstance.send(new GetCommand({
@@ -50,10 +63,10 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 			return response.Item as TType;
 		},
 
-		/** Get many by ids is basically a BatchGet in Dynamo-DB */
+		/** Get many by ids is basically a BatchGetCommand */
 		getMany: async ({ keys, select = [] }: {
-			/** Array of primaryKey and sortKey alone */
-			keys: Partial<ObjectType<string, keyof TType>>[];
+			/** Array of primaryKey and sortKey only */
+			keys: Partial<TType>[];
 			select?: (keyof TType)[];
 			returnAll?: boolean;
 		}) => {
@@ -88,12 +101,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 			}
 		},
 
-		query: async ({ filter, indexName, limit, returnAll, paginationData, searchTerms, select }: {
-			filter: Partial<ObjectType<keyof TType>>;
+		query: async ({ filter, indexName, limit, returnAll = false, paginationData, searchTerms, select = [] }: {
+			filter: Partial<TType>;
 			limit?: number;
-			indexName?: string;
+			indexName?: TTableIndexType;
 			returnAll?: boolean;
-			paginationData?: ObjectType;
+			paginationData?: Partial<TType>;
 			select?: (keyof TType)[];
 			searchTerms?: { properties: (keyof TType)[], value: string | number | boolean };
 		}) => {
@@ -101,16 +114,16 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 			let queryResponse: QueryCommandOutput;
 			let responseData: TType[] = [];
 
-			if (options.tableIndexNames && options.tableIndexNames.length && indexName && !options.tableIndexNames.some(index => indexName)) {
-				throw Error
-			}
+			// if (options.tableIndexNames && options.tableIndexNames.length && indexName && !options.tableIndexNames.some(index => indexName)) {
+			// 	throw Error
+			// }
 
 			const queryParam: QueryCommandInput = {
 				TableName: options.tableName
 			}
 
 			if (indexName) {
-				queryParam.IndexName = indexName;
+				queryParam.IndexName = indexName as string;
 			}
 
 			if (limit) {
@@ -121,7 +134,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 				queryParam.ProjectionExpression = select.length ? [...new Set(select)].toString() : undefined;
 			}
 
-			if (paginationData) {
+			if (paginationData && Object.keys(paginationData).length) {
 				queryParam.ExclusiveStartKey = paginationData;
 			}
 
@@ -130,7 +143,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 				const properties = [...new Set(searchTerms.properties.filter(property => property !== 'password'))];
 
 				properties.map((property, index) => {
-					const rawProperty = property
+					const rawProperty = property;
 					// first check if aws dynamoDB reserved key is presence
 					if (this.AWS_DYNAMODB_RESERVED_KEYS.includes(String(property))) {
 						property = `#${String(property)}_`;
@@ -164,12 +177,15 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 				exclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
 				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
 			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
-			return { data: responseData, nextPageToken: exclusiveStartKey };
+			return {
+				data: responseData,
+				nextPageToken: exclusiveStartKey
+			};
 		},
 
 		updateOne: async ({ key, data }: {
-			/** primaryKey and sortKey alone */
-			key: Partial<ObjectType<string, keyof TType>>;
+			/** primaryKey and sortKey only */
+			key: Partial<TType>;
 			data: Partial<TType>;
 		}) => {
 			const updateParam: UpdateCommandInput = {
@@ -200,8 +216,8 @@ export function initDynamoDbClientWrapper<TType extends ObjectType, TSchema exte
 		},
 
 		delete: async ({ key }: {
-			/** primaryKey and sortKey alone */
-			key: Partial<ObjectType<string, keyof TType>>;
+			/** primaryKey and sortKey only */
+			key: Partial<TType>;
 		}) => {
 			await dynamoDbClientInstance.send(new DeleteCommand({
 				Key: key,

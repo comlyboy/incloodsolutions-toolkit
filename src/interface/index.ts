@@ -8,6 +8,10 @@ export interface IBaseName {
 	name: string;
 }
 
+export interface IBaseEntityName<TEntity> {
+	entityName: TEntity;
+}
+
 export interface IBaseRoles {
 	roles: string[];
 }
@@ -16,8 +20,12 @@ export interface IBaseTimestamp {
 	timestamp: string;
 }
 
-export interface IBaseStatus<TEntity> {
-	status: TEntity;
+export interface IBaseRecordProgress<TProgress> {
+	progress: TProgress[];
+}
+
+export interface IBaseStatus<TStatus> {
+	status: TStatus;
 }
 
 export interface IBaseDescription {
@@ -27,8 +35,47 @@ export interface IBaseDescription {
 export interface IBasePassword {
 	password: string;
 }
+
+export interface IBaseReferenceId {
+	referenceId: string;
+}
+
 export interface IBaseConstruct {
 	isDebugMode: boolean;
+}
+
+export interface IBaseBusiness<TBusiness extends ObjectType = any> {
+	businessId: string;
+	business?: TBusiness;
+}
+
+export interface IBaseStore<TStore extends ObjectType = any> {
+	storeId: string;
+	store?: TStore;
+}
+
+export interface IBaseCustomer<TCustomer extends ObjectType = any> {
+	customerId: string;
+	customer?: TCustomer;
+}
+
+export interface IBaseDelete<TDeleter extends ObjectType = any> {
+	isDeleted: boolean;
+	deletedAtDate?: string;
+	deletedByUserId?: string;
+	deletedBy?: TDeleter;
+}
+
+export interface IBaseCreator<TCreator extends ObjectType = any> {
+	createdAtDate: string;
+	creatorByUserId?: string;
+	creatorBy?: TCreator;
+}
+
+export interface IBaseEditor<TModifier extends ObjectType = any> {
+	lastModifiedAtDate?: string;
+	lastModifiedByUserId?: string;
+	lastModifiedBy?: TModifier;
 }
 
 export interface IBaseEnvironmentVariable {
@@ -36,12 +83,12 @@ export interface IBaseEnvironmentVariable {
 	TELEGRAM_BOT_TOKEN?: string;
 }
 
-export interface IBaseErrorResponse {
-	statusCode: number;
-	timestamp: string,
-	method: string;
+export interface IBaseErrorResponse extends IBaseTimestamp {
 	path: string;
+	method: string;
 	message: string;
+	success?: boolean;
+	statusCode: number;
 }
 
 export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> {
@@ -63,7 +110,7 @@ export enum AppEnvironmentEnum {
 
 export type TimezoneType = TimezoneName;
 export type CountryCodeType = CountryCode;
-
+export type ExtractValueTypes<TEntity> = TEntity[keyof TEntity];
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;
