@@ -1,19 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
-import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { isIP } from 'validator';
+import { cloneDeep } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
-import cloneDeep from 'lodash.clonedeep';
-import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
-import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
+import { compile, RuntimeOptions } from 'handlebars';
+import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
+import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
+import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
+import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
-import { IBaseErrorResponse, ObjectType } from '../interface';
+import { CustomException } from '../error';
+import { IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '../interface';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -100,7 +102,9 @@ export async function sendHttpRequest<TResponse = any, TBody extends ObjectType 
 
 /** Throws error if the phonenumber format isn't correct */
 export function parsePhonenumberWithError(phoneNumber: string, defaultCountry?: CountryCode): PhoneNumber {
-	if (!phoneNumber || phoneNumber === ' ') throw Error('Invalid phoneNumber format!');
+	if (!phoneNumber || phoneNumber === ' ') {
+		throw new CustomException('Invalid phoneNumber format!');
+	}
 	return parsePhoneNumberWithError(phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`, defaultCountry);
 }
 
@@ -124,27 +128,29 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 }
 
 /** Encrypted data using crypto-js. */
-export function encryptData<TData>({ data, secret, type = 'aes256' }: {
+export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug }: {
 	data?: TData;
 	secret: string;
 	type?: 'hmacSha512' | 'aes256' | 'sha512' | 'sha256';
-}): string {
+} & Partial<IBaseEnableDebug>): string {
 	try {
 		if (!data) {
-			throw new Error('No data for encrption!');
+			throw new CustomException('No data for encryption!');
 		};
-		if (!secret) {
-			throw new Error('Secret key is required for encryption!');
+		if (!secret && type !== 'sha512') {
+			throw new CustomException('Secret key is required for encryption!');
 		}
-		// const updatedOptions = {
-		// 	...options,
-		// 	format: {
-		// 		stringify: options?.format?.stringify || ((cipherParams: any) => cipherParams.toString()),
-		// 		parse: options?.format?.parse
-		// 	}
-		// };
 
-		const dataToString = JSON.stringify({ payload: data });
+		if (enableDebug) {
+			logDebugger(encryptData.name, 'Encrypting with type aes256', data);
+		}
+
+		const dataToString = JSON.stringify(data);
+
+		if (enableDebug) {
+			logDebugger(encryptData.name, 'Stringified encryption data', dataToString);
+		}
+
 		if (type === 'hmacSha512') {
 			return HmacSHA512(dataToString, secret).toString(enc.Hex);
 		} else if (type === 'sha512') {
@@ -154,25 +160,42 @@ export function encryptData<TData>({ data, secret, type = 'aes256' }: {
 		}
 	} catch (error) {
 		error['message'] = error?.message || 'Encryption errored out!';
+		if (enableDebug) {
+			logDebugger(encryptData.name, error.message);
+		}
 		throw error;
 	}
 }
 
 /** Decrypted data using crypto-js. aes256 type alone */
-export function decryptData<TResponse>({ hashedData, secret, type = 'aes256' }: {
+export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', enableDebug }: {
 	secret: string;
 	hashedData: string;
 	type?: 'aes256';
-}): TResponse {
+} & Partial<IBaseEnableDebug>): TResponse {
 	try {
 		if (!hashedData) return null;
 		if (!secret) {
-			throw new Error('Secret key is required for decryption!');
+			throw new CustomException('Secret key is required for decryption!');
 		}
-		const dataInBytes = AES.decrypt(hashedData, secret);
-		return JSON.parse(dataInBytes.toString(enc.Utf8))?.payload as TResponse;
+		const decryptedString = AES.decrypt(hashedData, secret).toString(enc.Utf8);
+		if (!decryptedString) {
+			throw new CustomException('Decryption failed. Possibly wrong secret.');
+		}
+
+		if (enableDebug) {
+			logDebugger(decryptData.name, 'Decryption WordArray to Utf8 string', decryptedString);
+		}
+		const result = JSON.parse(decryptedString);
+		if (enableDebug) {
+			logDebugger(decryptData.name, 'Decryption parsed data to JSON', result);
+		}
+		return result as TResponse;
 	} catch (error) {
 		error['message'] = error?.message || 'Decryption errored out!';
+		if (enableDebug) {
+			logDebugger(decryptData.name, error.message);
+		}
 		throw error;
 	}
 }
@@ -237,7 +260,7 @@ export function generateDateInNumber({ date, withSeparation = false }: {
 /** Hash string using bcrypt-js */
 export async function hashWithBcrypt(data: string, saltRounds?: number): Promise<string> {
 	if (!data) {
-		throw new Error('Cannot hash a null/undefined data!')
+		throw new CustomException('Cannot hash a null/undefined data!')
 	}
 	const salt = await genSalt(saltRounds);
 	return await hash(data, salt);
@@ -428,7 +451,7 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 	traverse(data, parentKey);
 
 	if (duplicateKeys.length > 0) {
-		throw new Error(`Duplicate properties detected: ${duplicateKeys.join(', ')}`);
+		throw new CustomException(`Duplicate properties detected: ${duplicateKeys.join(', ')}`);
 	}
 }
 
@@ -447,81 +470,100 @@ export function createLogger(context?: string) {
 	};
 }
 
+/** Compile HTML with handlebar library */
+export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlString, runtimeOptions, compileOptions }: {
+	data: TData;
+	htmlString: string;
+	compileOptions?: CompileOptions;
+	runtimeOptions?: Omit<RuntimeOptions, 'partials'> & { partials?: ObjectType<string> };
+}) {
+	const templateDelegate = compile<TData>(htmlString, compileOptions);
+	return templateDelegate(data, runtimeOptions as unknown as RuntimeOptions);
+}
 
+/** Return API homepage */
 export function returnApiOverview({ name, docsUrl, description }: {
 	name: string;
 	docsUrl?: string;
 	description?: string;
 }) {
 	return `<!DOCTYPE html>
-<html lang="en">
+	<html lang="en">
 
-<head>
-	<meta charset="UTF-8">
-	<title>${name} summary</title>
-	<meta content="IE=edge" http-equiv="X-UA-Compatible">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<style>
-		body {
-			font-family: monospace;
-			background: #e3e8f1;
-			margin: 0;
-			padding: .5rem;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			height: 100vh;
-		}
+		<head>
+			<meta charset="UTF-8">
+			<title>${name} summary</title>
+			<meta content="IE=edge" http-equiv="X-UA-Compatible">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<style>
+				body {
+					font-family: monospace;
+					background: #e3e8f1;
+					margin: 0;
+					padding: .5rem;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					height: 100vh;
+				}
 
-		.card {
-			border-left: 5px solid #4f46e5;
-			max-width: 550px;
-			width: 100%;
-			background: #ffffff;
-			padding: 2rem 1.5rem .6rem;
-			border-radius: 10px;
-			box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
-		}
+				.card {
+					border-left: 5px solid #4f46e5;
+					max-width: 550px;
+					width: 100%;
+					background: #ffffff;
+					padding: 2rem 1.5rem .6rem;
+					border-radius: 10px;
+					box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+				}
 
-		h2 {
-			margin-top: 0;
-			font-size: 1.5rem;
-			color: #384353;
-			text-decoration: underline;
-		}
+				h2 {
+					margin-top: 0;
+					font-size: 1.5rem;
+					color: #384353;
+					text-decoration: underline;
+				}
 
-		.row {
-			color: #62748e;
-			margin-bottom: 1rem;
-		}
+				.row {
+					color: #62748e;
+					margin-bottom: 1rem;
+				}
 
-		.label {
-			display: inline-block;
-			font-weight: bold;
-		}
+				.label {
+					display: inline-block;
+					font-weight: bold;
+				}
 
-		a {
-			color: #2563eb;
-			text-decoration: none;
-		}
+				a {
+					color: #2563eb;
+					text-decoration: none;
+				}
 
-		a:hover {
-			text-decoration: underline;
-		}
-	</style>
-</head>
+				a:hover {
+					text-decoration: underline;
+				}
+			</style>
+		</head>
 
-<body>
-	<div class="card">
-		<h2>API Overview</h2>
-		<div class="row"><span class="label">Name:</span> ${name}</div>
-		<div class="row"><span class="label">Description:</span> ${description || ' '}</div>
-		<div class="row"><span class="label">Docs URL:</span> <a href=${docsUrl || ' '} target="_blank">${docsUrl || ' '}</a></div>
-		<div class="row"><span class="label">Environment:</span> ${process.env?.NODE_ENV}</div>
-		<div class="row"><span class="label">Status:</span> 200</div>
-		<div class="row"><span class="label">Timestamp:</span> ${new Date().toISOString()}</div>
-	</div>
-</body>
+		<body>
+			<div class="card">
+				<h2>API Overview</h2>
+				<div class="row"><span class="label">Name:</span> ${name}</div>
+				<div class="row"><span class="label">Description:</span> ${description || ' '}</div>
+				<div class="row"><span class="label">Docs URL:</span> <a href=${docsUrl || ' '} target="_blank">${docsUrl || ' '}</a></div>
+				<div class="row"><span class="label">Environment:</span> ${process.env?.NODE_ENV}</div>
+				<div class="row"><span class="label">Status:</span> 200</div>
+				<div class="row"><span class="label">Timestamp:</span> ${new Date().toUTCString()}</div>
+			</div>
+		</body>
 
-</html>`
+	</html>`
+}
+
+export function logDebugger(context: string, message: string, data?: any) {
+	const yellowColor = "\x1b[33m";
+	const resetColor = '\x1b[0m';
+	const greenColor = '\x1b[32m';
+	const ctx = context ? `${yellowColor}[${context}]${resetColor} ` : '';
+	console.log(`${new Date().toUTCString()} - ${greenColor}LOG${resetColor} ${ctx} ${greenColor}${message}${resetColor}`, data || '');
 }

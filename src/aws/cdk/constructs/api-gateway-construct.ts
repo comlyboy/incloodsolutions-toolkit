@@ -1,11 +1,11 @@
 import { Construct } from 'constructs';
-import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Function } from 'aws-cdk-lib/aws-lambda';
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
 import { IBaseCdkConstructProps, IBaseConstruct, } from '../../../interface';
-import { logDebugger } from '../../../aws';
+import { logDebugger } from '../../../utility';
 
 interface IRouteOption {
 	name: string

@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
-import { logDebugger } from '../../../aws';
+import { logDebugger } from '../../../utility';
 
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	tableOptions?: TableProps;

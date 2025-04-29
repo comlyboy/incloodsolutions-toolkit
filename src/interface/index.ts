@@ -78,6 +78,10 @@ export interface IBaseEditor<TModifier extends ObjectType = any> {
 	lastModifiedBy?: TModifier;
 }
 
+export interface IBaseEnableDebug {
+	enableDebug: boolean;
+}
+
 export interface IBaseEnvironmentVariable {
 	NODE_ENV: AppEnvironmentType;
 	TELEGRAM_BOT_TOKEN?: string;

@@ -33,12 +33,6 @@ export async function initLambdaApi({ app, event, context, callback, options }: 
 	return await serverInstance(event, context, callback);
 }
 
-
-export function logDebugger(context: string, message: string) {
-	const ctx = context ? `[${context}]` : '';
-	console.log(`${new Date().toISOString()} - LOG [${ctx}] ${message}`);
-}
-
 export function getCurrentLambdaInvocation() {
 	if (!isLambdaEnvironment()) {
 		throw new CustomException('Server not running in a Lambda environment!');
