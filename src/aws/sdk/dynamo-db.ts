@@ -13,14 +13,14 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	/** Class with class-validator and class-transformer decorators @ */
 	readonly schema: new () => ObjectType;
 	/** Options for primary and sort keys */
-	readonly compositePrimaryKeyOptions: {
-		/** Dynamo-db primary key name */
-		readonly primaryKeyName: string;
+	readonly compositePrimaryKeyOptions?: {
+		/** Dynamo-db primary key name @default 'id' */
+		readonly primaryKeyName?: string;
 		/** Dynamo-db sort key name @default undefined */
 		readonly sortKeyName?: string;
 		/**
 		 * if 'ignoreAutoGeneratingPrimaryKeyId' is `false` or `undefined`. Primary key ID type,
-		 * @default uuid
+		 * @default timestampUuid
 		 */
 		readonly primaryKeyIdType?: 'uuid' | 'timestampUuid' | 'epochTimestamp';
 		/** To ignore auto-generation of Primary key or not @default false */
@@ -37,9 +37,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 } & Partial<IBaseEnableDebug>) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names', 'type', 'types'];
 
-	if (!options?.compositePrimaryKeyOptions?.primaryKeyName) {
-		throw new CustomException('DynamoDB Primary key cannot be null/undefined!', 422)
-	}
+	const primaryKeyName = options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
 
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
@@ -75,12 +73,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
 		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId) return data;
-		if (options.compositePrimaryKeyOptions.primaryKeyIdType === 'timestampUuid') {
-			(data as any)[options?.compositePrimaryKeyOptions?.primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`
+		if (options.compositePrimaryKeyOptions.primaryKeyIdType === 'uuid') {
+			(data as any)[primaryKeyName] = generateCustomUUID();
 		} else if (options.compositePrimaryKeyOptions.primaryKeyIdType === 'epochTimestamp') {
-			(data as any)[options?.compositePrimaryKeyOptions?.primaryKeyName] = `${Date.now()}`
+			(data as any)[primaryKeyName] = `${Date.now()}`;
 		} else {
-			(data as any)[options?.compositePrimaryKeyOptions?.primaryKeyName] = generateCustomUUID();
+			(data as any)[primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`;
 		}
 		return data;
 	}
@@ -90,9 +88,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		/** Put command */
 		put: async ({ data }: { data: Partial<TType>; }) => {
 			mapSchemaPrimaryKey(data);
+
 			if (options?.enableDebug) {
 				logDebugger('Dynamo-DB Wrapper PUT', 'Validating data:', data);
 			}
+
 			await validateSchema(data);
 
 			if (options?.enableDebug) {

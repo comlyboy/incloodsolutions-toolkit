@@ -240,7 +240,7 @@ export function getIpAddress(req: Request) {
 }
 
 /** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */
-export function generateDateInNumber({ date, withSeparation = false }: {
+export function generateDateInNumber({ date, withSeparation }: {
 	date?: string | number | Date;
 	withSeparation?: boolean;
 } = {}): string {
@@ -254,7 +254,7 @@ export function generateDateInNumber({ date, withSeparation = false }: {
 	const minute = time.split(':').at(1);
 	const seconds = time.split(':').at(2).slice(0, 2);
 	const milliseconds = time.split('.').at(1).slice(0, 3);
-	return `${year}${month}${day}${hour}${minute}${seconds}${milliseconds}`;
+	return `${year}${month}${day}${hour}${withSeparation ? '-' : ''}${minute}${seconds}${milliseconds}`;
 }
 
 /** Hash string using bcrypt-js */
