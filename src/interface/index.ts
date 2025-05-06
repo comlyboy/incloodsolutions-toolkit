@@ -68,8 +68,8 @@ export interface IBaseDelete<TDeleter extends ObjectType = any> {
 
 export interface IBaseCreator<TCreator extends ObjectType = any> {
 	createdAtDate: string;
-	creatorByUserId?: string;
-	creatorBy?: TCreator;
+	createdByUserId?: string;
+	createdBy?: TCreator;
 }
 
 export interface IBaseEditor<TModifier extends ObjectType = any> {

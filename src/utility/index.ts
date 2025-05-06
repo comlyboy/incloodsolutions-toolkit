@@ -3,7 +3,7 @@ import path from 'path';
 
 import { isIP } from 'validator';
 import { cloneDeep } from 'lodash';
-import { v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7, v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { compile, RuntimeOptions } from 'handlebars';
@@ -79,12 +79,14 @@ export function isIsoDate(date: string): boolean {
 	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
 }
 
-/** Generates customized uuid. */
-export function generateCustomUUID({ asUpperCase = false, symbol }: {
+/** Generates customized uuid. v7 is default */
+export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
 	asUpperCase?: boolean;
 	symbol?: string;
+	version?: 4 | 7;
 } = {}): string {
-	const uuid = symbol && symbol.trim() ? uuidv4().replace(/-/g, symbol) : uuidv4();
+	let uuid = version === 4 ? uuidv4() : uuidv7();
+	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
 	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 

@@ -1,11 +1,11 @@
 import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
 import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, QueryCommandInput, QueryCommandOutput, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 import { plainToInstance } from "class-transformer";
-import { validateOrReject, ValidationError, ValidatorOptions } from "class-validator";
+import { validate, ValidationError, ValidatorOptions } from "class-validator";
 
 import { IBaseEnableDebug, ObjectType } from "../../interface";
 import { CustomException } from "../../error";
-import { generateCustomUUID, generateDateInNumber, logDebugger } from "../../utility";
+import { generateCustomUUID, generateDateInNumber, generateISODate, logDebugger } from "../../utility";
 
 export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTableIndexType = string>(options: {
 	/** Dynamo-db table name */
@@ -53,29 +53,33 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			});
 		}
 
-		try {
-			const instance = plainToInstance(options.schema, data);
-			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Validator', 'Validating entity instance:', instance);
-			}
-			await validateOrReject(instance, {
-				...options?.schemaConfig,
-				enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.enableDebug,
-				whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
-				forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options.schemaConfig.forbidUnknownValues : true,
-				skipMissingProperties: ignoreMissingProperties
-			});
-			return instance;
-		} catch (errors) {
+		const instance = plainToInstance(options.schema, data);
+		if (options?.enableDebug) {
+			logDebugger('Dynamo-DB Wrapper Validator', 'Validating entity instance:', instance);
+		}
+		const errors = await validate(instance, {
+			...options?.schemaConfig,
+			enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.enableDebug,
+			whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
+			forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options.schemaConfig.forbidUnknownValues : true,
+			skipMissingProperties: ignoreMissingProperties
+		});
+		if (errors.length > 0) {
 			throw new CustomException(flattenValidationErrors(errors), 400);
 		}
+		return instance;
+	}
+
+	function mapSchemaCreatedDate(data: Partial<TType>) {
+		(data as any)['createdAtDate'] = data?.createdAtDate || generateISODate();
+		return data;
 	}
 
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
 		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId) return data;
-		if (options.compositePrimaryKeyOptions.primaryKeyIdType === 'uuid') {
+		if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'uuid') {
 			(data as any)[primaryKeyName] = generateCustomUUID();
-		} else if (options.compositePrimaryKeyOptions.primaryKeyIdType === 'epochTimestamp') {
+		} else if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'epochTimestamp') {
 			(data as any)[primaryKeyName] = `${Date.now()}`;
 		} else {
 			(data as any)[primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`;
@@ -88,6 +92,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		/** Put command */
 		put: async ({ data }: { data: Partial<TType>; }) => {
 			mapSchemaPrimaryKey(data);
+			mapSchemaCreatedDate(data);
 
 			if (options?.enableDebug) {
 				logDebugger('Dynamo-DB Wrapper PUT', 'Validating data:', data);
