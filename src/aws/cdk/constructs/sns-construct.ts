@@ -26,7 +26,7 @@ export class SnsConstruct extends Construct {
 
 		this.topic.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-		new CfnOutput(this, 'TopicArn', {
+		new CfnOutput(this, 'SnsTopicArn', {
 			value: this.topic.topicArn,
 		});
 

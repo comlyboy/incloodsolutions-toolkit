@@ -22,7 +22,7 @@ export class RolePolicyConstruct extends Construct {
 		});
 
 		if (props?.policies?.length) {
-			props.policies.map((policy) => {
+			props.policies.forEach((policy) => {
 				this.role.addToPolicy(new PolicyStatement(policy));
 			});
 		}

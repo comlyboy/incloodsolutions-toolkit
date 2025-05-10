@@ -16,16 +16,16 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 	readonly table: Table;
 	readonly existingTable: ITable;
 
-	isDebugMode = false;
+	enableDebug = false;
 
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
 
-		this.isDebugMode = props?.enableDebugMode;
+		this.enableDebug = props?.enableDebug;
 
 		if (props.options?.fromExistingTableArn) {
 			this.existingTable = Table.fromTableArn(this, `${id}-refArn`, props.options?.fromExistingTableArn);
-			if (this.isDebugMode) {
+			if (this.enableDebug) {
 				logDebugger(DynamoDBConstruct.name, `Created Dynamo-DB table form existing using ARN`);
 			}
 			this.table = null;
@@ -34,7 +34,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 
 		if (props.options?.fromExistingTableName) {
 			this.existingTable = Table.fromTableName(this, `${id}-refName`, props.options?.fromExistingTableName) as Table;
-			if (this.isDebugMode) {
+			if (this.enableDebug) {
 				logDebugger(DynamoDBConstruct.name, `Created Dynamo-DB table form existing using name ${props.options?.fromExistingTableName}`);
 			}
 			this.table = null;
@@ -50,7 +50,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 		if (props?.options?.globalSecondaryIndexes?.length) {
 			props.options.globalSecondaryIndexes.forEach(globalIndex => {
 				this.table.addGlobalSecondaryIndex(globalIndex);
-				if (this.isDebugMode) {
+				if (this.enableDebug) {
 					logDebugger(DynamoDBConstruct.name, `Added LSI: ${globalIndex.indexName}`);
 				}
 			});
@@ -59,7 +59,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 		if (props?.options?.localSecondaryIndexes?.length) {
 			props.options.localSecondaryIndexes.forEach(localIndex => {
 				this.table.addLocalSecondaryIndex(localIndex);
-				if (this.isDebugMode) {
+				if (this.enableDebug) {
 					logDebugger(DynamoDBConstruct.name, `Added LSI: ${localIndex.indexName}`);
 				}
 			});

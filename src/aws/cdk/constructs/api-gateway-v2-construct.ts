@@ -17,12 +17,12 @@ interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 export class ApiGatewayV2Construct extends Construct implements IBaseConstruct {
 	readonly api: HttpApi;
 
-	isDebugMode = false;
+	enableDebug = false;
 
 	constructor(scope: Construct, id: string, props: IApiGatewayV2ConstructProps) {
 		super(scope, id);
 
-		this.isDebugMode = props.enableDebugMode;
+		this.enableDebug = props.enableDebug;
 
 		this.api = new HttpApi(this, id, {
 			...props?.options?.gatewayOptions,

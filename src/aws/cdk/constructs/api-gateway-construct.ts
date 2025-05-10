@@ -22,12 +22,12 @@ interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
 
 export class ApiGatewayConstruct extends Construct implements IBaseConstruct {
 	readonly api: RestApi;
-	isDebugMode = false;
+	enableDebug = false;
 
 	constructor(scope: Construct, id: string, props: IApiGatewayConstructProps) {
 		super(scope, id);
 
-		this.isDebugMode = props.enableDebugMode;
+		this.enableDebug = props.enableDebug;
 
 		this.api = new RestApi(this, id, {
 			...props?.options?.gatewayOptions,
@@ -69,7 +69,7 @@ export class ApiGatewayConstruct extends Construct implements IBaseConstruct {
 			if (route?.children.length) {
 				this.addRoutes(resource, route.children, integration, currentPath);
 			}
-			if (this.isDebugMode) {
+			if (this.enableDebug) {
 				logDebugger(ApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
 			}
 		});

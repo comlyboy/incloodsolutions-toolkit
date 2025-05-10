@@ -40,9 +40,7 @@ export interface IBaseReferenceId {
 	referenceId: string;
 }
 
-export interface IBaseConstruct {
-	isDebugMode: boolean;
-}
+export interface IBaseConstruct extends IBaseEnableDebug { }
 
 export interface IBaseBusiness<TBusiness extends ObjectType = any> {
 	businessId: string;
@@ -95,12 +93,11 @@ export interface IBaseErrorResponse extends IBaseTimestamp {
 	statusCode: number;
 }
 
-export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> {
+export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> extends IBaseEnableDebug {
 	readonly stage?: AppEnvironmentType;
 	readonly options?: TOptions;
 	readonly stackName?: string;
 	readonly appName?: string;
-	readonly enableDebugMode?: boolean;
 }
 
 export enum AppEnvironmentEnum {
