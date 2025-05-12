@@ -1,4 +1,4 @@
-import { DynamoDBClient, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, DynamoDBClientConfig, ReturnConsumedCapacity } from "@aws-sdk/client-dynamodb";
 import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, QueryCommandInput, QueryCommandOutput, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 import { plainToInstance } from "class-transformer";
 import { validate, ValidationError, ValidatorOptions } from "class-validator";
@@ -32,6 +32,8 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	readonly schemaConfig?: ValidatorOptions;
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
+	/** Debuging context, only when `enableDebug` is `true` */
+	readonly debugContext?: string;
 	/** Enable debuging mode */
 	readonly enableDebug?: boolean;
 } & Partial<IBaseEnableDebug>) {
@@ -39,9 +41,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 	const primaryKeyName = options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
 
+	const debugContext = `${options?.debugContext || ''} | DynamoDb Wrapper`;
+
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
-	async function validateSchema<TShema, TData>(data: TData, ignoreMissingProperties = false) {
+	async function validateSchema<TData>(data: TData, ignoreMissingProperties = false) {
 		function flattenValidationErrors(errors: ValidationError[]): string[] {
 			return errors.flatMap(error => {
 				const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
@@ -55,12 +59,14 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 		const instance = plainToInstance(options.schema, data);
 		if (options?.enableDebug) {
-			logDebugger('Dynamo-DB Wrapper Validator', 'Validating entity instance:', instance);
+			logDebugger(`${debugContext} Validation`, 'Validating entity instance:', instance);
 		}
 		const errors = await validate(instance, {
 			...options?.schemaConfig,
 			enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.enableDebug,
 			whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
+			// forbidNonWhitelisted: options?.schemaConfig?.forbidNonWhitelisted === false ? options.schemaConfig.forbidNonWhitelisted : true,
+			forbidNonWhitelisted: true,
 			forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options.schemaConfig.forbidUnknownValues : true,
 			skipMissingProperties: ignoreMissingProperties
 		});
@@ -94,22 +100,16 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
-			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper PUT', 'Validating data:', data);
-			}
-
 			await validateSchema(data);
 
-			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper PUT', 'Sending PutCommand', data);
-			}
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(new PutCommand({
 				Item: { ...data },
-				TableName: options.tableName
+				TableName: options.tableName,
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			}));
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper PUT', 'Put operation successful', ConsumedCapacity);
+				logDebugger(`${debugContext} PutCommand`, 'successful', { consumedCapacity: ConsumedCapacity?.CapacityUnits });
 			}
 
 			return data as TType;
@@ -128,9 +128,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			let exclusiveStartKey: TType;
 			let queryResponse: QueryCommandOutput;
 			let responseData: TType[] = [];
+			let consumedCapacity = 0;
 
 			const queryParam: QueryCommandInput = {
-				TableName: options.tableName
+				TableName: options.tableName,
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			}
 
 			if (conditions && Object.keys(conditions).length) {
@@ -146,12 +148,16 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						};
 					}
 
-					queryParam.KeyConditionExpression = `${key} = ${modifiedRawKey}`;
+					queryParam.KeyConditionExpression = queryParam?.KeyConditionExpression ? queryParam.KeyConditionExpression += ` AND ${key} = ${modifiedRawKey}` : `${key} = ${modifiedRawKey}`;
+
 					queryParam.ExpressionAttributeValues = {
 						...queryParam.ExpressionAttributeValues,
 						[modifiedRawKey]: value
 					};
 				});
+				if (options?.enableDebug) {
+					logDebugger(`${debugContext} QueryCommand`, 'KeyConditions applied', queryParam);
+				}
 
 			}
 
@@ -191,6 +197,9 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						':searchKeyword': searchTerms.value
 					};
 				});
+				if (options?.enableDebug) {
+					logDebugger(`${debugContext} QueryCommand`, 'Applied search/filter', queryParam);
+				}
 			}
 
 			if (filter && Object.keys(filter).length) {
@@ -214,10 +223,14 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						[modifiedRawKey]: value
 					}
 				});
+
+				if (options?.enableDebug) {
+					logDebugger(`${debugContext} QueryCommand`, 'Applied FilterExpression', queryParam);
+				}
 			}
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Query', 'Sending query operation with', queryParam);
+				logDebugger(`${debugContext} QueryCommand`, 'Calling with', queryParam);
 			}
 
 			do {
@@ -225,10 +238,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				responseData = [...responseData, ...queryResponse.Items as TType[]];
 				exclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
 				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
+				consumedCapacity = consumedCapacity + queryResponse.ConsumedCapacity?.CapacityUnits
 			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Query', 'Query operation successful', responseData);
+				logDebugger(`${debugContext} QueryCommand`, 'successful', { consumedCapacity });
 			}
 
 			return {
@@ -244,16 +258,17 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		}) => {
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Get', 'Sending get operation with', key);
+				logDebugger(`${debugContext} GetCommand`, 'Calling with', key);
 			}
 
 			const response = await dynamoDbClientInstance.send(new GetCommand({
 				Key: key,
 				ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined,
-				TableName: options.tableName
+				TableName: options.tableName,
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			}));
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Get', 'GetCommand operation successful');
+				logDebugger(`${debugContext} GetCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
 			}
 			return response.Item as TType;
 		},
@@ -267,6 +282,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		}) => {
 			let queryResponse: BatchGetCommandOutput;
 			let responseData: TType[] = [];
+			let consumedCapacity = 0;
 
 			if (!keys || !keys.length) {
 				return {
@@ -275,12 +291,8 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				}
 			};
 
-			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper BatchGet', 'Sending BatchGet operation with', keys);
-			}
-
-
 			const batchGetInput: BatchGetCommandInput = {
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 				RequestItems: {
 					[options.tableName]: {
 						Keys: keys,
@@ -289,19 +301,24 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				}
 			}
 
+			if (options?.enableDebug) {
+				logDebugger(`${debugContext} BatchGetCommand`, 'Calling with', batchGetInput);
+			}
+
 			do {
 				queryResponse = await dynamoDbClientInstance.send(new BatchGetCommand(batchGetInput));
 				responseData = [...responseData, ...queryResponse.Responses[options?.tableName] as TType[]];
 				batchGetInput.RequestItems = queryResponse.UnprocessedKeys;
+				consumedCapacity = queryResponse.ConsumedCapacity.reduce((total, capacity) => total + capacity.CapacityUnits, 0);
 			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper BatchGet', 'BatchGet operation successful');
+				logDebugger(`${debugContext} BatchGetCommand`, 'successful', { consumedCapacity });
 			}
 
 			return {
 				data: responseData,
-				nextPageData: queryResponse.UnprocessedKeys ? JSON.stringify(queryResponse.UnprocessedKeys) : undefined
+				nextPageData: queryResponse.UnprocessedKeys
 			}
 		},
 
@@ -312,14 +329,16 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		}) => {
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Update', 'Validating data:', data);
+				logDebugger(`${debugContext} UpdateCommand`, 'Validating data:', data);
 			}
+
 			await validateSchema(data, true);
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
 				ReturnValues: 'ALL_NEW',
-				TableName: options.tableName
+				TableName: options.tableName,
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			};
 
 			Object.entries(data).map(([propertyKey, value]) => {
@@ -340,13 +359,13 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			});
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Update', 'Sending update operation with', updateParam);
+				logDebugger(`${debugContext} UpdateCommand`, 'Calling with', updateParam);
 			}
 
 			const response = await dynamoDbClientInstance.send(new UpdateCommand(updateParam));
 
 			if (options?.enableDebug) {
-				logDebugger('Dynamo-DB Wrapper Update', 'Update operation successful', response.ConsumedCapacity);
+				logDebugger(`${debugContext} UpdateCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
 			}
 
 			return response.Attributes as TType;

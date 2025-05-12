@@ -377,8 +377,8 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, messa
 	error?: IBaseErrorResponse & ObjectType;
 }) {
 	return {
-		data: data || null,
 		message: message || null,
+		data: data || null,
 		error: error || null
 	} as const;
 }
@@ -389,8 +389,9 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: 
 	error?: IBaseErrorResponse & ObjectType;
 }, statusCode = 200) {
 	return res.status(statusCode).json({
-		...data, statusCode,
-		success: statusCode < 400
+		success: statusCode < 400,
+		statusCode,
+		...data,
 	});
 }
 

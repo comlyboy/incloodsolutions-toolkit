@@ -28,6 +28,10 @@ export interface IBaseStatus<TStatus> {
 	status: TStatus;
 }
 
+export interface IBaseAmount {
+	amount: number;
+}
+
 export interface IBaseDescription {
 	description: string;
 }
