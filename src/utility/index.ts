@@ -3,7 +3,7 @@ import path from 'path';
 
 import { isIP } from 'validator';
 import { cloneDeep } from 'lodash';
-import { v7 as uuidv7, v4 as uuidv4 } from 'uuid';
+import { v7 as uuidv7, v4 as uuidv4, validate } from 'uuid';
 import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { compile, RuntimeOptions } from 'handlebars';
@@ -88,6 +88,19 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
 	let uuid = version === 4 ? uuidv4() : uuidv7();
 	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
 	return asUpperCase ? uuid.toUpperCase() : uuid;
+}
+
+/** Check if a string is uuid */
+export function isUUID(uuid: string) {
+	return validate(uuid);
+}
+
+/** Check if a string contains uuid */
+export function containsUUID(input: string): boolean {
+	const matches = input.match(
+		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi
+	);
+	return matches !== null && matches.length > 0;
 }
 
 /** Send Http request with Axios. */
