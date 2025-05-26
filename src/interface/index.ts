@@ -81,6 +81,7 @@ export interface IBaseEditor<TModifier extends ObjectType = any> {
 }
 
 export interface IBaseEnableDebug {
+	/** Enable debuging mode */
 	enableDebug: boolean;
 }
 

@@ -32,16 +32,19 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	readonly schemaConfig?: ValidatorOptions;
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
-	/** Debuging context, only when `enableDebug` is `true` */
-	readonly debugContext?: string;
-	/** Enable debuging mode */
-	readonly enableDebug?: boolean;
-} & Partial<IBaseEnableDebug>) {
+	readonly options: {
+		readonly timestamp?: boolean;
+		/** Debuging context, only when `enableDebug` is `true` */
+		readonly debugContext?: string;
+		/** Enable debuging mode */
+		readonly enableDebug?: boolean;
+	} & Partial<IBaseEnableDebug>;
+}) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names', 'type', 'types'];
 
 	const primaryKeyName = options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
 
-	const debugContext = `${options?.debugContext || ''} | DynamoDb Wrapper`;
+	const debugContext = `${options?.options?.debugContext || ''} | DynamoDb Wrapper`;
 
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
@@ -58,12 +61,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		}
 
 		const instance = plainToInstance(options.schema, data);
-		if (options?.enableDebug) {
+		if (options?.options?.enableDebug) {
 			logDebugger(`${debugContext} Validation`, 'Validating entity instance:', instance);
 		}
 		const errors = await validate(instance, {
 			...options?.schemaConfig,
-			enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.enableDebug,
+			enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.options?.enableDebug,
 			whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
 			// forbidNonWhitelisted: options?.schemaConfig?.forbidNonWhitelisted === false ? options.schemaConfig.forbidNonWhitelisted : true,
 			forbidNonWhitelisted: true,
@@ -108,7 +111,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			}));
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} PutCommand`, 'successful', { consumedCapacity: ConsumedCapacity?.CapacityUnits });
 			}
 
@@ -155,7 +158,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						[modifiedRawKey]: value
 					};
 				});
-				if (options?.enableDebug) {
+				if (options?.options?.enableDebug) {
 					logDebugger(`${debugContext} QueryCommand`, 'KeyConditions applied', queryParam);
 				}
 
@@ -197,7 +200,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						':searchKeyword': searchTerms.value
 					};
 				});
-				if (options?.enableDebug) {
+				if (options?.options?.enableDebug) {
 					logDebugger(`${debugContext} QueryCommand`, 'Applied search/filter', queryParam);
 				}
 			}
@@ -224,12 +227,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 					}
 				});
 
-				if (options?.enableDebug) {
+				if (options?.options?.enableDebug) {
 					logDebugger(`${debugContext} QueryCommand`, 'Applied FilterExpression', queryParam);
 				}
 			}
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} QueryCommand`, 'Calling with', queryParam);
 			}
 
@@ -241,7 +244,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				consumedCapacity = consumedCapacity + queryResponse.ConsumedCapacity?.CapacityUnits
 			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} QueryCommand`, 'successful', { consumedCapacity });
 			}
 
@@ -257,7 +260,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			select?: (keyof TType)[];
 		}) => {
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} GetCommand`, 'Calling with', key);
 			}
 
@@ -267,7 +270,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				TableName: options.tableName,
 				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
 			}));
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} GetCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
 			}
 			return response.Item as TType;
@@ -301,7 +304,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				}
 			}
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} BatchGetCommand`, 'Calling with', batchGetInput);
 			}
 
@@ -312,7 +315,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				consumedCapacity = queryResponse.ConsumedCapacity.reduce((total, capacity) => total + capacity.CapacityUnits, 0);
 			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} BatchGetCommand`, 'successful', { consumedCapacity });
 			}
 
@@ -328,7 +331,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			data: Partial<TType>;
 		}) => {
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} UpdateCommand`, 'Validating data:', data);
 			}
 
@@ -358,13 +361,13 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				}
 			});
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} UpdateCommand`, 'Calling with', updateParam);
 			}
 
 			const response = await dynamoDbClientInstance.send(new UpdateCommand(updateParam));
 
-			if (options?.enableDebug) {
+			if (options?.options?.enableDebug) {
 				logDebugger(`${debugContext} UpdateCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
 			}
 
