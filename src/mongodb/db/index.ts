@@ -15,7 +15,7 @@ export function initMongoDbClientWrapper<TType extends ObjectType = any, TSchema
 	readonly debugContext?: string;
 } & Partial<IBaseEnableDebug>) {
 
-	const debugContext = `${options?.debugContext || ''} | DynamoDb Wrapper`;
+	// const debugContext = `${options?.debugContext || ''} | DynamoDb Wrapper`;
 
 
 	const client = new MongoClient('');
@@ -25,11 +25,12 @@ export function initMongoDbClientWrapper<TType extends ObjectType = any, TSchema
 	return {
 		collection,
 		database: client.db(),
-		create: async () => {
-			const data = await collection.insertOne({}, {});
+		create: async (data: TType) => {
+			await collection.insertOne(data as any, {});
+			return data;
 		},
 		query: async () => {
-			const data = await collection.find({}, {})
+			return await collection.find({}, {}).toArray() as TType[];
 		},
 		getOne: async (id: string) => {
 			return await collection.findOne({ _id: id as any }, {});

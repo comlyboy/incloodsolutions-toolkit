@@ -32,7 +32,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	readonly schemaConfig?: ValidatorOptions;
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
-	readonly options: {
+	readonly options?: {
 		readonly timestamp?: boolean;
 		/** Debuging context, only when `enableDebug` is `true` */
 		readonly debugContext?: string;
