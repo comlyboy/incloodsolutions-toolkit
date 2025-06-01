@@ -20,7 +20,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		readonly sortKeyName?: string;
 		/**
 		 * if 'ignoreAutoGeneratingPrimaryKeyId' is `false` or `undefined`. Primary key ID type,
-		 * @default timestampUuid
+		 * @default uuid
 		 */
 		readonly primaryKeyIdType?: 'uuid' | 'timestampUuid' | 'epochTimestamp';
 		/** To ignore auto-generation of Primary key or not @default false */
@@ -85,13 +85,13 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	}
 
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
-		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId) return data;
-		if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'uuid') {
-			(data as any)[primaryKeyName] = generateCustomUUID();
+		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId === true) return data;
+		if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'timestampUuid') {
+			(data as any)[primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`;
 		} else if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'epochTimestamp') {
 			(data as any)[primaryKeyName] = `${Date.now()}`;
 		} else {
-			(data as any)[primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`;
+			(data as any)[primaryKeyName] = generateCustomUUID();
 		}
 		return data;
 	}
