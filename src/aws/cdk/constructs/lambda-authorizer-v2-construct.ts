@@ -9,7 +9,7 @@ interface ILambdaAuthoriserV2ConstructProps extends Omit<IBaseCdkConstructProps<
 }
 
 
-export class LambdaAuthoriserV2Construct extends Construct {
+export class BaseLambdaAuthoriserV2Construct extends Construct {
 	readonly authoriser: HttpLambdaAuthorizer;
 
 	constructor(scope: Construct, id: string, props: ILambdaAuthoriserV2ConstructProps) {

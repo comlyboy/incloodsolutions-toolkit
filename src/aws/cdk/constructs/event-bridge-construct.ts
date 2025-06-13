@@ -11,7 +11,7 @@ interface IEventBridgeConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly eventBridgeOptions: RuleProps;
 }>, 'appName' | 'stage' | 'stackName'> { }
 
-export class EventBridgeConstruct extends Construct {
+export class BaseEventBridgeConstruct extends Construct {
 	readonly eventSchedule: Rule;
 
 	constructor(scope: Construct, id: string, props: IEventBridgeConstructProps) {

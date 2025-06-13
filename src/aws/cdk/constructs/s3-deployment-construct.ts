@@ -11,7 +11,7 @@ interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
 }>, 'appName' | 'stackName'> {
 	readonly withBucketDeployment?: boolean;
 }
-export class S3DeploymentConstruct extends Construct {
+export class BaseS3DeploymentConstruct extends Construct {
 	readonly bucket: Bucket;
 	readonly bucketDeployment: BucketDeployment;
 

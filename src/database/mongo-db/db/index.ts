@@ -1,6 +1,7 @@
 import { ValidatorOptions } from "class-validator";
-import { IBaseEnableDebug, ObjectType } from "../../interface";
 import { CollectionOptions, MongoClient } from "mongodb";
+
+import { IBaseEnableDebug, ObjectType } from "../../../interface";
 
 export function initMongoDbClientWrapper<TType extends ObjectType = any, TSchemaType extends ObjectType = any>(options: {
 	/** Mongo-db collection name */

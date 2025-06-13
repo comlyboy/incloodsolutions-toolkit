@@ -7,7 +7,7 @@ import { detectDuplicateProperties } from '../../../utility';
 
 interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<FunctionProps>>, 'appName'> { }
 
-export class LambdaConstruct extends Construct {
+export class BaseLambdaConstruct extends Construct {
 	readonly handler: Function;
 
 	constructor(scope: Construct, id: string, props: ILambdaConstructProps) {

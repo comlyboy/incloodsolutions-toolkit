@@ -9,7 +9,7 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<RoleProps>
 	readonly policies?: PolicyStatementProps[];
 }
 
-export class RolePolicyConstruct extends Construct {
+export class BaseRolePolicyConstruct extends Construct {
 	readonly role: Role;
 
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {

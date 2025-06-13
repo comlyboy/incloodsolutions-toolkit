@@ -3,9 +3,9 @@ import { Architecture, Code, LayerVersion, LayerVersionProps, Runtime } from 'aw
 
 import { IBaseCdkConstructProps } from '../../../interface';
 
-interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName'>> & Pick<LayerVersionProps, 'layerVersionName'>>, 'appName' | 'stage' | 'stackName'> { }
+interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName' |'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>>, 'appName' | 'stage' | 'stackName'> { }
 
-export class LambdaLayerConstruct extends Construct {
+export class BaseLambdaLayerConstruct extends Construct {
 	readonly layer: LayerVersion;
 
 	constructor(scope: Construct, id: string, props?: ILambdaLayerConstructProps) {
@@ -15,7 +15,7 @@ export class LambdaLayerConstruct extends Construct {
 			code: props?.options?.code || Code.fromAsset('./dist-layer'),
 			description: props?.options?.description || 'Lambda Layer written in NodeJS, nestJS, NodeJS-express, serverless-express',
 			compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
-			compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X],
+			compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X]
 		} as LayerVersionProps);
 	}
 }

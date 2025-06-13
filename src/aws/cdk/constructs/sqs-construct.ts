@@ -12,7 +12,7 @@ interface ISqsConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly receivingFunctions?: Function[];
 }
 
-export class SqsConstruct extends Construct {
+export class BaseSqsConstruct extends Construct {
 	readonly queue: Queue;
 
 	constructor(scope: Construct, id: string, props: ISqsConstructProps) {

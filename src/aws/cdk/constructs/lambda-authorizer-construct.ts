@@ -5,7 +5,7 @@ import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILambdaAuthoriserConstructProps extends Omit<IBaseCdkConstructProps<TokenAuthorizerProps>, 'appName' | 'stage' | 'stackName'> { }
 
-export class LambdaAuthoriserConstruct extends Construct {
+export class BaseLambdaAuthoriserConstruct extends Construct {
 	readonly authoriser: TokenAuthorizer;
 
 	constructor(scope: Construct, id: string, props: ILambdaAuthoriserConstructProps) {

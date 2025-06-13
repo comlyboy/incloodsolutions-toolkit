@@ -31,7 +31,7 @@ interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps
 	}
 }
 
-export class ApiGatewayWebSocketConstruct extends Construct {
+export class BaseApiGatewayWebSocketConstruct extends Construct {
 	readonly socketApi: WebSocketApi;
 
 	constructor(scope: Construct, id: string, props: IApiGatewayWebsocketConstructProps) {

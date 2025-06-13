@@ -20,7 +20,7 @@ interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly handlerFunction: Function;
 }
 
-export class ApiGatewayConstruct extends Construct implements IBaseConstruct {
+export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct {
 	readonly api: RestApi;
 	enableDebug = false;
 
@@ -70,7 +70,7 @@ export class ApiGatewayConstruct extends Construct implements IBaseConstruct {
 				this.addRoutes(resource, route.children, integration, currentPath);
 			}
 			if (this.enableDebug) {
-				logDebugger(ApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
+				logDebugger(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
 			}
 		});
 	}

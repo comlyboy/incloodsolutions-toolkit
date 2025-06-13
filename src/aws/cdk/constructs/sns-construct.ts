@@ -11,7 +11,7 @@ interface ISnsConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly topicOptions: TopicProps;
 }>, 'appName' | 'stage' | 'stackName'> { }
 
-export class SnsConstruct extends Construct {
+export class BaseSnsConstruct extends Construct {
 	readonly topic: Topic;
 
 	constructor(scope: Construct, id: string, props: ISnsConstructProps) {

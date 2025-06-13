@@ -12,7 +12,7 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	localSecondaryIndexes?: LocalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
-export class DynamoDBConstruct extends Construct implements IBaseConstruct {
+export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 	readonly table: Table;
 	readonly existingTable: ITable;
 
@@ -26,7 +26,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 		if (props.options?.fromExistingTableArn) {
 			this.existingTable = Table.fromTableArn(this, `${id}-refArn`, props.options?.fromExistingTableArn);
 			if (this.enableDebug) {
-				logDebugger(DynamoDBConstruct.name, `Created Dynamo-DB table form existing using ARN`);
+				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table form existing using ARN`);
 			}
 			this.table = null;
 			return;
@@ -35,7 +35,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 		if (props.options?.fromExistingTableName) {
 			this.existingTable = Table.fromTableName(this, `${id}-refName`, props.options?.fromExistingTableName) as Table;
 			if (this.enableDebug) {
-				logDebugger(DynamoDBConstruct.name, `Created Dynamo-DB table form existing using name ${props.options?.fromExistingTableName}`);
+				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table form existing using name ${props.options?.fromExistingTableName}`);
 			}
 			this.table = null;
 			return;
@@ -51,7 +51,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 			props.options.globalSecondaryIndexes.forEach(globalIndex => {
 				this.table.addGlobalSecondaryIndex(globalIndex);
 				if (this.enableDebug) {
-					logDebugger(DynamoDBConstruct.name, `Added LSI: ${globalIndex.indexName}`);
+					logDebugger(BaseDynamoDBConstruct.name, `Added LSI: ${globalIndex.indexName}`);
 				}
 			});
 		}
@@ -60,7 +60,7 @@ export class DynamoDBConstruct extends Construct implements IBaseConstruct {
 			props.options.localSecondaryIndexes.forEach(localIndex => {
 				this.table.addLocalSecondaryIndex(localIndex);
 				if (this.enableDebug) {
-					logDebugger(DynamoDBConstruct.name, `Added LSI: ${localIndex.indexName}`);
+					logDebugger(BaseDynamoDBConstruct.name, `Added LSI: ${localIndex.indexName}`);
 				}
 			});
 		}

@@ -1,16 +1,16 @@
-import { ObjectType } from "../interface";
+import { IBaseEnableDebug, IBaseEnvironmentVariable, ObjectType } from "../interface";
 
 const cachedEnvironmentVariables: ObjectType = {
 	...process?.env
-};
+} as const;
 
 /** Initialize environment variable, no dotenv library */
 export function initEnvironmentVariables<TSchema extends ObjectType = any>(schema: {
-	[key in keyof Partial<TSchema>]: {
+	[key in keyof Partial<TSchema & IBaseEnvironmentVariable>]: {
 		required?: boolean;
-		defaultValue?: number | string | boolean | ObjectType;
+		defaultValue?: number | string | boolean;
 	};
-}, options?: { debug?: boolean; }) {
+}, options?: Partial<IBaseEnableDebug>) {
 	const redColor = '\x1b[31m';
 	const yellowColor = "\x1b[33m";
 	const resetColor = '\x1b[0m';
@@ -26,12 +26,11 @@ export function initEnvironmentVariables<TSchema extends ObjectType = any>(schem
 		const finalValue = envValue || config?.defaultValue;
 		cachedEnvironmentVariables[key] = finalValue;
 
-		if (options?.debug && process?.env?.NODE_ENV !== 'production') {
+		if (options?.enableDebug && process?.env?.NODE_ENV !== 'production') {
 			console.log(
-				`${greenColor}[ENV]${resetColor} ${yellowColor}${key.padEnd(20)}${resetColor} | ${greenColor}Value:${resetColor} ${yellowColor}${String(finalValue).padEnd(30)}${resetColor} | ${greenColor}Source:${resetColor} ${envValue !== undefined ? `${cyanColor}process.env${resetColor}` : `${grayColor}defaultValue${resetColor}`
-				}`
+				`${greenColor}[ENV]${resetColor} ${yellowColor}${key.padEnd(20)}${resetColor} | ${greenColor}Value:${resetColor} ${yellowColor}${String(finalValue).padEnd(30)}${resetColor} | ${greenColor}Source:${resetColor} ${envValue !== undefined ? `${cyanColor}process.env${resetColor}` : `${grayColor}defaultValue${resetColor}`}`
 			);
 		}
 	});
-	return cachedEnvironmentVariables as TSchema;
+	return cachedEnvironmentVariables as TSchema & IBaseEnvironmentVariable & ObjectType<string | number>;
 }

@@ -14,7 +14,7 @@ interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 }
 
 
-export class ApiGatewayV2Construct extends Construct implements IBaseConstruct {
+export class BaseApiGatewayV2Construct extends Construct implements IBaseConstruct {
 	readonly api: HttpApi;
 
 	enableDebug = false;

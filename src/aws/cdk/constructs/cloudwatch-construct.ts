@@ -6,7 +6,7 @@ import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILogGroupConstructProps extends Omit<IBaseCdkConstructProps<LogGroupProps>, 'appName' | 'stage' | 'stackName'> { }
 
-export class CloudWatchLogGroupConstruct extends Construct {
+export class BaseCloudWatchLogGroupConstruct extends Construct {
 	readonly logGroup: LogGroup;
 
 	constructor(scope: Construct, id: string, props: ILogGroupConstructProps) {
