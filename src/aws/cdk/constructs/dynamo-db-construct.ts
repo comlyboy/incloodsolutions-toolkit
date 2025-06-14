@@ -4,6 +4,9 @@ import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProp
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 import { logDebugger } from '../../../utility';
 
+/**
+ * Properties for configuring the BaseDynamoDBConstruct.
+ */
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	tableOptions?: TableProps;
 	fromExistingTableArn?: string;
@@ -12,51 +15,76 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	localSecondaryIndexes?: LocalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
+/**
+ * A reusable CDK construct that manages the creation or import of a DynamoDB table,
+ * including optional GSI and LSI indexes.
+ */
 export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
+	/** The newly created DynamoDB table (if applicable). */
 	readonly table: Table;
+
+	/** The existing table imported by ARN or name (if applicable). */
 	readonly existingTable: ITable;
 
+	/** Enable debug logging. */
 	enableDebug = false;
 
+	/**
+	 * Creates a new instance of the BaseDynamoDBConstruct.
+	 *
+	 * @param scope - The scope in which this construct is defined.
+	 * @param id - The ID of the construct.
+	 * @param props - The configuration properties.
+	 */
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
 
 		this.enableDebug = props?.enableDebug;
 
+		// Import table from ARN
 		if (props.options?.fromExistingTableArn) {
-			this.existingTable = Table.fromTableArn(this, `${id}-refArn`, props.options?.fromExistingTableArn);
+			this.existingTable = Table.fromTableArn(this, `${id}-refArn`, props.options.fromExistingTableArn);
 			if (this.enableDebug) {
-				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table form existing using ARN`);
+				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using ARN`);
 			}
 			this.table = null;
 			return;
 		}
 
+		// Import table from name
 		if (props.options?.fromExistingTableName) {
-			this.existingTable = Table.fromTableName(this, `${id}-refName`, props.options?.fromExistingTableName) as Table;
+			this.existingTable = Table.fromTableName(this, `${id}-refName`, props.options.fromExistingTableName) as Table;
 			if (this.enableDebug) {
-				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table form existing using name ${props.options?.fromExistingTableName}`);
+				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`);
 			}
 			this.table = null;
 			return;
 		}
 
+		this.existingTable = null;
+
+		// Create new table
 		this.table = new Table(this, id, {
 			...props.options?.tableOptions,
 			billingMode: props.options?.tableOptions?.billingMode || BillingMode.PAY_PER_REQUEST,
-			deletionProtection: (props.options?.tableOptions?.deletionProtection === false || props.options?.tableOptions?.deletionProtection === true) ? props.options?.tableOptions?.deletionProtection : props.stage === 'production',
+			deletionProtection:
+				(props.options?.tableOptions?.deletionProtection === true || props.options?.tableOptions?.deletionProtection === false)
+					? props.options.tableOptions.deletionProtection
+					: props.stage === 'production',
 		});
 
-		if (props?.options?.globalSecondaryIndexes?.length) {
+		// Add Global Secondary Indexes
+		if (props.options?.globalSecondaryIndexes?.length) {
 			props.options.globalSecondaryIndexes.forEach(globalIndex => {
 				this.table.addGlobalSecondaryIndex(globalIndex);
 				if (this.enableDebug) {
-					logDebugger(BaseDynamoDBConstruct.name, `Added LSI: ${globalIndex.indexName}`);
+					logDebugger(BaseDynamoDBConstruct.name, `Added GSI: ${globalIndex.indexName}`);
 				}
 			});
 		}
 
-		if (props?.options?.localSecondaryIndexes?.length) {
+		// Add Local Secondary Indexes
+		if (props.options?.localSecondaryIndexes?.length) {
 			props.options.localSecondaryIndexes.forEach(localIndex => {
 				this.table.addLocalSecondaryIndex(localIndex);
 				if (this.enableDebug) {
