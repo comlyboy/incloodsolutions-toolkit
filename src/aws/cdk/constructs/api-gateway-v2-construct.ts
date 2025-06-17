@@ -4,13 +4,14 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { AddRoutesOptions, CorsHttpMethod, HttpApi, HttpApiProps } from 'aws-cdk-lib/aws-apigatewayv2';
 
+import { CustomException } from '../../../error';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 
 interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 	gatewayOptions: HttpApiProps;
 	routeOptions: Partial<AddRoutesOptions>[];
 }>, 'appName' | 'stage' | 'stackName'> {
-	readonly handlerFunction: Function;
+	readonly handlerFunctions: Function[];
 }
 
 
@@ -31,30 +32,36 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 				...props.options?.gatewayOptions?.corsPreflight,
 				allowMethods: props.options?.gatewayOptions?.corsPreflight?.allowMethods || Object.values(CorsHttpMethod),
 				allowHeaders: [
-					...props.options?.gatewayOptions?.corsPreflight?.allowHeaders,
 					'Content-Type',
 					'Accept',
 					'X-Amz-Date',
 					'Authorization',
 					'X-Api-Key',
 					'X-Amz-Security-Token',
-					'X-Amz-User-Agent'
+					'X-Amz-User-Agent',
+					...props.options?.gatewayOptions?.corsPreflight?.allowHeaders || []
 				]
 			}
 		});
 
+		if (!props?.handlerFunctions?.length) {
+			throw new CustomException('Construct requires atleast one function');
+		}
+
 		if (props?.options?.routeOptions?.length) {
-			props?.options?.routeOptions.forEach(route => {
-				this.api.addRoutes({
-					...route,
-					integration: new HttpLambdaIntegration('routes', props.handlerFunction)
-				} as AddRoutesOptions);
+			props.handlerFunctions.forEach(handlerFunc => {
+				props?.options?.routeOptions.forEach(route => {
+					this.api.addRoutes({
+						...route,
+						integration: new HttpLambdaIntegration('routes', handlerFunc)
+					} as AddRoutesOptions);
+				});
 			});
 		}
 
 		this.api.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-		new CfnOutput(this, 'Api-Gateway-V2', {
+		new CfnOutput(this, 'ApiGatewayV2', {
 			value: this.api.url,
 		});
 	}

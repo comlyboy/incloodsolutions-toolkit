@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import { BucketDeployment, BucketDeploymentProps } from 'aws-cdk-lib/aws-s3-deployment';
 
@@ -28,5 +28,9 @@ export class BaseS3DeploymentConstruct extends Construct {
 				destinationBucket: this.bucket,
 			} as BucketDeploymentProps);
 		}
+
+		new CfnOutput(this, 'S3BucketArn', {
+			value: this.bucket.bucketArn
+		});
 	}
 }

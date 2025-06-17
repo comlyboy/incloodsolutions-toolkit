@@ -56,8 +56,8 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 
 		this.api.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-		new CfnOutput(this, 'Api-Gateway', {
-			value: this.api.url,
+		new CfnOutput(this, 'ApiGateway', {
+			value: this.api.url
 		});
 	}
 

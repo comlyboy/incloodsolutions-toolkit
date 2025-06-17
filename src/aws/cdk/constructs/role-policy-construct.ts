@@ -1,6 +1,6 @@
 import { ManagedPolicy, PolicyStatement, PolicyStatementProps, Role, RoleProps } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 
 import { IBaseCdkConstructProps } from '../../../interface';
 
@@ -26,6 +26,11 @@ export class BaseRolePolicyConstruct extends Construct {
 				this.role.addToPolicy(new PolicyStatement(policy));
 			});
 		}
+
 		this.role.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
+		new CfnOutput(this, 'RolePolicyArn', {
+			value: this.role.roleArn
+		});
 	}
 }

@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { LogGroup, LogGroupProps, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 import { IBaseCdkConstructProps } from '../../../interface';
@@ -16,5 +16,10 @@ export class BaseCloudWatchLogGroupConstruct extends Construct {
 			removalPolicy: props?.options?.removalPolicy || RemovalPolicy.DESTROY,
 			retention: props?.options?.retention || RetentionDays.INFINITE,
 		});
+
+		new CfnOutput(this, 'CloudwatchArn', {
+			value: this.logGroup.logGroupArn
+		});
+
 	}
 }

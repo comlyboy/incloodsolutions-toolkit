@@ -2,8 +2,9 @@ import { Construct } from 'constructs';
 import { Architecture, Code, LayerVersion, LayerVersionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 import { IBaseCdkConstructProps } from '../../../interface';
+import { CfnOutput } from 'aws-cdk-lib';
 
-interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName' |'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>>, 'appName' | 'stage' | 'stackName'> { }
+interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>>, 'appName' | 'stage' | 'stackName'> { }
 
 export class BaseLambdaLayerConstruct extends Construct {
 	readonly layer: LayerVersion;
@@ -17,5 +18,9 @@ export class BaseLambdaLayerConstruct extends Construct {
 			compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
 			compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X]
 		} as LayerVersionProps);
+
+		new CfnOutput(this, 'LambdaLayerArn', {
+			value: this.layer.layerVersionArn
+		});
 	}
 }

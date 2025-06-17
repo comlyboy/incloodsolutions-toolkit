@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.21",
+	"version": "0.0.22",
 	"description": "A toolkit containing utility, helper, config, interfaces for backend api",
 	"main": "dist/index.js",
 	"author": "",
@@ -10,9 +10,9 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
-		"build": "tsc -b",
+		"buildd": "tsc -b",
 		"build:esbuild": "rimraf dist && ts-node build.ts",
-		"build:tsup": "tsup && tsc --emitDeclarationOnly",
+		"build": "tsup && tsc --emitDeclarationOnly",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"publishing": "npm run build && npm publish --access=public",

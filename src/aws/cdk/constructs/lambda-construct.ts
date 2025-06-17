@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
+import { CfnOutput, Duration } from 'aws-cdk-lib';
 import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 import { AppEnvironmentEnum, IBaseCdkConstructProps } from '../../../interface';
@@ -8,7 +8,7 @@ import { detectDuplicateProperties } from '../../../utility';
 interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<Partial<FunctionProps>>, 'appName'> { }
 
 export class BaseLambdaConstruct extends Construct {
-	readonly handler: Function;
+	readonly function: Function;
 
 	constructor(scope: Construct, id: string, props: ILambdaConstructProps) {
 		super(scope, id);
@@ -22,7 +22,7 @@ export class BaseLambdaConstruct extends Construct {
 
 		detectDuplicateProperties({ data: environment });
 
-		this.handler = new Function(this, id, {
+		this.function = new Function(this, id, {
 			...props?.options,
 			functionName: props?.options?.functionName || props?.stackName,
 			description: props?.options?.description || 'A lambda function',
@@ -33,6 +33,10 @@ export class BaseLambdaConstruct extends Construct {
 			architecture: props?.options?.architecture || Architecture.ARM_64,
 			code: props?.options?.code || Code.fromAsset('dist'),
 			environment
+		});
+
+		new CfnOutput(this, 'LambdaFunctionArn', {
+			value: this.function.functionArn
 		});
 	}
 }
