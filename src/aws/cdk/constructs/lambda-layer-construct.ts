@@ -1,26 +1,41 @@
 import { Construct } from 'constructs';
-import { Architecture, Code, LayerVersion, LayerVersionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Architecture, Code, ILayerVersion, LayerVersion, LayerVersionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 import { IBaseCdkConstructProps } from '../../../interface';
 import { CfnOutput } from 'aws-cdk-lib';
 
-interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>>, 'appName' | 'stage' | 'stackName'> { }
+interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<{
+	layerOptions: Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>;
+	fromExistingLayerArn?: string;
+	fromExistingLayerAttribute?: {
+		layerVersionArn: string;
+		compatibleRuntimes?: Runtime[]
+	};
+}>, 'appName' | 'stage' | 'stackName'> { }
 
 export class BaseLambdaLayerConstruct extends Construct {
 	readonly layer: LayerVersion;
+	readonly existingLayer: ILayerVersion;
 
 	constructor(scope: Construct, id: string, props?: ILambdaLayerConstructProps) {
 		super(scope, id);
-		this.layer = new LayerVersion(this, id, {
-			...props.options,
-			code: props?.options?.code || Code.fromAsset('./dist-layer'),
-			description: props?.options?.description || 'Lambda Layer written in NodeJS, nestJS, NodeJS-express, serverless-express',
-			compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
-			compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X]
-		} as LayerVersionProps);
+
+		if (props?.options?.fromExistingLayerArn) {
+			this.existingLayer = LayerVersion.fromLayerVersionArn(this, `${id}-Arn`, props?.options?.fromExistingLayerArn);
+		} else if (props?.options?.fromExistingLayerAttribute) {
+			this.existingLayer = LayerVersion.fromLayerVersionAttributes(this, `${id}-Attribute`, props?.options?.fromExistingLayerAttribute);
+		} else {
+			this.layer = new LayerVersion(this, id, {
+				...props.options?.layerOptions,
+				code: props?.options?.layerOptions?.code || Code.fromAsset('./dist-layer'),
+				description: props?.options?.layerOptions?.description || 'Lambda Layer written in NodeJS, NestJS, NodeJS-express, serverless-express',
+				compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
+				compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X]
+			} as LayerVersionProps);
+		}
 
 		new CfnOutput(this, 'LambdaLayerArn', {
-			value: this.layer.layerVersionArn
+			value: props.options?.fromExistingLayerArn || props.options?.fromExistingLayerAttribute ? this.existingLayer.layerVersionArn : this.layer.layerVersionArn
 		});
 	}
 }

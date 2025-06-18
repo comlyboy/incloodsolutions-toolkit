@@ -12,8 +12,8 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	tableOptions?: TableProps;
 	fromExistingTableArn?: string;
 	fromExistingTableName?: string;
-	globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 	localSecondaryIndexes?: LocalSecondaryIndexProps[];
+	globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
 /**

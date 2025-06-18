@@ -158,7 +158,7 @@ export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> exten
 	/** Deployment stage/environment */
 	readonly stage?: AppEnvironmentType;
 	/** Additional construct options */
-	readonly options?: TOptions;
+	readonly options?: Readonly<TOptions>;
 	/** Optional stack name */
 	readonly stackName?: string;
 	/** Optional application name */

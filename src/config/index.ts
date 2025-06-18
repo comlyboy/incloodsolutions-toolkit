@@ -10,7 +10,7 @@ export function initEnvironmentVariables<TSchema extends ObjectType = any>(schem
 		required?: boolean;
 		defaultValue?: number | string | boolean;
 	};
-}, options?: Partial<IBaseEnableDebug>) {
+}, options?: { envPath?: string } & Partial<IBaseEnableDebug>) {
 	const redColor = '\x1b[31m';
 	const yellowColor = "\x1b[33m";
 	const resetColor = '\x1b[0m';
