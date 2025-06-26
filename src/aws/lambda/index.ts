@@ -2,12 +2,8 @@ import { APIGatewayProxyCallbackV2, APIGatewayProxyEventV2, APIGatewayProxyHandl
 import serverlessExpress from '@codegenie/serverless-express';
 import Express from "express";
 
-import { isLambdaEnvironment } from "../../utility";
-import { CustomException } from "../../error";
-
-
 let serverInstance: APIGatewayProxyHandlerV2;
-const currentInvocation: { event: APIGatewayProxyEventV2, context: Context } = {
+const currentInvocation: { event: APIGatewayProxyEventV2; context: Context; } = {
 	event: null,
 	context: null
 };
@@ -34,8 +30,5 @@ export async function initLambdaApi({ app, event, context, callback, options }: 
 }
 
 export function getCurrentLambdaInvocation() {
-	if (!isLambdaEnvironment()) {
-		throw new CustomException('Server not running in a Lambda environment!');
-	}
 	return currentInvocation;
 }

@@ -3,12 +3,13 @@ import path from 'path';
 
 import { isIP } from 'validator';
 import { cloneDeep } from 'lodash';
-import { v7 as uuidv7, v4 as uuidv4, validate } from 'uuid';
+import morgan, { Options } from 'morgan';
 import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { compile, RuntimeOptions } from 'handlebars';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
+import { v7 as uuidv7, v4 as uuidv4, validate } from 'uuid';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
@@ -16,6 +17,7 @@ import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberW
 
 import { CustomException } from '../error';
 import { IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '../interface';
+import { getCurrentLambdaInvocation } from '../aws';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -582,4 +584,14 @@ export function logDebugger(context: string, message: string, data?: any) {
 	const greenColor = '\x1b[32m';
 	const ctx = context ? `${yellowColor}[${context}]${resetColor} ` : '';
 	console.log(`${new Date().toUTCString()} - ${greenColor}LOG${resetColor} ${ctx} ${greenColor}${message}${resetColor}`, data || '');
+}
+
+export function reqResLogger(options?: Options<any, any>) {
+	morgan.token<Request>('id', request => {
+		return getCurrentLambdaInvocation().event?.requestContext?.requestId || Date.now().toString();
+	});
+	morgan.token('invocationId', request => {
+		return getCurrentLambdaInvocation().context?.awsRequestId;
+	});
+	return morgan(':date[web] | :id | :invocationId | :method | :status | :url - :total-time ms -- :res[content-length]', options);
 }
