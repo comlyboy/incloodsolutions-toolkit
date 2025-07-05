@@ -8,8 +8,8 @@ import { IBaseCdkConstructProps } from '../../../interface';
 
 
 interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps<{
-	webSocketApiOptions: WebSocketApiProps;
-	webSocketStageOptions: WebSocketStageProps;
+	readonly webSocketApiOptions: WebSocketApiProps;
+	readonly webSocketStageOptions: WebSocketStageProps;
 }>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlers: {
 		readonly connect: {

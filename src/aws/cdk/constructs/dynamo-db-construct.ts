@@ -9,11 +9,11 @@ import { CfnOutput } from 'aws-cdk-lib';
  * Properties for configuring the BaseDynamoDBConstruct.
  */
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
-	tableOptions?: TableProps;
-	fromExistingTableArn?: string;
-	fromExistingTableName?: string;
-	localSecondaryIndexes?: LocalSecondaryIndexProps[];
-	globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
+	readonly tableOptions?: TableProps;
+	readonly fromExistingTableArn?: string;
+	readonly fromExistingTableName?: string;
+	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
+	readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
 /**

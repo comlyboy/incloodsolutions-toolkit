@@ -14,8 +14,8 @@ interface IRouteOption {
 }
 
 interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
-	gatewayOptions: RestApiProps;
-	routeOptions: IRouteOption[];
+	readonly gatewayOptions: RestApiProps;
+	readonly routeOptions: IRouteOption[];
 }>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlerFunction: Function;
 }

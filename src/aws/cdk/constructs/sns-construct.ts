@@ -7,8 +7,8 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 
 interface ISnsConstructProps extends Omit<IBaseCdkConstructProps<{
-	readonly targetFunctions: Function[];
 	readonly topicOptions: TopicProps;
+	readonly targetFunctions: Function[];
 }>, 'appName' | 'stage' | 'stackName'> { }
 
 export class BaseSnsConstruct extends Construct {

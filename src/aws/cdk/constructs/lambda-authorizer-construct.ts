@@ -5,7 +5,9 @@ import { TokenAuthorizer, TokenAuthorizerProps } from 'aws-cdk-lib/aws-apigatewa
 import { IBaseCdkConstructProps } from '../../../interface';
 import { CfnOutput } from 'aws-cdk-lib';
 
-interface ILambdaAuthoriserConstructProps extends Omit<IBaseCdkConstructProps<TokenAuthorizerProps>, 'appName' | 'stage' | 'stackName'> {
+interface ILambdaAuthoriserConstructProps extends Omit<IBaseCdkConstructProps<{
+	readonly authorizerOptions: TokenAuthorizerProps
+}>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlerFunction: Function;
 }
 
@@ -16,7 +18,7 @@ export class BaseLambdaAuthoriserConstruct extends Construct {
 		super(scope, id);
 
 		this.authoriser = new TokenAuthorizer(this, id, {
-			...props.options,
+			...props.options?.authorizerOptions,
 			handler: props.handlerFunction,
 		});
 

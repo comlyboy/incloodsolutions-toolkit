@@ -5,7 +5,9 @@ import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { IBaseCdkConstructProps } from '../../../interface';
 
 
-interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<RoleProps>, 'appName' | 'stage' | 'stackName'> {
+interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
+	readonly roleOptions: RoleProps
+}>, 'appName' | 'stage' | 'stackName'> {
 	readonly policies?: PolicyStatementProps[];
 }
 
@@ -14,8 +16,9 @@ export class BaseRolePolicyConstruct extends Construct {
 
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
+
 		this.role = new Role(this, id, {
-			...props.options,
+			...props.options?.roleOptions,
 			managedPolicies: [
 				ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
 			]

@@ -9,15 +9,18 @@ import { compare, genSalt, hash } from 'bcryptjs';
 import { compile, RuntimeOptions } from 'handlebars';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
-import { v7 as uuidv7, v4 as uuidv4, validate } from 'uuid';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
+import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
+import { validate, ValidationError, ValidatorOptions } from 'class-validator';
+import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
 import { CustomException } from '../error';
 import { IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '../interface';
 import { getCurrentLambdaInvocation } from '../aws';
+import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -94,7 +97,7 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
 
 /** Check if a string is uuid */
 export function isUUID(uuid: string) {
-	return validate(uuid);
+	return uuidValidate(uuid);
 }
 
 /** Check if a string contains uuid */
@@ -500,14 +503,14 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlS
 }
 
 /** Return API homepage */
-export function returnApiOverview({ name, docsUrl, description }: {
+export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', description }: {
 	name: string;
 	docsUrl?: string;
+	primaryColor?: string;
 	description?: string;
 }) {
 	return `<!DOCTYPE html>
 	<html lang="en">
-
 		<head>
 			<meta charset="UTF-8">
 			<title>${name} summary</title>
@@ -526,7 +529,7 @@ export function returnApiOverview({ name, docsUrl, description }: {
 				}
 
 				.card {
-					border-left: 5px solid #4f46e5;
+					border-left: 5px solid ${primaryColor};
 					max-width: 550px;
 					width: 100%;
 					background: #ffffff;
@@ -574,10 +577,10 @@ export function returnApiOverview({ name, docsUrl, description }: {
 				<div class="row"><span class="label">Timestamp:</span> ${new Date().toUTCString()}</div>
 			</div>
 		</body>
-
 	</html>`
 }
 
+/** Log beautifully without library */
 export function logDebugger(context: string, message: string, data?: any) {
 	const yellowColor = "\x1b[33m";
 	const resetColor = '\x1b[0m';
@@ -586,12 +589,63 @@ export function logDebugger(context: string, message: string, data?: any) {
 	console.log(`${new Date().toUTCString()} - ${greenColor}LOG${resetColor} ${ctx} ${greenColor}${message}${resetColor}`, data || '');
 }
 
-export function reqResLogger(options?: Options<any, any>) {
-	morgan.token<Request>('id', request => {
-		return getCurrentLambdaInvocation().event?.requestContext?.requestId || Date.now().toString();
-	});
-	morgan.token('invocationId', request => {
-		return getCurrentLambdaInvocation().context?.awsRequestId;
-	});
-	return morgan(':date[web] | :id | :invocationId | :method | :status | :url - :total-time ms -- :res[content-length]', options);
+/** Log request and response using morgan */
+export function reqResLogger(formats: string[] = [], options?: Options<any, any>) {
+	let requestId = Date.now().toString();
+	formats = formats.map(format => format.startsWith(':') ? format : `:${format}`);
+	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];
+
+	if (isLambdaEnvironment()) {
+		const { context, event } = getCurrentLambdaInvocation() as {
+			context: Context;
+			event: APIGatewayProxyEventV2;
+		};
+
+		requestId = event?.requestContext?.requestId || requestId;
+		morgan.token('invocationId', () => context?.awsRequestId);
+	}
+
+	morgan.token('id', () => requestId);
+	return morgan(defaultFormats.join(' | '), options);
+}
+
+/**
+ * Validates and transforms raw input data using `class-transformer` and `class-validator`.
+ *
+ * @template TData - The shape of the incoming raw data.
+ * @template TSchema - The class schema type used for validation.
+ *
+ * @param {new () => TSchema} schema - A class constructor defining the validation schema.
+ * @param {TData} data - The raw data to be transformed and validated.
+ * @param {Object} options - Configuration options.
+ * @param {ValidatorOptions} options.validatorOptions - Options for class-validator.
+ * @param {ClassTransformOptions} options.transformOptions - Options for class-transformer.
+ *
+ * @throws {CustomException} If validation fails, an exception is thrown containing flattened error messages.
+ *
+ * @returns {Promise<TSchema>} A promise that resolves with the validated and transformed instance of the schema.
+ */
+export async function validateDataWithClassValidator<TData, TSchema extends ObjectType>(schema: ClassConstructor<TSchema>, data: TData, options: {
+	validatorOptions: ValidatorOptions;
+	transformOptions: ClassTransformOptions;
+}): Promise<TSchema> {
+
+	function flattenValidationErrors(errors: ValidationError[]): string[] {
+		return errors.flatMap(error => {
+			const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
+				const [first, ...rest] = constraint.split(' ');
+				return `'${first}': ${rest.join(' ')}`;
+			}) : [];
+			const childConstraints = error.children?.length ? flattenValidationErrors(error.children) : [];
+			return [...currentConstraints, ...childConstraints];
+		});
+	}
+
+	const instance = plainToInstance(schema, data, options.transformOptions);
+	const errors = await validate(instance, options.validatorOptions);
+
+	if (errors.length > 0) {
+		throw new CustomException(flattenValidationErrors(errors), 400);
+	}
+	return instance;
 }

@@ -8,8 +8,8 @@ import { CustomException } from '../../../error';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 
 interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
-	gatewayOptions: HttpApiProps;
-	routeOptions: Partial<AddRoutesOptions>[];
+	readonly gatewayOptions: HttpApiProps;
+	readonly routeOptions: Partial<AddRoutesOptions>[];
 }>, 'appName' | 'stage' | 'stackName'> {
 	readonly handlerFunctions: Function[];
 }
