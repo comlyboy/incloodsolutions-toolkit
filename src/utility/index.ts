@@ -59,7 +59,7 @@ export function generateRandomId({ length = 6, variant = 'numeric' }: {
 export function transformText({ text, format, trim = false }: {
 	text: string;
 	trim?: boolean;
-	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize';
+	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize' | 'kebab';
 }) {
 	if (!text || typeof text !== 'string') return text;
 	if (format === 'uppercase') {
@@ -73,6 +73,9 @@ export function transformText({ text, format, trim = false }: {
 	}
 	if (format === 'titlecase') {
 		text = text.toLowerCase().replace(/^./, text[0].toUpperCase());
+	}
+	if (format === 'kebab') {
+		text = text.replace(/\s+/g, '-');
 	}
 	if (trim) {
 		text.trim();
