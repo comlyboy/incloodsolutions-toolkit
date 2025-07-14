@@ -157,9 +157,7 @@ export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug 
 	type?: 'hmacSha512' | 'aes256' | 'sha512' | 'sha256';
 } & Partial<IBaseEnableDebug>): string {
 	try {
-		if (!data) {
-			throw new CustomException('No data for encryption!');
-		};
+		if (!data) return data as string;
 		if (!secret && type !== 'sha512') {
 			throw new CustomException('Secret key is required for encryption!');
 		}
@@ -203,7 +201,7 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', en
 		}
 		const decryptedString = AES.decrypt(hashedData, secret).toString(enc.Utf8);
 		if (!decryptedString) {
-			throw new CustomException('Decryption failed. Possibly wrong secret.');
+			throw new CustomException('Decryption failed. Possibly wrong secret!');
 		}
 
 		if (enableDebug) {
