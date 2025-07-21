@@ -19,7 +19,7 @@ export class BaseRolePolicyConstruct extends Construct {
 
 		this.role = new Role(this, id, {
 			...props.options?.roleOptions,
-			managedPolicies: [
+			managedPolicies: props.options?.roleOptions?.managedPolicies ? props.options?.roleOptions?.managedPolicies : [
 				ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole')
 			]
 		});

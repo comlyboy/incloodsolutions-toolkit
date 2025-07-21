@@ -1,9 +1,9 @@
 import { Construct } from 'constructs';
-import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableAttributes, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import { CfnOutput } from 'aws-cdk-lib';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 import { logDebugger } from '../../../utility';
-import { CfnOutput } from 'aws-cdk-lib';
 
 /**
  * Properties for configuring the BaseDynamoDBConstruct.
@@ -12,6 +12,7 @@ interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly tableOptions?: TableProps;
 	readonly fromExistingTableArn?: string;
 	readonly fromExistingTableName?: string;
+	readonly fromExistingTableAttributes?: TableAttributes;
 	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
 	readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
@@ -46,17 +47,23 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 
 		// Import table from name
 		if (props.options?.fromExistingTableName) {
-			this.existingTable = Table.fromTableName(this, `${id}-refName`, props.options.fromExistingTableName) as Table;
+			this.table = null;
+			this.existingTable = Table.fromTableName(this, `${id}-RefName`, props.options.fromExistingTableName);
 			if (this.enableDebug) {
 				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`);
 			}
-			this.table = null;
 		} else if (props.options?.fromExistingTableArn) {
-			this.existingTable = Table.fromTableArn(this, `${id}-refArn`, props.options.fromExistingTableArn);
+			this.table = null;
+			this.existingTable = Table.fromTableArn(this, `${id}-RefArn`, props.options.fromExistingTableArn);
 			if (this.enableDebug) {
 				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using ARN`);
 			}
+		} else if (props.options?.fromExistingTableAttributes) {
 			this.table = null;
+			this.existingTable = Table.fromTableAttributes(this, `${id}-RefAttributes`, props.options.fromExistingTableAttributes);
+			if (this.enableDebug) {
+				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing attributes`);
+			}
 		} else {
 			this.existingTable = null;
 
