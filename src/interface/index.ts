@@ -1,3 +1,4 @@
+import { Document, ObjectId } from "mongoose";
 import { CountryCode, TimezoneName } from "countries-and-timezones";
 
 /** Base interface for objects with an ID of generic type */
@@ -189,3 +190,21 @@ export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
 /** Generic key-value object type */
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;
+
+/**
+ * Represents a MongoDB identifier, which can either be an ObjectId or a string.
+ */
+export type MongoIdType = ObjectId | string;
+
+/**
+ * Represents a generic MongoDB document of a specific type.
+ * @template TType - The type of the document's content, defaults to `string`.
+ */
+export type MongoDocumentType<TType = string> = Document<TType>;
+
+/**
+ * Describes sorting directions for queries.
+ * - `'ascending'` means lowest to highest.
+ * - `'descending'` means highest to lowest.
+ */
+export type SortType = 'descending' | 'ascending';
