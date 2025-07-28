@@ -4,23 +4,24 @@ import path from 'path';
 import { isIP } from 'validator';
 import { cloneDeep } from 'lodash';
 import morgan, { Options } from 'morgan';
+import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { compile, RuntimeOptions } from 'handlebars';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
+import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
-import { validate, ValidationError, ValidatorOptions } from 'class-validator';
+import { isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
 import { CustomException } from '../error';
 import { IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '../interface';
 import { getCurrentLambdaInvocation } from '../aws';
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -78,7 +79,7 @@ export function transformText({ text, format, trim = false }: {
 		text = text.replace(/\s+/g, '-');
 	}
 	if (trim) {
-		text.trim();
+		text = text.trim();
 	}
 	return text;
 }
@@ -427,6 +428,23 @@ export function encodeUrlComponent<TData = any>(data: TData) {
 	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
 }
 
+/**
+ * Checks if a string is a valid MongoDB ObjectId.
+ *
+ * @param data - The string to validate.
+ * @returns `true` if the string is a valid ObjectId, otherwise `false`.
+ */
+export function isValidMongoId(data: string | ObjectType | ObjectId): boolean {
+	if (typeof data === 'string') {
+		return Types.ObjectId.isValid(data) && data.length === 24 && isValidObjectId(data) && isMongoId(data);
+	}
+	if ((data as any) instanceof Types.ObjectId) {
+		return true;
+	}
+	return false;
+}
+
+
 /** Decode URL */
 export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
@@ -582,17 +600,35 @@ export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', des
 }
 
 /** Log beautifully without library */
-export function logDebugger(context: string, message: string, data?: any) {
+export function logDebugger(
+	context: string,
+	message: string,
+	data?: any,
+	options?: {
+		prettify?: boolean;
+		ignoreDate?: boolean;
+	}
+) {
 	const yellowColor = "\x1b[33m";
 	const resetColor = '\x1b[0m';
 	const greenColor = '\x1b[32m';
-	const ctx = context ? `${yellowColor}[${context}]${resetColor} ` : '';
-	console.log(`${new Date().toUTCString()} - ${greenColor}LOG${resetColor} ${ctx} ${greenColor}${message}${resetColor}`, data || '');
+
+	const ctx = context
+		? options?.prettify
+			? `${yellowColor}[${context}]${resetColor} `
+			: `[${context}] `
+		: '';
+
+	const logLabel = options?.prettify ? `${greenColor}LOG${resetColor}` : 'LOG';
+	const logMessage = options?.prettify ? `${greenColor}${message}${resetColor}` : message;
+
+	console.log(`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`, data || '');
 }
+
 
 /** Log request and response using morgan */
 export function reqResLogger(formats: string[] = [], options?: Options<any, any>) {
-	let requestId = Date.now().toString();
+	let requestId = new Date().toUTCString();
 	formats = formats.map(format => format.startsWith(':') ? format : `:${format}`);
 	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];
 
@@ -649,4 +685,38 @@ export async function validateDataWithClassValidator<TData, TSchema extends Obje
 		throw new CustomException(flattenValidationErrors(errors), 400);
 	}
 	return instance;
+}
+
+/**
+ * Normalises a MongoDB document by:
+ * - Converting `ObjectId` values to string format.
+ * - Adding a stringified `id` property from `_id` if it exists.
+ * - Preserving all other properties as-is.
+ *
+ * Note: This function does not perform deep normalization (i.e., nested objects are left untouched).
+ *
+ * @template TData - The type of the object to normalise.
+ * @param {TData} data - The MongoDB document or plain object to normalise.
+ * @returns {TData} The normalised object with MongoDB `ObjectId`s converted to strings.
+ */
+export function normalizeMongoData<TData extends ObjectType>(data: TData): TData {
+	if (!data || typeof data !== "object" || Array.isArray(data)) return data;
+	data = typeof data?.toObject === 'function' ? data?.toObject() : data;
+
+	const normalised: ObjectType = {
+		...Object.fromEntries(
+			Object.entries(data).map(([key, value]) => {
+				// if (value && typeof value === "object") {
+				// 	return this.normalizeMongoData(value);
+				// }
+				return [key, isValidMongoId(value) ? `${value}` : value];
+			})
+		)
+	} as TData;
+
+	if (normalised?._id) {
+		normalised.id = `${normalised._id}`;
+	}
+
+	return normalised;
 }
