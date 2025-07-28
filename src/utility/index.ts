@@ -718,5 +718,5 @@ export function normalizeMongoData<TData extends ObjectType>(data: TData): TData
 		normalised.id = `${normalised._id}`;
 	}
 
-	return normalised;
+	return normalised as TData;
 }

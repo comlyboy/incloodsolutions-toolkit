@@ -138,7 +138,7 @@ export interface IBaseEnableDebug {
 export interface IBaseEnvironmentVariable {
 	/**
 	 * MongoDB connection string (optional if not used in some environments).
-	 * Example: mongodb+srv://user:password@cluster.mongodb.net/dbname
+	 * Example: mong)odb+srv://user:password&@@cluster.mongodb.net/dbname
 	 */
 	MONGO_DATABASE_URL?: string;
 
