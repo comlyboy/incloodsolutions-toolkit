@@ -1,5 +1,6 @@
 import { set, connect, disconnect, Connection, ConnectOptions } from 'mongoose';
 
+import { logDebugger } from '../../../utility';
 import { CustomException } from '../../../error';
 import { IBaseEnableDebug } from "../../../interface";
 
@@ -29,12 +30,17 @@ if (!cachedConnection) {
  */
 export async function initMongooseConnection(params?: {
 	url?: string;
-	options?: {} & Partial<IBaseEnableDebug>;
+	options?: { retries?: number; retryDelayMs?: number; } & Partial<IBaseEnableDebug>;
 	connectionOptions?: ConnectOptions;
+
 }): Promise<{
 	connection: Connection;
 	closeConnection: () => Promise<void>;
 }> {
+
+	function delay(ms: number) {
+		return new Promise(res => setTimeout(res, ms));
+	}
 
 	async function closeConnection() {
 		try {
@@ -51,18 +57,45 @@ export async function initMongooseConnection(params?: {
 	}
 
 	if (!cachedConnection.connectionPromise) {
-		try {
-			if (params?.options?.enableDebug) {
-				set('debug', true);
+		if (params?.options?.enableDebug) {
+			logDebugger('MongooseDbConnection', 'Initializing database connection!');
+		}
+
+		const maxRetries = params?.options?.retries || 5;
+		const retryDelay = params?.options?.retryDelayMs || 5000;
+
+		let attempts = 0;
+
+		while (attempts < maxRetries) {
+			try {
+				if (params?.options?.enableDebug) {
+					logDebugger('MongooseDbConnection', 'Connecting to database! Attempts =>', attempts + 1);
+				}
+
+				if (params?.options?.enableDebug) {
+					set('debug', true);
+				}
+
+				cachedConnection.connectionPromise = connect(
+					params?.url || process.env?.MONGO_DATABASE_URL,
+					params?.connectionOptions
+				) as any;
+
+				cachedConnection.customConnection = await cachedConnection.connectionPromise;
+				break; // successful
+			} catch (error) {
+				attempts++;
+				if (attempts >= maxRetries) {
+					cachedConnection.customConnection = null;
+					cachedConnection.connectionPromise = null;
+					throw new CustomException(error);
+				}
+				await delay(retryDelay);
 			}
-
-			cachedConnection.connectionPromise = connect(params?.url || process.env?.MONGO_DATABASE_URL, params?.connectionOptions) as any;
-
-			cachedConnection.customConnection = await cachedConnection.connectionPromise;
-		} catch (error) {
-			cachedConnection.customConnection = null;
-			cachedConnection.connectionPromise = null;
-			throw new CustomException(error);
+		}
+	} else {
+		if (params?.options?.enableDebug) {
+			logDebugger('MongooseDbConnection', 'Reusing existing connection!');
 		}
 	}
 
@@ -72,5 +105,4 @@ export async function initMongooseConnection(params?: {
 		closeConnection,
 		connection: cachedConnection.customConnection
 	};
-
 }
