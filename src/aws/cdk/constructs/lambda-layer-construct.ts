@@ -5,11 +5,11 @@ import { IBaseCdkConstructProps } from '../../../interface';
 import { CfnOutput } from 'aws-cdk-lib';
 
 interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<{
-	readonly layerOptions: Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>;
+	readonly layerOptions?: Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>> & Required<Pick<LayerVersionProps, 'layerVersionName'>>;
 	readonly fromExistingLayerArn?: string;
 	readonly fromExistingLayerAttribute?: {
 		readonly layerVersionArn: string;
-		readonly compatibleRuntimes?: Runtime[]
+		readonly compatibleRuntimes?: Runtime[];
 	};
 }>, 'appName' | 'stage' | 'stackName'> { }
 
@@ -35,7 +35,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 		}
 
 		new CfnOutput(this, 'LambdaLayerArn', {
-			value: props.options?.fromExistingLayerArn || props.options?.fromExistingLayerAttribute ? this.existingLayer.layerVersionArn : this.layer.layerVersionArn
+			value: (props.options?.fromExistingLayerArn || props.options?.fromExistingLayerAttribute) ? this.existingLayer.layerVersionArn : this.layer.layerVersionArn
 		});
 
 	}
