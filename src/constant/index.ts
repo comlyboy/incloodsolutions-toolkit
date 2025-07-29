@@ -2,7 +2,7 @@
 // https://github.com/muan/unicode-emoji-json/blob/main/data-by-group.json
 export const unicodes = [
 	{
-		"name": "Smileys & Emotion",
+		name: "Smileys & Emotion",
 		"slug": "smileys_emotion",
 		"emojis": [
 			{

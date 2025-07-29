@@ -699,7 +699,7 @@ export async function validateDataWithClassValidator<TData, TSchema extends Obje
  * @param {TData} data - The MongoDB document or plain object to normalise.
  * @returns {TData} The normalised object with MongoDB `ObjectId`s converted to strings.
  */
-export function normalizeMongoData<TData extends ObjectType>(data: TData): TData {
+export function normalizeMongooseData<TData extends ObjectType>(data: TData): TData {
 	if (!data || typeof data !== "object" || Array.isArray(data)) return data;
 	data = typeof data?.toObject === 'function' ? data?.toObject() : data;
 
@@ -707,7 +707,7 @@ export function normalizeMongoData<TData extends ObjectType>(data: TData): TData
 		...Object.fromEntries(
 			Object.entries(data).map(([key, value]) => {
 				// if (value && typeof value === "object") {
-				// 	return this.normalizeMongoData(value);
+				// 	return this.normalizeMongooseData(value);
 				// }
 				return [key, isValidMongoId(value) ? `${value}` : value];
 			})

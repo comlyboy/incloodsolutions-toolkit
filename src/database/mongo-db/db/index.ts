@@ -1,52 +1,76 @@
-import { ValidatorOptions } from "class-validator";
-import { CollectionOptions, MongoClient } from "mongodb";
+import { set, connect, disconnect, Connection, ConnectOptions } from 'mongoose';
 
-import { IBaseEnableDebug, ObjectType } from "../../../interface";
+import { CustomException } from '../../../error';
+import { IBaseEnableDebug } from "../../../interface";
 
-export function initMongoDbClientWrapper<TType extends ObjectType = any, TSchemaType extends ObjectType = any>(options: {
-	/** Mongo-db collection name */
-	readonly collectionName: string;
-	/** Class with class-validator and class-transformer decorators @ */
-	readonly schema: new () => TSchemaType;
-	/** Collection options */
-	readonly collectionOptions?: CollectionOptions;
-	/** Schema validation options */
-	readonly schemaConfig?: ValidatorOptions;
-	/** Debuging context, only when `enableDebug` is `true` */
-	readonly debugContext?: string;
-} & Partial<IBaseEnableDebug>) {
+let cachedConnection = (global as any).mongoose as {
+	customConnection: Connection | null;
+	connectionPromise: Promise<Connection> | null;
+};
 
-	// const debugContext = `${options?.debugContext || ''} | DynamoDb Wrapper`;
+if (!cachedConnection) {
+	cachedConnection = (global as any).mongoose = { customConnection: null, connectionPromise: null };
+}
 
+/**
+ * Initializes a singleton Mongoose connection that is cached globally to
+ * support environments like serverless functions or Lambda.
+ *
+ * @param {Object} [params] - Optional parameters for connecting to MongoDB.
+ * @param {string} [params.url] - MongoDB connection URI. Defaults to `process.env.MONGO_DATABASE_URL`.
+ * @param {Object} [params.options] - Unused. Reserved for future config merging.
+ * @param {ConnectOptions} [params.connectionOptions] - Connection options passed directly to Mongoose.
+ * @param {boolean} [params.enableDebug] - Enables Mongoose debug mode for verbose logging.
+ *
+ * @returns {Promise<{ closeConnection: () => Promise<void>, connection: Connection }>}
+ * An object containing the active `connection` and a method `closeConnection` to close it.
+ *
+ * @throws {CustomException} When connection fails or disconnection throws an error.
+ */
+export async function initMongooseConnection(params?: {
+	url?: string;
+	options?: {} & Partial<IBaseEnableDebug>;
+	connectionOptions?: ConnectOptions;
+}): Promise<{
+	connection: Connection;
+	closeConnection: () => Promise<void>;
+}> {
 
-	const client = new MongoClient('');
-
-	const collection = client.db().collection<TType>(options.collectionName, options?.collectionOptions);
-
-	return {
-		collection,
-		database: client.db(),
-		create: async (data: TType) => {
-			await collection.insertOne(data as any, {});
-			return data;
-		},
-		query: async () => {
-			return await collection.find({}, {}).toArray() as TType[];
-		},
-		getOne: async (id: string) => {
-			return await collection.findOne({ _id: id as any }, {});
-		},
-		getMany: async () => {
-			return await collection.find({}, {}).toArray();
-		},
-		deleteOne: async (id: string) => {
-			const { deletedCount } = await collection.deleteOne({ _id: id as any });
-			return deletedCount > 0;
-		},
-
+	async function closeConnection() {
+		try {
+			if (cachedConnection.customConnection) {
+				await disconnect();
+				cachedConnection.customConnection = null;
+				cachedConnection.connectionPromise = null;
+			}
+		} catch (error) {
+			cachedConnection.customConnection = null;
+			cachedConnection.connectionPromise = null;
+			throw new CustomException(error);
+		}
 	}
 
+	if (!cachedConnection.connectionPromise) {
+		try {
+			if (params?.options?.enableDebug) {
+				set('debug', true);
+			}
 
+			cachedConnection.connectionPromise = connect(params?.url || process.env?.MONGO_DATABASE_URL, params?.connectionOptions) as any;
 
+			cachedConnection.customConnection = await cachedConnection.connectionPromise;
+		} catch (error) {
+			cachedConnection.customConnection = null;
+			cachedConnection.connectionPromise = null;
+			throw new CustomException(error);
+		}
+	}
+
+	cachedConnection.customConnection = await cachedConnection.connectionPromise;
+
+	return {
+		closeConnection,
+		connection: cachedConnection.customConnection
+	};
 
 }
