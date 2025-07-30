@@ -1,4 +1,5 @@
-import fs from 'fs';
+import { writeFile } from 'fs/promises';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
 import { isIP } from 'validator';
@@ -341,30 +342,41 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 }
 
 /** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
-export async function writeFileToLambda({ fileName, file }: {
-	fileName?: string;
+export async function writeFileToLambda({
+	filePath,
+	file
+}: {
+	filePath?: string;
 	file: string | NodeJS.ArrayBufferView | File;
-}) {
-	return new Promise<string>(async (resolve, reject) => {
-		try {
-			if (!file) return null;
-			if (!isLambdaEnvironment()) {
-				reject('Not in lambda environment!');
-			}
-			const inferredName = file instanceof File ? file.name : fileName;
-			const filePath = path.join('/tmp', inferredName);
-			if (file instanceof File) {
-				const arrayBuffer = await file.arrayBuffer();
-				const buffer = Buffer.from(arrayBuffer);
-				fs.writeFileSync(filePath, buffer);
-			} else {
-				fs.writeFileSync(filePath, file);
-			}
-			resolve(filePath);
-		} catch (error) {
-			reject(error);
-		}
-	});
+}): Promise<string> {
+	if (!file) {
+		throw new Error('File is required');
+	}
+	if (!isLambdaEnvironment()) {
+		throw new Error('Not in lambda environment!');
+	}
+
+	let fullFilePath: string;
+
+	if (filePath) {
+		// Ensure the path starts with /tmp for Lambda security
+		fullFilePath = filePath.startsWith('/tmp') ? filePath : path.join('/tmp', filePath);
+	} else if (file instanceof File && file.name) {
+		// Fallback to File.name if no filePath provided
+		fullFilePath = path.join('/tmp', file.name);
+	} else {
+		throw new Error('File path is required');
+	}
+
+	if (file instanceof File) {
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+		await writeFile(fullFilePath, buffer);
+	} else {
+		await writeFile(fullFilePath, file);
+	}
+
+	return fullFilePath;
 }
 
 /** Get file from lambda function `/tmp` folder... Errors if not in lambda environment */
@@ -376,8 +388,8 @@ export async function readFileFromLambda(fileName: string) {
 				reject('Not in lambda environment!');
 			}
 			const filePath = path.join('/tmp', fileName);
-			if (!fs.existsSync(filePath)) return resolve(null);
-			const file = fs.readFileSync(filePath);
+			if (!existsSync(filePath)) return resolve(null);
+			const file = readFileSync(filePath);
 			resolve(file);
 		} catch (error) {
 			reject(error);
