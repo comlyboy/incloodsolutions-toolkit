@@ -1,4 +1,5 @@
 import { IBaseEnableDebug, IBaseEnvironmentVariable, ObjectType } from "../interface";
+import { CustomException } from "../error";
 
 const cachedEnvironmentVariables: ObjectType = {} as const;
 
@@ -19,7 +20,7 @@ export function initEnvironmentVariables<TSchema extends ObjectType = any>(schem
 	Object.entries(schema).map(([key, config]) => {
 		const envValue = process?.env[key];
 		if (!envValue && config?.required && !config?.defaultValue) {
-			throw new Error(`${greenColor}[ENV Error]${resetColor} | ${redColor} Environment variable "${key}" cannot be null/undefined!${resetColor}`);
+			throw new CustomException(`${greenColor}[ENV Error]${resetColor} | ${redColor} Environment variable "${key}" cannot be null/undefined!${resetColor}`);
 		}
 		const finalValue = envValue || config?.defaultValue;
 		cachedEnvironmentVariables[key] = finalValue;

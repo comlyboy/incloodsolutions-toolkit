@@ -350,10 +350,10 @@ export async function writeFileToLambda({
 	file: string | NodeJS.ArrayBufferView | File;
 }): Promise<string> {
 	if (!file) {
-		throw new Error('File is required');
+		throw new CustomException('File is required');
 	}
 	if (!isLambdaEnvironment()) {
-		throw new Error('Not in lambda environment!');
+		throw new CustomException('Not in lambda environment!');
 	}
 
 	let fullFilePath: string;
@@ -365,7 +365,7 @@ export async function writeFileToLambda({
 		// Fallback to File.name if no filePath provided
 		fullFilePath = path.join('/tmp', file.name);
 	} else {
-		throw new Error('File path is required');
+		throw new CustomException('File path is required');
 	}
 
 	if (file instanceof File) {
