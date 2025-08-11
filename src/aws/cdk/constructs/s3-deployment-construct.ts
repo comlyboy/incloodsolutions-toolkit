@@ -41,14 +41,21 @@ export class BaseS3DeploymentConstruct extends Construct {
 		}
 
 		if (props?.withCloudfront) {
+
+			const s3Origin = props.options?.cloudfrontOptions?.defaultBehavior?.origin || S3BucketOrigin.withOriginAccessControl(this.bucket);
+
 			this.distribution = new BaseCloudfrontConstruct(this, 'distribution', {
 				enableDebug: props.enableDebug,
 				options: {
 					cloudfrontOptions: {
 						...props.options?.cloudfrontOptions,
+						additionalBehaviors: Object.entries(props.options?.cloudfrontOptions?.additionalBehaviors || {}).reduce((acc, [pattern, behavior]) => {
+							acc[pattern] = { ...behavior, origin: behavior.origin || s3Origin };
+							return acc;
+						}, {} as typeof props.options.cloudfrontOptions.additionalBehaviors),
 						defaultBehavior: {
 							...props.options?.cloudfrontOptions?.defaultBehavior,
-							origin: props.options?.cloudfrontOptions?.defaultBehavior?.origin || S3BucketOrigin.withOriginAccessControl(this.bucket)
+							origin: s3Origin
 						}
 					},
 				}

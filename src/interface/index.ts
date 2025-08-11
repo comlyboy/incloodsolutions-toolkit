@@ -19,6 +19,12 @@ export interface IBaseEntityName<TEntity> {
 	entityName: TEntity;
 }
 
+/** Base interface for objects that can be marked as active or inactive */
+export interface IBaseIsActive {
+	/** Whether the object is active */
+	isActive: boolean;
+}
+
 /** Base interface for objects with a list of roles */
 export interface IBaseRoles<TType = string> {
 	/** List of assigned roles */
