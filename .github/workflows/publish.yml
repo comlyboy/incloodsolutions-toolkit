@@ -8,6 +8,9 @@ on:
 jobs:
   publish-library:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: toolkit # cd to backend folder
 
     steps:
       - name: Checkout code (make repo branch code available in this pipeline)

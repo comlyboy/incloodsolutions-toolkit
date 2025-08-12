@@ -1,17 +1,19 @@
 import { Construct } from 'constructs';
 import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
 import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { Distribution, DistributionProps } from 'aws-cdk-lib/aws-cloudfront';
+import { BehaviorOptions, Distribution, DistributionProps } from 'aws-cdk-lib/aws-cloudfront';
 import { BucketDeployment, BucketDeploymentProps } from 'aws-cdk-lib/aws-s3-deployment';
 
 import { CustomException } from '../../../error';
 import { BaseS3Construct } from './s3-construct';
-import { IBaseCdkConstructProps } from '../../../interface';
+import { IBaseCdkConstructProps, ObjectType } from '../../../interface';
 import { BaseCloudfrontConstruct } from './cloudfront-construct';
 
 interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly bucketOptions?: BucketProps;
-	readonly cloudfrontOptions?: Partial<DistributionProps>;
+	readonly cloudfrontOptions?: Partial<Omit<DistributionProps, 'additionalBehaviors'>> & {
+		readonly additionalBehaviors?: ObjectType<Partial<BehaviorOptions>, string>;
+	};
 	readonly bucketDeploymentOptions: Omit<Partial<BucketDeploymentProps>, 'sources'> & Pick<BucketDeploymentProps, 'sources'>;
 }>, 'appName' | 'stackName'> {
 	readonly withS3Bucket?: boolean;
@@ -26,7 +28,7 @@ export class BaseS3DeploymentConstruct extends Construct {
 		super(scope, id);
 
 		if ((!props.options?.cloudfrontOptions?.defaultBehavior?.origin && !props?.withS3Bucket) && props.withCloudfront) {
-			throw new CustomException('Distribution origins must be defined!');
+			throw new CustomException('Cloudfront distribution S3_Bucket origins must be defined!');
 		}
 
 		if (!props.options?.bucketDeploymentOptions?.destinationBucket && !props?.withS3Bucket) {
@@ -49,10 +51,10 @@ export class BaseS3DeploymentConstruct extends Construct {
 				options: {
 					cloudfrontOptions: {
 						...props.options?.cloudfrontOptions,
-						additionalBehaviors: Object.entries(props.options?.cloudfrontOptions?.additionalBehaviors || {}).reduce((acc, [pattern, behavior]) => {
-							acc[pattern] = { ...behavior, origin: behavior.origin || s3Origin };
-							return acc;
-						}, {} as typeof props.options.cloudfrontOptions.additionalBehaviors),
+						additionalBehaviors: Object.entries(props.options?.cloudfrontOptions?.additionalBehaviors || {}).reduce((behavior, [pattern, behaviorOptions]) => {
+							behavior[pattern] = { ...behaviorOptions, origin: behaviorOptions.origin || s3Origin };
+							return behavior;
+						}, {} as typeof props.options.cloudfrontOptions.additionalBehaviors) as Record<string, BehaviorOptions>,
 						defaultBehavior: {
 							...props.options?.cloudfrontOptions?.defaultBehavior,
 							origin: s3Origin
