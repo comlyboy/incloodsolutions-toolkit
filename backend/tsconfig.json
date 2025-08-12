@@ -1,0 +1,77 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"target": "ES2022",
+		"lib": [
+			"esnext",
+			"dom"
+		],
+		"declaration": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"sourceMap": true,
+		"outDir": "./dist",
+		"baseUrl": "./",
+		"incremental": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"noUnusedLocals": true,
+		"strictNullChecks": false,
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noEmitOnError": true,
+		"strictBindCallApply": false,
+		"allowUnreachableCode": false,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": false,
+		"noFallthroughCasesInSwitch": false,
+		"useUnknownInCatchVariables": false
+	},
+	"include": ["./src"],
+	"exclude": [
+		"node_modules",
+		"./dist"
+	]
+}
+// {
+// 	"compilerOptions": {
+// 		"target": "ES2022",
+// 		"module": "commonjs",
+// 		"lib": [
+// 			"esnext",
+// 			"dom"
+// 		],
+// 		"sourceMap": true,
+// 		"outDir": "./dist",
+// 		"strict": true,
+// 		"rootDir": "src",
+// 		"alwaysStrict": true,
+// 		"moduleResolution": "node",
+// 		"resolveJsonModule": true,
+// 		"useDefineForClassFields": false,
+// 		"stripInternal": true,
+// 		"useUnknownInCatchVariables": false,
+// 		"declaration": true,
+// 		"removeComments": true,
+// 		"emitDecoratorMetadata": true,
+// 		"experimentalDecorators": true,
+// 		"allowSyntheticDefaultImports": true,
+// 		"incremental": true,
+// 		"skipLibCheck": true,
+// 		"importHelpers": true,
+// 		"noUnusedLocals": true,
+// 		"strictNullChecks": false,
+// 		"noImplicitAny": true,
+// 		"strictBindCallApply": false,
+// 		"forceConsistentCasingInFileNames": false,
+// 		"noFallthroughCasesInSwitch": false
+// 	},
+// 	"include": [
+// 		"./src"
+// 	],
+// 	"exclude": [
+// 		"node_modules",
+// 		"./dist"
+// 	]
+// }
