@@ -1,7 +1,7 @@
 {
 	"name": "@incloodsolutions/toolkit",
 	"version": "0.0.28",
-	"description": "A toolkit containing utility, helper, config, interfaces for backend api",
+	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"main": "dist/index.js",
 	"author": "",
 	"private": false,

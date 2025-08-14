@@ -1,0 +1,48 @@
+{
+	"name": "@incloodsolutions/toolkit-react",
+	"version": "0.0.1",
+	"description": "A toolkit containing utility, helpers, configs, hooks, interfaces for React/Nextjs apps",
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"prebuild": "rimraf dist",
+		"build": "tsc -b",
+		"version:patch": "npm version patch --no-git-tag-version",
+		"package": "npm run build && npm pack",
+		"publishing": "npm run build && npm publish --access=public",
+		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+		"test": "jest"
+	},
+	"keywords": [
+		"react",
+		"ui",
+		"components",
+		"typescript"
+	],
+	"author": "Inclood Solutions",
+	"license": "MIT",
+	"dependencies": {
+		"classnames": "^2.5.1",
+		"react-router-dom": "^7.8.0",
+		"react-use": "^17.6.0",
+		"tailwind-merge": "^3.3.1",
+		"usehooks-ts": "^3.1.1",
+		"vite-plugin-pwa": "^1.0.2"
+	},
+	"devDependencies": {
+		"@types/react": "^19.1.10",
+		"@types/react-dom": "^19.1.7",
+		"@vitejs/plugin-react-swc": "^4.0.0",
+		"rimraf": "^6.0.1",
+		"rollup-plugin-peer-deps-external": "^2.2.4",
+		"tsup": "^8.5.0",
+		"typescript": "^5.9.2",
+		"vite": "^7.1.2"
+	},
+	"peerDependencies": {
+		"react": ">=18.0.0",
+		"react-dom": ">=18.0.0"
+	}
+}
