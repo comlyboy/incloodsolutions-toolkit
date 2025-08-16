@@ -6,7 +6,7 @@ on:
       - publish-toolkit
 
 jobs:
-  publish:
+  publish-library:
     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
     with:
       working_directory: 'toolkit'
