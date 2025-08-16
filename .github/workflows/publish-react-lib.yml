@@ -28,12 +28,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          # cache: 'npm'
 
       - name: Set npm Authentication
         run: |
           echo "*** Authenticating with npm ***"
-          mkdir -p ~/.npm
           echo "//registry.npmjs.org/:_authToken=${{ secrets._NPM_TOKEN }}" > ~/.npmrc
           echo "*** Authenticate with npm successful!!! ***"
 
@@ -41,10 +40,12 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: |
+          npm run build:tsup
+          ls dist al
 
       - name: confirm npm cache
-        run: ls .npm al
+        run:
 
       - name: Check if version already published
         run: |
