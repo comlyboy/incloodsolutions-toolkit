@@ -33,6 +33,7 @@ jobs:
       - name: Set npm Authentication
         run: |
           echo "*** Authenticating with npm ***"
+          mkdir -p ~/.npm
           echo "//registry.npmjs.org/:_authToken=${{ secrets._NPM_TOKEN }}" > ~/.npmrc
           echo "*** Authenticate with npm successful!!! ***"
 
@@ -41,6 +42,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: confirm npm cache
+        run: ls .npm al
 
       - name: Check if version already published
         run: |
