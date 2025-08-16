@@ -40,9 +40,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: |
-          npm run build:tsup
-          ls dist al
+        run: npm run build:tsup
 
       - name: confirm npm cache
         run:
