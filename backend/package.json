@@ -1,6 +1,6 @@
 {
-	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.28",
+	"name": "@incloodsolutions/node-toolkit",
+	"version": "0.0.1",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"main": "dist/index.js",
 	"author": "",
@@ -98,12 +98,6 @@
 		],
 		"coverageDirectory": "./coverage",
 		"testEnvironment": "node",
-		"roots": [
-			"<rootDir>/src/",
-			"<rootDir>/libs/"
-		],
-		"moduleNameMapper": {
-			"^@workinance/nestjs-common(|/.*)$": "<rootDir>/libs/nestjs-common/src/$1"
-		}
+		"roots": ["<rootDir>/src/"]
 	}
 }

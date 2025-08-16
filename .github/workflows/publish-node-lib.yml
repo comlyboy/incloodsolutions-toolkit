@@ -1,0 +1,13 @@
+name: Publish library to npm
+
+on:
+  push:
+    branches:
+      - publish-node
+
+jobs:
+  publish:
+    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+    with:
+      working_directory: 'node'
+    secrets: inherit

@@ -1,0 +1,13 @@
+name: Publish library to npm
+
+on:
+  push:
+    branches:
+      - publish-react
+
+jobs:
+  publish:
+    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+    with:
+      working_directory: 'react'
+    secrets: inherit

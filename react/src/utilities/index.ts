@@ -1,19 +1,19 @@
-import classnames, { ArgumentArray } from 'classnames';
+import { ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 /**
  * Merges multiple class name arguments into a single string,
  * intelligently resolving Tailwind CSS class conflicts.
  *
- * @param {...ArgumentArray} klasses - A list of class names or conditional class name objects/arrays.
+ * @param {...ClassValue[]} klasses - A list of class names or conditional class name objects/arrays.
  * @returns {string} A merged string of class names with Tailwind conflict resolution.
  *
  * @example
  * parseClassnames('bg-red-500', 'text-white', { 'hidden': false, 'block': true })
  * // Returns: 'text-white block'
  */
-export function parseClassnames(...klasses: ArgumentArray): string {
-	return twMerge(classnames(klasses))
+export function parseClassnames(...klasses: ClassValue[]): string {
+	return twMerge(clsx(klasses));
 }
 
 /**
