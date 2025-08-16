@@ -10,7 +10,8 @@ jobs:
     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
     with:
       working_directory: 'react'
-    secrets: inherit
+    secrets:
+      _NPM_TOKEN: ${{ secrets._NPM_TOKEN }}
 
 
 # jobs:
