@@ -1,4 +1,4 @@
-name: Publish library to npm
+name: Publish React library to npm
 
 on:
   push:

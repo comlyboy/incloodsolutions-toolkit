@@ -1,4 +1,4 @@
-name: Publish library to npm
+name: Publish Angular library to npm
 
 on:
   push:

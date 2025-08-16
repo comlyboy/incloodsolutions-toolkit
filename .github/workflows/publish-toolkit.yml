@@ -1,9 +1,9 @@
-name: Publish library to npm
+name: Publish core library to npm
 
 on:
   push:
     branches:
-      - publish-common
+      - publish-toolkit
 
 jobs:
   publish:
