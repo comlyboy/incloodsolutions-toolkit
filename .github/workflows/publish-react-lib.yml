@@ -5,53 +5,52 @@ on:
     branches:
       - publish-react
 
-jobs:
-
-  publish-library:
-    # uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
-    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-lambda-aws-cdk.yml@main
-    with:
-      working_directory: 'react'
-    secrets: inherit
-
-
 # jobs:
-#   publish-library:
-#     runs-on: ubuntu-latest
-#     defaults:
-#       run:
-#         working-directory: 'react'
 
-#     steps:
-#       - name: Checkout code (make repo branch code available in this pipeline)
-#         uses: actions/checkout@v4
+#   publish:
+#     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+#     # uses: comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-lambda-aws-cdk.yml@main
+#     with:
+#       working_directory: 'react'
+#     secrets: inherit
 
-#       - name: Setup Node.js v22
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '22'
-#           # cache: 'npm'
 
-#       - name: Set npm Authentication
-#         run: |
-#           echo "*** Authenticating with npm ***"
-#           echo "//registry.npmjs.org/:_authToken=${{ secrets._NPM_TOKEN }}" > ~/.npmrc
-#           echo "*** Authenticate with npm successful!!! ***"
+jobs:
+  publish-library:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'react'
 
-#       - name: Install dependencies
-#         run: npm ci
+    steps:
+      - name: Checkout code (make repo branch code available in this pipeline)
+        uses: actions/checkout@v4
 
-#       - name: Build
-#         run: npm run build:tsup
+      - name: Setup Node.js v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
-#       - name: Check if version already published
-#         run: |
-#           VERSION=$(node -p "require('./package.json').version")
-#           NAME=$(node -p "require('./package.json').name")
-#           if npm view "$NAME@$VERSION" > /dev/null 2>&1; then
-#             echo "Version $VERSION already exists on npm. Skipping publish."
-#             exit 0
-#           fi
+      - name: Set npm Authentication
+        run: |
+          echo "*** Authenticating with npm ***"
+          echo "//registry.npmjs.org/:_authToken=${{ secrets._NPM_TOKEN }}" > ~/.npmrc
+          echo "*** Authenticate with npm successful!!! ***"
 
-#       # - name: Publish to npm
-#       #   run: npm publish --access=${{ inputs.scope }}
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build:tsup
+
+      - name: Check if version already published
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          if npm view "$NAME@$VERSION" > /dev/null 2>&1; then
+            echo "Version $VERSION already exists on npm. Skipping publish."
+            exit 0
+          fi
+
+      - name: Publish to npm
+        run: npm publish --access=public
