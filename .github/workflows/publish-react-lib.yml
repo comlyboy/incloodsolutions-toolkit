@@ -8,7 +8,8 @@ on:
 jobs:
 
   publish-library:
-    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+    # uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-lambda-aws-cdk.yml@main
     with:
       working_directory: 'react'
     secrets: inherit
