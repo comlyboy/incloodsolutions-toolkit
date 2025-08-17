@@ -1,7 +1,6 @@
 import { IsBoolean, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-import { IBaseCreator, IBaseDelete, IBaseEditor } from "src/interface";
-
+import { IBaseCreator, IBaseDelete, IBaseEditor } from "@incloodsolutions/toolkit";
 export class BaseSchemaEntity implements IBaseCreator, IBaseDelete, IBaseEditor {
 
 	@IsString()

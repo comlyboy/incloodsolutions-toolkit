@@ -1,8 +1,7 @@
 import { set, connect, disconnect, Connection, ConnectOptions } from 'mongoose';
 
 import { logDebugger } from '../../../utility';
-import { CustomException } from '../../../error';
-import { IBaseEnableDebug } from "../../../interface";
+import { CustomException, IBaseEnableDebug } from '@incloodsolutions/toolkit';
 
 let cachedConnection = (global as any).mongoose as {
 	customConnection: Connection | null;

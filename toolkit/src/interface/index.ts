@@ -148,18 +148,6 @@ export interface IBaseErrorResponse extends IBaseTimestamp {
 	statusCode: number;
 }
 
-/** Base interface for CDK construct configuration */
-export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> extends Readonly<Partial<IBaseEnableDebug>> {
-	/** Deployment stage/environment */
-	readonly stage?: AppEnvironmentType;
-	/** Additional construct options */
-	readonly options?: Readonly<TOptions>;
-	/** Optional stack name */
-	readonly stackName?: string;
-	/** Optional application name */
-	readonly appName?: string;
-}
-
 /** Supported application environments */
 export enum AppEnvironmentEnum {
 	QA = 'qa',

@@ -8,12 +8,11 @@ import { compare, genSalt, hash } from 'bcryptjs';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
-]import { isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
+import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 
-import { CustomException } from '../error';
 import { getCurrentLambdaInvocation } from '../aws';
-import { IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '../interface';
+import { CustomException, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '@incloodsolutions/toolkit';
 
 export function isIsoDate(date: string): boolean {
 	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
@@ -431,7 +430,7 @@ export async function validateDataWithClassValidator<TData, TSchema extends Obje
 	const errors = await validate(instance, options.validatorOptions);
 
 	if (errors.length > 0) {
-		throw new CustomException(flattenValidationErrors(errors), 400);
+		throw new CustomException(flattenValidationErrors(errors) as any, 400);
 	}
 	return instance;
 }

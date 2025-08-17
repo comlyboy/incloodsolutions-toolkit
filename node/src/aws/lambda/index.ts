@@ -3,7 +3,7 @@ import serverlessExpress from '@codegenie/serverless-express';
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Context, EventBridgeEvent, SNSEvent, SQSEvent } from "aws-lambda";
 import { ConstructorOptions } from "@aws-lambda-powertools/logger/lib/cjs/types/Logger";
 
-import { ObjectType } from "../../interface";
+import { ObjectType } from "@incloodsolutions/toolkit";
 
 let serverInstance: APIGatewayProxyHandlerV2;
 const currentInvocation: {

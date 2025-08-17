@@ -3,9 +3,7 @@ import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCom
 import { plainToInstance } from "class-transformer";
 import { validate, ValidationError, ValidatorOptions } from "class-validator";
 
-import { IBaseEnableDebug, ObjectType } from "../../interface";
-import { CustomException } from "../../error";
-import { generateCustomUUID, generateDateInNumber, generateISODate, logDebugger } from "../../utility";
+import { ObjectType, IBaseEnableDebug, logDebugger, CustomException, generateISODate, generateDateInNumber, generateCustomUUID } from "@incloodsolutions/toolkit";
 
 export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTableIndexType = string>(options: {
 	/** Dynamo-db table name */
@@ -74,7 +72,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			skipMissingProperties: ignoreMissingProperties
 		});
 		if (errors.length > 0) {
-			throw new CustomException(flattenValidationErrors(errors), 400);
+			throw new CustomException(flattenValidationErrors(errors) as any, 400);
 		}
 		return instance;
 	}

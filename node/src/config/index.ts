@@ -1,5 +1,5 @@
-import { IBaseEnableDebug, IBaseEnvironmentVariable, ObjectType } from "../interface";
-import { CustomException } from "../error";
+import { ObjectType, IBaseEnableDebug, CustomException } from "@incloodsolutions/toolkit";
+import { IBaseEnvironmentVariable } from "../interface";
 
 const cachedEnvironmentVariables: ObjectType = {} as const;
 

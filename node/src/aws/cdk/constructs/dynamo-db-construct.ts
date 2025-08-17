@@ -3,7 +3,7 @@ import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProp
 import { CfnOutput } from 'aws-cdk-lib';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
-import { logDebugger } from '../../../utility';
+import { logDebugger } from '@incloodsolutions/toolkit';
 
 /**
  * Properties for configuring the BaseDynamoDBConstruct.
