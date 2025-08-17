@@ -1,50 +1,44 @@
 {
 	"name": "@incloodsolutions/toolkit",
 	"version": "0.0.28",
-	"description": "A toolkit containing utility, helper, config, interfaces for backend api",
+	"description": "A lightweight, framework-agnostic toolkit providing common utilities, helpers, and abstractions for building scalable JavaScript and TypeScript applications.",
 	"main": "dist/index.js",
-	"author": "",
+	"author": "Inclood Solutions",
 	"private": false,
+	"license": "MIT",
 	"files": [
 		"dist"
+	],
+	"keywords": [
+		"toolkit",
+		"utilities",
+		"javascript",
+		"typescript",
+		"helpers",
+		"library",
+		"functions",
+		"modules",
+		"open-source",
+		"shared",
+		"incloodsolutions"
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
 		"build": "tsc -b",
-		"build:esbuild": "rimraf dist && ts-node build.ts",
 		"build:tsup": "tsup && tsc --emitDeclarationOnly",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
-		"publishing": "npm run build:tsup && npm publish --access=public",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
 	},
-	"license": "MIT",
 	"dependencies": {
-		"@aws-lambda-powertools/logger": "^2.24.1",
-		"@aws-sdk/client-dynamodb": "^3.864.0",
-		"@aws-sdk/client-s3": "^3.864.0",
-		"@aws-sdk/client-ses": "^3.864.0",
-		"@aws-sdk/client-sns": "^3.864.0",
-		"@aws-sdk/lib-dynamodb": "^3.864.0",
-		"@aws-sdk/s3-request-presigner": "^3.864.0",
-		"@codegenie/serverless-express": "^4.17.0",
-		"aws-cdk-lib": "^2.210.0",
 		"axios": "^1.11.0",
-		"base64-stream": "^1.0.0",
 		"bcryptjs": "^3.0.2",
-		"class-transformer": "^0.5.1",
-		"class-validator": "^0.14.2",
-		"constructs": "^10.4.2",
 		"countries-and-timezones": "^3.8.0",
-		"crypto-js": "^4.2.0",
-		"express": "^5.1.0",
 		"handlebars": "^4.7.8",
 		"libphonenumber-js": "^1.12.10",
 		"lodash": "^4.17.21",
-		"mongoose": "^8.17.1",
-		"morgan": "^1.10.1",
 		"qr-code-styling": "^1.9.2",
 		"qrcode": "^1.5.4",
 		"tslib": "^2.8.1",
@@ -54,13 +48,8 @@
 	},
 	"devDependencies": {
 		"@esbuild-plugins/tsconfig-paths": "^0.1.2",
-		"@types/aws-lambda": "^8.10.152",
-		"@types/bcryptjs": "^3.0.0",
-		"@types/crypto-js": "^4.2.2",
-		"@types/express": "^5.0.3",
 		"@types/jest": "^30.0.0",
 		"@types/lodash": "^4.17.20",
-		"@types/morgan": "^1.9.10",
 		"@types/node": "^24.2.1",
 		"@types/qrcode": "^1.5.5",
 		"@types/uuid": "^10.0.0",
@@ -99,11 +88,7 @@
 		"coverageDirectory": "./coverage",
 		"testEnvironment": "node",
 		"roots": [
-			"<rootDir>/src/",
-			"<rootDir>/libs/"
-		],
-		"moduleNameMapper": {
-			"^@workinance/nestjs-common(|/.*)$": "<rootDir>/libs/nestjs-common/src/$1"
-		}
+			"<rootDir>/src/"
+		]
 	}
 }

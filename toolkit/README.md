@@ -1,23 +1,10 @@
 # @incloodsolutions/toolkit
 
-[![npm version](https://img.shields.io/npm/v/@incloodsolutions/toolkit)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org/)
-<!-- [![CI](https://github.com/incloodsolutions/toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/incloodsolutions/toolkit/actions) -->
+[![npm version](https://img.shields.io/npm/v/@incloodsolutions/toolkit.svg)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
+[![license](https://img.shields.io/npm/l/@incloodsolutions/toolkit.svg)](LICENSE)
 
-> A modular and extensible Node.js backend library from **Inclood Solutions** that bundles reusable utilities, SDK wrappers, environment configs, AWS CDK constructs, and more — so you can **build faster and smarter**.
-
----
-
-## ✨ Features
-
-- ✅ Reusable utility functions (dates, boolean, strings, objects, array, etc.)
-- 🔐 Environment-aware config loader.
-- ☁️ AWS DynamoDB SDK v3 client wrappers.
-- ☁️ MongoDB library wrappers.
-- 🏗 Plug-and-play CDK constructs.
-- 🧰 Type-safe helper methods.
-- 📦 Built for scalability and reusability.
+A lightweight, framework-agnostic utility library providing shared functions, types, and core helpers used across all IncloodSolutions toolkits.
+Designed to be modular, reliable, and easily extendable for building scalable JavaScript and TypeScript applications.
 
 ---
 
@@ -25,9 +12,15 @@
 
 ```bash
 npm install @incloodsolutions/toolkit
+# or
+yarn add @incloodsolutions/toolkit
 ```
 
+## 🚀 Usage
 
-```bash
-yarn add @incloodsolutions/toolkit
+```typescript
+import { isEmpty, deepClone } from "@incloodsolutions/toolkit";
+
+console.log(isEmpty([])); // true
+const cloned = deepClone({ name: "Inclood" });
 ```

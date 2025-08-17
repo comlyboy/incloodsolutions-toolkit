@@ -1,4 +1,3 @@
-import { Document, ObjectId } from "mongoose";
 import { CountryCode, TimezoneName } from "countries-and-timezones";
 
 /** Base interface for objects with an ID of generic type */
@@ -50,9 +49,9 @@ export interface IBaseStatus<TStatus> {
 }
 
 /** Base interface for monetary or numeric amounts */
-export interface IBaseAmount {
-	/** Numeric amount */
-	amount: number;
+export interface IBaseAmount<TType extends number | string = number> {
+	/** Numeric / String amount */
+	amount: TType;
 }
 
 /** Base interface for objects with a description */
@@ -72,9 +71,6 @@ export interface IBaseReferenceId<TType = string> {
 	/** Reference ID string */
 	referenceId: TType;
 }
-
-/** Base interface that enables debugging features */
-export interface IBaseConstruct extends IBaseEnableDebug { }
 
 /** Base interface for objects associated with a business entity */
 export interface IBaseBusiness<TBusiness extends ObjectType = any, TType = string> {
@@ -138,42 +134,6 @@ export interface IBaseEnableDebug {
 	enableDebug: boolean;
 }
 
-/**
- * Interface representing the environment variables required by the application.
- */
-export interface IBaseEnvironmentVariable {
-	/**
-	 * MongoDB connection string (optional if not used in some environments).
-	 * Example: mong)odb+srv://user:password&@@cluster.mongodb.net/dbname
-	 */
-	MONGO_DATABASE_URL?: string;
-
-	/**
-	 * Telegram bot token for sending or receiving messages (optional).
-	 * Example: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
-	 */
-	TELEGRAM_BOT_TOKEN?: string;
-
-	/**
-	 * The current runtime environment.
-	 * Should be one of: 'development', 'production', 'test', etc.
-	 */
-	NODE_ENV: AppEnvironmentType;
-
-	/**
- * Logging level: e.g., 'debug', 'info', 'warn', 'error'.
- */
-	LOG_LEVEL?: 'debug' | 'info' | 'warn' | 'error';
-
-	/**
- * Port number on which the application runs (optional).
- * Example: 8080
- */
-	PORT?: number | string;
-
-}
-
-
 /** Base structure for HTTP error responses */
 export interface IBaseErrorResponse extends IBaseTimestamp {
 	/** HTTP path where the error occurred */
@@ -224,19 +184,6 @@ export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
 /** Generic key-value object type */
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;
-
-/** Represents a MongoDB identifier, which can either be an ObjectId or a string. */
-export type MongoIdType = ObjectId | string;
-
-/**
- * Base interface for MongoDB documents with a string-based `_id`.
- *
- * Extends Mongoose's `Document<string>` to ensure typed access to `id`.
- */
-export interface IBaseMongoDocument<TType extends string | number | ObjectId = string> extends Document<TType> {
-	/** The string representation of the MongoDB document ID */
-	id: TType;
-}
 
 /**
  * Describes sorting directions for queries.

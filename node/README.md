@@ -1,33 +1,37 @@
-# @incloodsolutions/toolkit
+# @incloodsolutions/angular-toolkit
 
-[![npm version](https://img.shields.io/npm/v/@incloodsolutions/toolkit)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D22-green.svg)](https://nodejs.org/)
-<!-- [![CI](https://github.com/incloodsolutions/toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/incloodsolutions/toolkit/actions) -->
+[![npm version](https://img.shields.io/npm/v/@incloodsolutions/angular-toolkit.svg)](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit)
+[![license](https://img.shields.io/npm/l/@incloodsolutions/angular-toolkit.svg)](LICENSE)
 
-> A modular and extensible Node.js backend library from **Inclood Solutions** that bundles reusable utilities, SDK wrappers, environment configs, AWS CDK constructs, and more — so you can **build faster and smarter**.
-
----
-
-## ✨ Features
-
-- ✅ Reusable utility functions (dates, boolean, strings, objects, array, etc.)
-- 🔐 Environment-aware config loader.
-- ☁️ AWS DynamoDB SDK v3 client wrappers.
-- ☁️ MongoDB library wrappers.
-- 🏗 Plug-and-play CDK constructs.
-- 🧰 Type-safe helper methods.
-- 📦 Built for scalability and reusability.
+A collection of Angular utilities and services extending the shared `@incloodsolutions/toolkit`.
+Includes Angular-specific providers, RxJS helpers, and decorators that streamline common development tasks and improve productivity in Angular applications.
 
 ---
 
 ## 📦 Installation
 
 ```bash
-npm install @incloodsolutions/toolkit
+npm install @incloodsolutions/angular-toolkit
+# or
+yarn add @incloodsolutions/angular-toolkit
 ```
 
+## 🚀 Usage
+```typescript
+import { UntilDestroy, untilDestroyed } from "@incloodsolutions/angular-toolkit";
+import { Component, OnInit } from "@angular/core";
+import { interval } from "rxjs";
 
-```bash
-yarn add @incloodsolutions/toolkit
+@UntilDestroy()
+@Component({
+  selector: "app-example",
+  template: "<p>Check console logs</p>",
+})
+export class ExampleComponent implements OnInit {
+  ngOnInit() {
+    interval(1000)
+      .pipe(untilDestroyed(this))
+      .subscribe(() => console.log("tick"));
+  }
+}
 ```

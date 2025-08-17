@@ -1,10 +1,26 @@
 {
 	"name": "@incloodsolutions/react-toolkit",
 	"version": "0.0.1",
-	"description": "A toolkit containing utility, helpers, configs, hooks, interfaces for React/Nextjs apps",
+	"description": "A collection of reusable React utilities, hooks, and components designed to accelerate development and improve code consistency across React applications.",
 	"main": "dist/index.js",
+	"author": "Inclood Solutions",
+	"license": "MIT",
 	"files": [
 		"dist"
+	],
+	"keywords": [
+		"components",
+		"react",
+		"react-hooks",
+		"react-components",
+		"react-toolkit",
+		"ui",
+		"frontend",
+		"library",
+		"typescript",
+		"javascript",
+		"utilities",
+		"incloodsolutions"
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
@@ -12,19 +28,10 @@
 		"build:tsup": "npm run prebuild && tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build:tsup && npm pack",
-		"publishing": "npm run build && npm publish --access=public",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
 	},
-	"keywords": [
-		"react",
-		"ui",
-		"components",
-		"typescript"
-	],
-	"author": "Inclood Solutions",
-	"license": "MIT",
 	"dependencies": {
 		"clsx": "^2.1.1",
 		"react-router-dom": "^7.8.0",
