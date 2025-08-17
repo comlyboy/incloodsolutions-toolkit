@@ -7,8 +7,8 @@ import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
-import { CustomException } from '../error';
 import { ObjectType } from '../interface';
+import { CustomException } from '../error';
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -41,7 +41,6 @@ export function generateRandomId({ length = 6, variant = 'numeric' }: {
 	// Slice the accumulated ID to maintain exact length
 	return randomId.slice(0, length);
 }
-
 
 /** Transform text */
 export function transformText({ text, format, trim = false }: {
@@ -96,7 +95,7 @@ export function containsUUID(input: string): boolean {
 	const matches = input.match(
 		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi
 	);
-	return matches !== null && matches.length > 0;
+	return matches && matches.length > 0;
 }
 
 /** Send Http request with Axios. */
@@ -208,12 +207,7 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 			}
 		});
 	} catch (error) {
-		throw {
-			...error,
-			status: error.error_code,
-			message: error.description,
-			statusCode: error.error_code
-		}
+		throw new CustomException(error.description, error.error_code);
 	}
 }
 
