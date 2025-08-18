@@ -42,12 +42,30 @@ export function generateRandomId({ length = 6, variant = 'numeric' }: {
 	return randomId.slice(0, length);
 }
 
-/** Transform text */
+/**
+ * Transforms a text string based on the specified format type.
+ *
+ * Supported formats:
+ * - `"uppercase"`: Converts all text to uppercase.
+ * - `"lowercase"`: Converts all text to lowercase.
+ * - `"capitalize"`: Capitalises the first letter of each word.
+ * - `"titlecase"`: Capitalises the first letter of the text.
+ * - `"kebab"`: Converts all text to kebab (e.g., hello-world).
+ *
+ * @param {Object} options - Options object.
+ * @param {string} options.text - The input text to transform.
+ * @param {"uppercase" | "lowercase" | "titlecase" | "capitalize" | "kebab"} options.format - The transformation type.
+ * @returns {string} - The transformed text.
+ *
+ * @example
+ * transformText({ text: 'hello world', format: 'capitalize' });
+ * // Returns: "Hello World"
+ */
 export function transformText({ text, format, trim = false }: {
 	text: string;
 	trim?: boolean;
 	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize' | 'kebab';
-}) {
+}): string {
 	if (!text || typeof text !== 'string') return text;
 	if (format === 'uppercase') {
 		text = text.toUpperCase();
