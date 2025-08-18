@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.30",
+	"version": "0.0.31",
 	"description": "A lightweight, framework-agnostic toolkit providing common utilities, helpers, and abstractions for building scalable JavaScript and TypeScript applications.",
 	"main": "dist/index.js",
 	"author": "Inclood Solutions",
