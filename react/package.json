@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/react-toolkit",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A collection of reusable React utilities, hooks, and components designed to accelerate development and improve code consistency across React applications.",
 	"main": "dist/index.js",
 	"author": "Inclood Solutions",
