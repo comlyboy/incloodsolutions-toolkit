@@ -1,7 +1,9 @@
 # @incloodsolutions/toolkit
 
-[![npm version](https://img.shields.io/npm/v/@incloodsolutions/toolkit.svg)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
-[![license](https://img.shields.io/npm/l/@incloodsolutions/toolkit.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@incloodsolutions/toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
+[![npm dm](https://img.shields.io/npm/dm/@incloodsolutions/toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
+[![downloads](https://img.shields.io/npm/dt/@incloodsolutions/toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
+[![licensee](https://img.shields.io/npm/l/@incloodsolutions/toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/toolkit)
 
 A lightweight, framework-agnostic utility library providing shared functions, types, and core helpers used across all IncloodSolutions toolkits.
 Designed to be modular, reliable, and easily extendable for building scalable JavaScript and TypeScript applications.

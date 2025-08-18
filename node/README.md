@@ -1,37 +1,32 @@
-# @incloodsolutions/angular-toolkit
+# @incloodsolutions/node-toolkit
 
-[![npm version](https://img.shields.io/npm/v/@incloodsolutions/angular-toolkit.svg)](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit)
-[![license](https://img.shields.io/npm/l/@incloodsolutions/angular-toolkit.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
+[![npm dm](https://img.shields.io/npm/dm/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
+[![downloads](https://img.shields.io/npm/dt/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
+[![licensee](https://img.shields.io/npm/l/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
 
-A collection of Angular utilities and services extending the shared `@incloodsolutions/toolkit`.
-Includes Angular-specific providers, RxJS helpers, and decorators that streamline common development tasks and improve productivity in Angular applications.
+A Node.js-focused extension of `@incloodsolutions/toolkit`, offering utilities for server-side applications.
+Includes async helpers, file system utilities, configuration management, and runtime tools optimised for building scalable Node.js backends and CLI tools.
 
 ---
 
 ## 📦 Installation
 
 ```bash
-npm install @incloodsolutions/angular-toolkit
+npm install @incloodsolutions/node-toolkit
 # or
-yarn add @incloodsolutions/angular-toolkit
+yarn add @incloodsolutions/node-toolkit
 ```
 
 ## 🚀 Usage
-```typescript
-import { UntilDestroy, untilDestroyed } from "@incloodsolutions/angular-toolkit";
-import { Component, OnInit } from "@angular/core";
-import { interval } from "rxjs";
 
-@UntilDestroy()
-@Component({
-  selector: "app-example",
-  template: "<p>Check console logs</p>",
-})
-export class ExampleComponent implements OnInit {
-  ngOnInit() {
-    interval(1000)
-      .pipe(untilDestroyed(this))
-      .subscribe(() => console.log("tick"));
-  }
+```typescript
+import { readJsonFile } from "@incloodsolutions/node-toolkit";
+
+async function main() {
+  const config = await readJsonFile("./config.json");
+  console.log(config);
 }
+
+main();
 ```
