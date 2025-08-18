@@ -2,8 +2,8 @@ import { Construct } from 'constructs';
 import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableAttributes, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 import { CfnOutput } from 'aws-cdk-lib';
 
+import { logDebugger } from '../../../utility';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
-import { logDebugger } from '@incloodsolutions/toolkit';
 
 /**
  * Properties for configuring the BaseDynamoDBConstruct.

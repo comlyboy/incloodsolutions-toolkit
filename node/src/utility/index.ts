@@ -14,6 +14,7 @@ import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-
 import { getCurrentLambdaInvocation } from '../aws';
 import { CustomException, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '@incloodsolutions/toolkit';
 
+
 export function isIsoDate(date: string): boolean {
 	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
 }

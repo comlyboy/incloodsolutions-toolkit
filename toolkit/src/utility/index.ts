@@ -104,7 +104,7 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
 }
 
 /** Check if a string is uuid */
-export function isUUID(uuid: string) {
+export function isValidUUID(uuid: string) {
 	return uuidValidate(uuid);
 }
 

@@ -2,10 +2,7 @@
 	"compilerOptions": {
 		"module": "CommonJS",
 		"target": "ES2022",
-		"lib": [
-			"esnext",
-			"dom"
-		],
+		"lib": ["esnext", "dom"],
 		"declaration": true,
 		"declarationMap": true,
 		"emitDecoratorMetadata": true,
@@ -13,13 +10,13 @@
 		"sourceMap": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
-		"incremental": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"noUnusedLocals": true,
 		"strictNullChecks": false,
 		"moduleResolution": "node",
+		"declarationDir": "./dist",
 		"noImplicitAny": true,
 		"noEmitOnError": true,
 		"strictBindCallApply": false,
@@ -30,10 +27,7 @@
 		"useUnknownInCatchVariables": false
 	},
 	"include": ["./src"],
-	"exclude": [
-		"node_modules",
-		"./dist"
-	]
+	"exclude": ["node_modules",	"./dist"]
 }
 // {
 // 	"compilerOptions": {

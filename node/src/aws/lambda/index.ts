@@ -1,7 +1,6 @@
 import { Express } from "express";
 import serverlessExpress from '@codegenie/serverless-express';
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Context, EventBridgeEvent, SNSEvent, SQSEvent } from "aws-lambda";
-import { ConstructorOptions } from "@aws-lambda-powertools/logger/lib/cjs/types/Logger";
 
 import { ObjectType } from "@incloodsolutions/toolkit";
 
@@ -44,18 +43,18 @@ export async function initLambdaHandler<TEvent extends APIGatewayProxyEventV2 | 
 	/** ConfigureParams from serverless-express */
 	options?: {
 		loggerOptions?: {
-			powertools?: ConstructorOptions;
+			// powertools?: ConstructorOptions;
 		};
 		eventOptions?: {
 			eventSource?: { getRequest?: any; getResponse?: any; };
 			eventSourceRoutes?: { [key in EventSources]?: string };
-		};
+		} & ObjectType;
 	} & ObjectType;
 }): Promise<any> {
 	// new Logger().addContext(context);
 	context.callbackWaitsForEmptyEventLoop = false;
 	if (!serverInstance) {
-		serverInstance = serverlessExpress({ ...options, app });
+		serverInstance = serverlessExpress({ ...options?.eventOptions, app });
 	}
 	currentInvocation.event = event as any;
 	currentInvocation.context = context;

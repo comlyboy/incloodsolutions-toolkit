@@ -2,7 +2,9 @@ import { Construct } from 'constructs';
 import { CfnOutput, Duration } from 'aws-cdk-lib';
 import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
 
-import { IBaseCdkConstructProps, detectDuplicateProperties, AppEnvironmentEnum } from '@incloodsolutions/toolkit';
+import { detectDuplicateProperties, AppEnvironmentEnum } from '@incloodsolutions/toolkit';
+
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly lambdaOptions: Partial<FunctionProps>;

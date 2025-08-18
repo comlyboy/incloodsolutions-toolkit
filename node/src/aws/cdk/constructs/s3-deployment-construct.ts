@@ -4,10 +4,12 @@ import { S3BucketOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { BehaviorOptions, Distribution, DistributionProps } from 'aws-cdk-lib/aws-cloudfront';
 import { BucketDeployment, BucketDeploymentProps } from 'aws-cdk-lib/aws-s3-deployment';
 
-import { IBaseCdkConstructProps, ObjectType, CustomException } from '@incloodsolutions/toolkit';
+import { ObjectType, CustomException } from '@incloodsolutions/toolkit';
 
 import { BaseS3Construct } from './s3-construct';
 import { BaseCloudfrontConstruct } from './cloudfront-construct';
+
+import { IBaseCdkConstructProps } from '../../../interface';
 
 interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly bucketOptions?: BucketProps;

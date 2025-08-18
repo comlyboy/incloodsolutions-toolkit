@@ -1,13 +1,14 @@
 {
 	"name": "@incloodsolutions/toolkit",
-	"version": "0.0.29",
+	"version": "0.0.30",
 	"description": "A lightweight, framework-agnostic toolkit providing common utilities, helpers, and abstractions for building scalable JavaScript and TypeScript applications.",
 	"main": "dist/index.js",
 	"author": "Inclood Solutions",
 	"private": false,
 	"license": "MIT",
 	"files": [
-		"dist"
+		"dist",
+		"README.md"
 	],
 	"keywords": [
 		"toolkit",
@@ -25,9 +26,9 @@
 	"scripts": {
 		"prebuild": "rimraf dist",
 		"build": "tsc -b",
-		"build:tsup": "tsup && tsc --emitDeclarationOnly",
+		"build:tsup": "tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
-		"package": "npm run build && npm pack",
+		"package": "npm run build:tsup && npm pack",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"

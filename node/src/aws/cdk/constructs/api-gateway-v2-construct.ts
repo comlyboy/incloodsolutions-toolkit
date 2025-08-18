@@ -4,9 +4,9 @@ import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { AddRoutesOptions, CorsHttpMethod, HttpApi, HttpApiProps } from 'aws-cdk-lib/aws-apigatewayv2';
 
-import { CustomException, IBaseCdkConstructProps } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit';
 
-import { IBaseConstruct } from '../../../interface';
+import { IBaseConstruct, IBaseCdkConstructProps } from '../../../interface';
 
 interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 	readonly gatewayOptions: HttpApiProps;

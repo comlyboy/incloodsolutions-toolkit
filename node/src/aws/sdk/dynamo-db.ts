@@ -3,7 +3,8 @@ import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCom
 import { plainToInstance } from "class-transformer";
 import { validate, ValidationError, ValidatorOptions } from "class-validator";
 
-import { ObjectType, IBaseEnableDebug, logDebugger, CustomException, generateISODate, generateDateInNumber, generateCustomUUID } from "@incloodsolutions/toolkit";
+import { ObjectType, IBaseEnableDebug, CustomException, generateISODate, generateDateInNumber, generateCustomUUID } from "@incloodsolutions/toolkit";
+import { logDebugger } from "../../utility";
 
 export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTableIndexType = string>(options: {
 	/** Dynamo-db table name */
