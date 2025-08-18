@@ -24,10 +24,9 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
-		"build": "tsc -b",
-		"build:tsup": "npm run prebuild && tsup",
+		"build": "tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
-		"package": "npm run build:tsup && npm pack",
+		"package": "npm run build && npm pack",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
 		"lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
 		"test": "jest"
