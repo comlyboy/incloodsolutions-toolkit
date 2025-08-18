@@ -1,5 +1,13 @@
 # IncloodSolutions Toolkits
 
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E.svg?logo=javascript&logoColor=000&style=for-the-badge)
+![Typescript](https://img.shields.io/badge/TypeScript-3178C6.svg?logo=typescript&logoColor=fff&style=for-the-badge)
+![React](https://img.shields.io/badge/ReactJs-61DAFB.svg?logo=react&logoColor=000&style=for-the-badge)
+![Angular](https://img.shields.io/badge/Angular-%23DD0031.svg?logo=angular&logoColor=fff&style=for-the-badge)
+![NodeJS](https://img.shields.io/badge/Node.js-6DA55F.svg?logo=node.js&logoColor=fff&style=for-the-badge)
+![GithubAction](https://img.shields.io/badge/GitHub_Actions-2088FF.svg?logo=github-actions&logoColor=fff&style=for-the-badge)
+![GithubAction](https://img.shields.io/badge/npm-CB3837.svg?logo=npm&logoColor=fff&style=for-the-badge)
+
 This monorepo contains a collection of open-source toolkits designed to simplify development across multiple frameworks and runtimes, including **React**, **Angular**, and **Node.js**. Each package is published under the `@incloodsolutions` scope.
 
 ---
