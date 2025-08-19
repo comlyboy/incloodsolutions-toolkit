@@ -12,7 +12,6 @@
 		"sourceMap": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
-		"incremental": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,

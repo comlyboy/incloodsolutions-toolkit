@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"main": "dist/index.js",
 	"author": "Inclood Solutions",
@@ -24,8 +24,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
-		"build": "tsc -b",
-		"build:tsup": "tsup && tsc --emitDeclarationOnly",
+		"build": "tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

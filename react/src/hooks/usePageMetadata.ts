@@ -19,7 +19,7 @@ function setOrCreateMeta(attrName: string, attrValue: string, content: string) {
 	meta.setAttribute("content", content);
 }
 
-export function usePageMeta({
+export function usePageMetadata({
 	title,
 	description,
 	backgroundImageUrl,

@@ -2,7 +2,10 @@
 	"compilerOptions": {
 		"module": "CommonJS",
 		"target": "ES2022",
-		"lib": ["esnext", "dom"],
+		"lib": [
+			"esnext",
+			"dom"
+		],
 		"declaration": true,
 		"declarationMap": true,
 		"emitDecoratorMetadata": true,
@@ -26,8 +29,14 @@
 		"noFallthroughCasesInSwitch": false,
 		"useUnknownInCatchVariables": false
 	},
-	"include": ["./src"],
-	"exclude": ["node_modules",	"./dist"]
+	"include": [
+		"./src",
+		"../react/src/constant"
+	],
+	"exclude": [
+		"node_modules",
+		"./dist"
+	]
 }
 // {
 // 	"compilerOptions": {

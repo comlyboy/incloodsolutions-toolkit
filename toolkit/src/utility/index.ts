@@ -1,6 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { compile, RuntimeOptions } from 'handlebars';
-import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
+import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
+// import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
@@ -138,7 +139,7 @@ export function parsePhonenumberOrError(phoneNumber: string, defaultCountry?: Co
 
 /** Returns undefined if the phonenumber format isn't correct */
 export function parsePhonenumber(phoneNumber: string, defaultCountry?: CountryCode): PhoneNumber | undefined {
-	if (!phoneNumber || phoneNumber === ' ') return undefined;
+	if (!phoneNumber.trim() || phoneNumber === ' ') return undefined;
 	return parsePhoneNumberFromString(phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`, defaultCountry);
 }
 
@@ -155,19 +156,55 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	) as TData;
 }
 
-/** Generate QR-Code as base64 string */
-export async function generateQrCode<TData>(qrData: TData, options?: QRCodeToDataURLOptions): Promise<string> {
-	const payload = typeof qrData === 'string' ? qrData : JSON.stringify(qrData);
-	let qrImage = await toDataURL(payload, {
-		...options,
-		width: options?.width || 220,
-		margin: options?.margin || 2,
-		color: {
-			light: options?.color?.light || '#fff',
-			dark: options?.color?.dark || '#3B3D45',
-		}
-	});
-	return `data:image/png;base64,${qrImage}`;
+/**
+ * Generates a QR code or barcode as a Base64-encoded PNG image string.
+ *
+ * @template TData - The type of data to encode. Can be an object (`ObjectType`) or a string.
+ *
+ * @param {TData} qrData - The data to be encoded. If an object, it will be stringified as JSON.
+ * @param {Object} [options] - Optional rendering configuration.
+ * @param {'qrcode' | 'barcode'} [options.type='qrcode'] - The type of code to generate.
+ *   - `'qrcode'` (default): Generates a QR code.
+ *   - `'barcode'`: Generates a Code128 barcode.
+ *
+ * @returns {Promise<string>} A promise that resolves to a Base64-encoded PNG image string,
+ * prefixed with `data:image/png;base64,`.
+ *
+ * @example
+ * // Generate a QR code from text (default type is 'qrcode')
+ * const qr = await generateQrBarcode('Hello World');
+ * console.log(qr); // data:image/png;base64,iVBORw0...
+ *
+ * @example
+ * // Generate a barcode from an object
+ * const barcode = await generateQrBarcode({ id: 123 }, { type: 'barcode' });
+ * console.log(barcode); // data:image/png;base64,iVBORw0...
+ */
+export async function generateQrBarcode<TData extends ObjectType | string>(qrData: TData, options?: {
+	type?: 'qrcode' | 'barcode';
+}): Promise<string> {
+
+	const renderOptions: RenderOptions = {
+		...options || {},
+		bcid: options?.type === 'barcode' ? 'code128' : "qrcode",
+		text: typeof qrData === 'object' ? JSON.stringify(qrData) : qrData,
+		paddingwidth: options?.type === 'barcode' ? 3 : 5,
+		paddingheight: options?.type === 'barcode' ? 3 : 5,
+		scale: options?.type === 'barcode' ? 16 : 10,
+		includetext: true,
+		textyoffset: 4,
+		barcolor: '3B3D45',
+		textxalign: 'center',
+		backgroundcolor: 'ffffff',
+	}
+
+	if (options?.type === 'qrcode') {
+		renderOptions.width = 120;
+		renderOptions.height = 120;
+	}
+
+	const pngBuffer = await qrBarcodeFn({ ...renderOptions });
+	return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }
 
 /** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */
