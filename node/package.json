@@ -39,7 +39,7 @@
 		"@aws-sdk/lib-dynamodb": "^3.868.0",
 		"@aws-sdk/s3-request-presigner": "^3.864.0",
 		"@codegenie/serverless-express": "^4.17.0",
-		"@incloodsolutions/toolkit": "^0.0.30",
+		"@incloodsolutions/toolkit": "^0.0.31",
 		"aws-cdk-lib": "^2.211.0",
 		"bcryptjs": "^3.0.2",
 		"class-transformer": "^0.5.1",
