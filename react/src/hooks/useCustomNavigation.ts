@@ -19,6 +19,7 @@ interface ICurrentNavigationMetadata {
 	readonly hash?: string;
 	readonly url: string;
 	readonly params: Record<string, string | undefined>;
+	readonly fullUrl: string;
 	readonly navigationType: string;
 }
 
@@ -65,6 +66,7 @@ export function useCustomNavigation(
 			query: getQueries(),
 			path: location.pathname,
 			url: `${location.pathname}${location.search}`,
+			fullUrl: `${window.location.origin}${location.pathname}${location.search}${location.hash || ''}`,
 			hash: location.hash || undefined,
 			navigationType,
 		}),
