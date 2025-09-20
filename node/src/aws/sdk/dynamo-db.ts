@@ -47,7 +47,19 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
+	/**
+	 * Validates the data against the provided schema using class-validator
+	 * @param data The data to validate
+	 * @param ignoreMissingProperties Whether to skip validation for missing properties
+	 * @throws {CustomException} If validation fails
+	 * @returns The validated and transformed instance
+	 */
 	async function validateSchema<TData>(data: TData, ignoreMissingProperties = false) {
+		/**
+		 * Flattens validation errors into an array of error messages
+		 * @param errors The validation errors to flatten
+		 * @returns Array of error messages
+		 */
 		function flattenValidationErrors(errors: ValidationError[]): string[] {
 			return errors.flatMap(error => {
 				const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
@@ -78,11 +90,21 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		return instance;
 	}
 
+	/**
+	 * Adds or updates the createdAtDate field in the data object
+	 * @param data The data object to modify
+	 * @returns The modified data object with createdAtDate
+	 */
 	function mapSchemaCreatedDate(data: Partial<TType>) {
 		(data as any)['createdAtDate'] = data?.createdAtDate || generateISODate();
 		return data;
 	}
 
+	/**
+	 * Generates and sets the primary key for the data object based on configuration
+	 * @param data The data object to modify
+	 * @returns The modified data object with primary key
+	 */
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
 		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId === true) return data;
 		if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'timestampUuid') {
@@ -98,6 +120,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	return {
 
 		/** Put command */
+		/**
+		 * Creates a new item in the DynamoDB table
+		 * @param data The data to insert into the table
+		 * @returns The inserted item data
+		 */
 		put: async ({ data }: { data: Partial<TType>; }) => {
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
@@ -117,6 +144,18 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			return data as TType;
 		},
 
+		/**
+		 * Queries items from the DynamoDB table with various filtering options
+		 * @param filter Additional filter conditions
+		 * @param conditions Key conditions for the query
+		 * @param indexName Optional secondary index name to query
+		 * @param limit Maximum number of items to return
+		 * @param returnAll Whether to fetch all matching items (pagination)
+		 * @param paginationData Token for continuing a previous query
+		 * @param searchTerms Search criteria for text search across specified properties
+		 * @param select Properties to include in the result
+		 * @returns Object containing matched items and pagination token
+		 */
 		query: async ({ filter, conditions, indexName, limit, returnAll = false, paginationData, searchTerms, select = [] }: {
 			conditions: Partial<TType>;
 			filter: Partial<TType>;
@@ -253,6 +292,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			};
 		},
 
+		/**
+		 * Retrieves a single item from the DynamoDB table by its key
+		 * @param key The primary key (and sort key if applicable) of the item
+		 * @param select Properties to include in the result
+		 * @returns The retrieved item or undefined if not found
+		 */
 		getOne: async ({ key, select = [] }: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
@@ -276,6 +321,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		},
 
 		/** Get many by ids is basically a BatchGetCommand */
+		/**
+		 * Retrieves multiple items from the DynamoDB table by their keys
+		 * @param keys Array of primary keys (and sort keys if applicable)
+		 * @param select Properties to include in the results
+		 * @returns Object containing retrieved items and any unprocessed keys
+		 */
 		getMany: async ({ keys, select = [] }: {
 			/** Array of primaryKey and sortKey only */
 			keys: Partial<TType>[];
@@ -324,6 +375,12 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			}
 		},
 
+		/**
+		 * Updates a single item in the DynamoDB table
+		 * @param key The primary key (and sort key if applicable) of the item to update
+		 * @param data The new data to update the item with
+		 * @returns The updated item
+		 */
 		updateOne: async ({ key, data }: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
@@ -373,6 +430,11 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			return response.Attributes as TType;
 		},
 
+		/**
+		 * Deletes a single item from the DynamoDB table
+		 * @param key The primary key (and sort key if applicable) of the item to delete
+		 * @returns true if the deletion was successful
+		 */
 		delete: async ({ key }: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;

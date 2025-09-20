@@ -7,10 +7,17 @@ import { WebSocketApi, WebSocketApiProps, WebSocketRouteOptions, WebSocketStage,
 import { IBaseCdkConstructProps } from '../../../interface';
 
 
+/**
+ * Properties for configuring the WebSocket API Gateway construct
+ * @interface IApiGatewayWebsocketConstructProps
+ */
 interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps<{
+	/** Configuration options for the WebSocket API */
 	readonly webSocketApiOptions: WebSocketApiProps;
+	/** Configuration options for the WebSocket stage */
 	readonly webSocketStageOptions: WebSocketStageProps;
 }>, 'appName' | 'stage' | 'stackName'> {
+	/** Handler functions and options for WebSocket lifecycle events */
 	readonly handlers: {
 		readonly connect: {
 			option: WebSocketRouteOptions;
@@ -31,6 +38,10 @@ interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps
 	}
 }
 
+/**
+ * CDK construct for creating a WebSocket API Gateway
+ * Handles WebSocket connections, messages, and disconnections with Lambda integrations
+ */
 export class BaseApiGatewayWebSocketConstruct extends Construct {
 	readonly socketApi: WebSocketApi;
 

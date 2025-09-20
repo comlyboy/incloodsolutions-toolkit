@@ -7,19 +7,37 @@ import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-c
 import { logDebugger } from '../../../utility';
 import { IBaseCdkConstructProps, IBaseConstruct, } from '../../../interface';
 
+/**
+ * Represents a route configuration for the API Gateway
+ * @interface IRouteOption
+ */
 interface IRouteOption {
+	/** The name/path segment of the route */
 	name: string;
+	/** The HTTP method for this route */
 	method: `${HttpMethod}`;
+	/** Optional nested routes */
 	children?: IRouteOption[];
 }
 
+/**
+ * Properties for configuring the API Gateway construct
+ * @interface IApiGatewayConstructProps
+ */
 interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
+	/** Configuration options for the REST API */
 	readonly gatewayOptions: RestApiProps;
+	/** Array of route configurations */
 	readonly routeOptions: IRouteOption[];
 }>, 'appName' | 'stage' | 'stackName'> {
+	/** Lambda function to handle API requests */
 	readonly handlerFunction: Function;
 }
 
+/**
+ * CDK construct for creating an API Gateway with REST endpoints
+ * Handles CORS configuration and route creation with Lambda integration
+ */
 export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct {
 	readonly api: RestApi;
 	enableDebug = false;
@@ -61,6 +79,14 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 		});
 	}
 
+	/**
+	 * Recursively adds routes to the API Gateway
+	 * @param parent Parent resource to add routes to
+	 * @param routes Array of route configurations
+	 * @param integration Lambda integration for the routes
+	 * @param previousPath Optional path prefix for nested routes
+	 * @private
+	 */
 	private addRoutes(parent: IResource, routes: IRouteOption[], integration: LambdaIntegration, previousPath?: string) {
 		routes.forEach(route => {
 			const currentPath = `${previousPath || ''}/${route.name}`;

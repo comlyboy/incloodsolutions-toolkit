@@ -1,5 +1,11 @@
 import { SendEmailCommand, SESClient, SESClientConfig } from "@aws-sdk/client-ses";
 
+/**
+ * Initialize an Amazon SES (Simple Email Service) client wrapper
+ * @param sourceEmail The email address to send emails from
+ * @param config Optional SES client configuration
+ * @returns Object containing methods for email operations
+ */
 export function initSesClientWrapper({ sourceEmail, config }: {
 	sourceEmail: string;
 	config?: SESClientConfig;
@@ -7,6 +13,13 @@ export function initSesClientWrapper({ sourceEmail, config }: {
 	const sesInstance = new SESClient(config);
 
 	return {
+		/**
+		 * Sends an email using Amazon SES
+		 * @param subject The email subject
+		 * @param message Object containing email content, type (html/text), and charset
+		 * @param receivers Array of recipient email addresses
+		 * @returns Promise resolving to the send email response
+		 */
 		sendEmail: async ({ subject, receivers, message }: {
 			subject: string;
 			message: {

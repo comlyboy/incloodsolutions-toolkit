@@ -4,10 +4,19 @@ import { Distribution, DistributionProps, ViewerProtocolPolicy } from 'aws-cdk-l
 import { IBaseCdkConstructProps } from '../../../interface';
 import { Duration } from 'aws-cdk-lib';
 
+/**
+ * Properties for configuring the CloudFront distribution construct
+ * @interface ICloudfrontConstructProps
+ */
 interface ICloudfrontConstructProps extends Omit<IBaseCdkConstructProps<{
+	/** Configuration options for the CloudFront distribution */
 	readonly cloudfrontOptions: Partial<DistributionProps>;
 }>, 'appName' | 'stage' | 'stackName'> { }
 
+/**
+ * CDK construct for creating a CloudFront distribution
+ * Configures default behaviors, viewer protocol policy, and error responses
+ */
 export class BaseCloudfrontConstruct extends Construct {
 	readonly distribution: Distribution;
 

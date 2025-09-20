@@ -8,14 +8,25 @@ import { CustomException } from '@incloodsolutions/toolkit';
 
 import { IBaseConstruct, IBaseCdkConstructProps } from '../../../interface';
 
+/**
+ * Properties for configuring the API Gateway v2 construct
+ * @interface IApiGatewayV2ConstructProps
+ */
 interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
+	/** Configuration options for the HTTP API */
 	readonly gatewayOptions: HttpApiProps;
+	/** Array of route configurations */
 	readonly routeOptions: Partial<AddRoutesOptions>[];
 }>, 'appName' | 'stage' | 'stackName'> {
+	/** Array of Lambda functions to handle API requests */
 	readonly handlerFunctions: Function[];
 }
 
 
+/**
+ * CDK construct for creating an API Gateway v2 (HTTP API)
+ * Supports multiple Lambda integrations and CORS configuration
+ */
 export class BaseApiGatewayV2Construct extends Construct implements IBaseConstruct {
 	readonly api: HttpApi;
 
