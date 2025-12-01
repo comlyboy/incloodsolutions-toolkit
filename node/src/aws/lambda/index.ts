@@ -1,17 +1,17 @@
 import { Express } from "express";
-import serverlessExpress from '@codegenie/serverless-express';
+import serverlessExpress, { getCurrentInvoke } from '@codegenie/serverless-express';
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Context, EventBridgeEvent, SNSEvent, SQSEvent } from "aws-lambda";
 
 import { ObjectType } from "@incloodsolutions/toolkit";
 
 let serverInstance: APIGatewayProxyHandlerV2;
-const currentInvocation: {
-	context: Context;
-	event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
-} = {
-	event: null,
-	context: null
-};
+// const currentInvocation: {
+// 	context: Context;
+// 	event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+// } = {
+// 	event: null,
+// 	context: null
+// };
 
 type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' | 'AWS_KINESIS_DATA_STREAM' | 'AWS_S3' | 'AWS_STEP_FUNCTIONS' | 'AWS_SELF_MANAGED_KAFKA';
 
@@ -35,7 +35,7 @@ type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' |
  *
  * @returns {Promise<any>} - The result of invoking the serverless Express handler
  */
-export async function initLambdaHandler<TEvent extends APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> = any, TCallback = any>({ app, event, context, callback, options }: {
+export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> = any, TCallback = any>({ app, event, context, callback, options }: {
 	app: Express;
 	event: TEvent;
 	context: Context;
@@ -51,13 +51,10 @@ export async function initLambdaHandler<TEvent extends APIGatewayProxyEventV2 | 
 		} & ObjectType;
 	} & ObjectType;
 }): Promise<any> {
-	// new Logger().addContext(context);
 	context.callbackWaitsForEmptyEventLoop = false;
 	if (!serverInstance) {
 		serverInstance = serverlessExpress({ ...options?.eventOptions, app });
 	}
-	currentInvocation.event = event as any;
-	currentInvocation.context = context;
 	return await serverInstance(event as any, context, callback as any);
 }
 
@@ -71,5 +68,8 @@ export function getCurrentLambdaInvocation(): {
 	context: Context;
 	event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 } {
-	return currentInvocation;
+	return getCurrentInvoke() as {
+		context: Context;
+		event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+	};
 }

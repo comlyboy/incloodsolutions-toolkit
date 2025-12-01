@@ -376,7 +376,10 @@ export function logDebugger(
 }
 
 /** Log request and response using morgan */
-export function reqResLogger(formats: string[] = [], options?: Options<any, any>) {
+export function reqResLogger({ formats = [], options }: {
+	formats?: string[];
+	options?: Options<any, any>;
+} = {}) {
 	let requestId = new Date().toUTCString();
 	formats = formats.map(format => format.startsWith(':') ? format : `:${format}`);
 	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];

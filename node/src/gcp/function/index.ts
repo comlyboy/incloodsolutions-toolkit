@@ -1,11 +1,9 @@
-import { cloudEvent, CloudEventFunction, CloudEventFunctionWithCallback, http } from "@google-cloud/functions-framework";
+import { CloudEventFunction, CloudEventFunctionWithCallback } from "@google-cloud/functions-framework";
 import { CustomException } from "@incloodsolutions/toolkit";
 import { Express } from "express";
 
-export async function initGcpFunctionHandler<TData = any>({ app, cloudEventFn, functionName }: {
+export async function initGcpFunctionHandler<TData = any>({ app, cloudEventFn }: {
 	app?: Express;
-	functionName: string;
-	isLocalTest?: boolean;
 	cloudEventFn?: CloudEventFunction<TData> | CloudEventFunctionWithCallback<TData>;
 }) {
 
@@ -18,10 +16,8 @@ export async function initGcpFunctionHandler<TData = any>({ app, cloudEventFn, f
 	}
 
 	if (cloudEventFn) {
-		return cloudEvent(functionName, cloudEventFn);
+		return cloudEventFn;
 	}
 
-	return http(functionName, async (request, response) => {
-		app(request, response);
-	});
+	return app;
 }

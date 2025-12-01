@@ -1,5 +1,4 @@
 import { set, connect, disconnect, Connection, ConnectOptions } from 'mongoose';
-
 import { logDebugger } from '../../../utility';
 import { CustomException, IBaseEnableDebug } from '@incloodsolutions/toolkit';
 
@@ -9,7 +8,10 @@ let cachedConnection = (global as any).mongoose as {
 };
 
 if (!cachedConnection) {
-	cachedConnection = (global as any).mongoose = { customConnection: null, connectionPromise: null };
+	cachedConnection = (global as any).mongoose = {
+		customConnection: null,
+		connectionPromise: null
+	};
 }
 
 /**
@@ -29,17 +31,13 @@ if (!cachedConnection) {
  */
 export async function initMongooseConnection(params?: {
 	url?: string;
-	options?: { retries?: number; retryDelayMs?: number; } & Partial<IBaseEnableDebug>;
+	options?: {
+		retries?: number;
+		retryDelayMs?: number;
+	} & Partial<IBaseEnableDebug>;
 	connectionOptions?: ConnectOptions;
-
-}): Promise<{
-	connection: Connection;
-	closeConnection: () => Promise<void>;
-}> {
-
-	function delay(ms: number) {
-		return new Promise(res => setTimeout(res, ms));
-	}
+}): Promise<{ connection: Connection; closeConnection: () => Promise<void> }> {
+	const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 	async function closeConnection() {
 		try {
@@ -55,53 +53,68 @@ export async function initMongooseConnection(params?: {
 		}
 	}
 
-	if (!cachedConnection.connectionPromise) {
-		if (params?.options?.enableDebug) {
-			logDebugger('MongooseDbConnection', 'Initializing database connection!');
-		}
+	const maxRetries = params?.options?.retries ?? 5;
+	const retryDelay = params?.options?.retryDelayMs ?? 5000;
+	const enableDebug = params?.options?.enableDebug ?? false;
 
-		const maxRetries = params?.options?.retries || 5;
-		const retryDelay = params?.options?.retryDelayMs || 5000;
-
-		let attempts = 0;
-
-		while (attempts < maxRetries) {
-			try {
-				if (params?.options?.enableDebug) {
-					logDebugger('MongooseDbConnection', 'Connecting to database! Attempts =>', attempts + 1);
-				}
-
-				if (params?.options?.enableDebug) {
-					set('debug', true);
-				}
-
-				cachedConnection.connectionPromise = connect(
-					params?.url || process.env?.MONGO_DATABASE_URL,
-					params?.connectionOptions
-				) as any;
-
-				cachedConnection.customConnection = await cachedConnection.connectionPromise;
-				break; // successful
-			} catch (error) {
-				attempts++;
-				if (attempts >= maxRetries) {
-					cachedConnection.customConnection = null;
-					cachedConnection.connectionPromise = null;
-					throw new CustomException(error);
-				}
-				await delay(retryDelay);
+	// 1️⃣ Reuse cached connection if healthy
+	if (cachedConnection.customConnection) {
+		try {
+			await cachedConnection.customConnection.db.admin().ping();
+			if (cachedConnection.customConnection.readyState === 1) {
+				if (enableDebug) logDebugger('MongooseDbConnection', 'Reusing existing connection!');
+				return {
+					connection: cachedConnection.customConnection,
+					closeConnection,
+				};
 			}
-		}
-	} else {
-		if (params?.options?.enableDebug) {
-			logDebugger('MongooseDbConnection', 'Reusing existing connection!');
+		} catch {
+			if (enableDebug) logDebugger('MongooseDbConnection', 'Detected stale connection, reconnecting...');
+			await closeConnection();
 		}
 	}
 
-	cachedConnection.customConnection = await cachedConnection.connectionPromise;
+	// 2️⃣ Try to establish new connection (with retries)
+	let attempts = 0;
+	while (attempts < maxRetries) {
+		try {
+			if (enableDebug) logDebugger('MongooseDbConnection', `Connecting to database (Attempt ${attempts + 1})`);
+			if (enableDebug) set('debug', true);
+
+			cachedConnection.connectionPromise = connect(
+				params?.url || process.env.MONGO_DATABASE_URL!,
+				{
+					maxPoolSize: 1,
+					minPoolSize: 1,
+					maxIdleTimeMS: 10000,
+					serverSelectionTimeoutMS: 5000,
+					socketTimeoutMS: 30000,
+					bufferCommands: false,
+					autoIndex: false,
+					autoCreate: false,
+					...params?.connectionOptions,
+				},
+			) as unknown as Promise<Connection>;
+
+			cachedConnection.customConnection = await cachedConnection.connectionPromise;
+
+			if (enableDebug) logDebugger('MongooseDbConnection', '✅ MongoDB connected');
+			break;
+		} catch (error) {
+			attempts++;
+			if (attempts >= maxRetries) {
+				cachedConnection.customConnection = null;
+				cachedConnection.connectionPromise = null;
+				throw new CustomException(error);
+			}
+			if (enableDebug)
+				logDebugger('MongooseDbConnection', `Retrying in ${retryDelay / 1000}s (${attempts}/${maxRetries})`);
+			await delay(retryDelay);
+		}
+	}
 
 	return {
 		closeConnection,
-		connection: cachedConnection.customConnection
+		connection: cachedConnection.customConnection!,
 	};
 }
