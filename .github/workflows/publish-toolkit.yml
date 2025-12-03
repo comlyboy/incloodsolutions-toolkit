@@ -1,4 +1,4 @@
-name: Publish core library to npm
+name: Publish toolkit library to npm
 
 on:
   push:
