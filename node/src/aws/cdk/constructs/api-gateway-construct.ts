@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { Function } from 'aws-cdk-lib/aws-lambda';
-import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
@@ -64,7 +64,8 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 					'X-Amz-Security-Token',
 					'X-Amz-User-Agent'
 				]
-			}
+			},
+			minCompressionSize: props?.options?.gatewayOptions?.minCompressionSize || Size.bytes(1),
 		});
 
 		if (props?.options?.routeOptions?.length && props?.handlerFunction) {

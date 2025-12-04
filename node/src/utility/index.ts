@@ -144,10 +144,7 @@ export async function validateHashWithBcrypt(plainData: string, hashedData: stri
 
 
 /** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
-export async function writeFileToLambda({
-	filePath,
-	file
-}: {
+export async function writeFileToLambda({ filePath, file }: {
 	filePath?: string;
 	file: string | NodeJS.ArrayBufferView | File;
 }): Promise<string> {

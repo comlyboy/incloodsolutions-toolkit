@@ -46,7 +46,7 @@ jobs:
           NAME=$(node -p "require('./package.json').name")
           if npm view "$NAME@$VERSION" > /dev/null 2>&1; then
             echo "Version $VERSION already exists on npm. Skipping publish."
-            exit 0
+            exit 1
           fi
 
       - name: Publish to npm
