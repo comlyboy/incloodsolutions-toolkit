@@ -41,7 +41,7 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"@incloodsolutions/toolkit": "^0.0.33",
+		"@incloodsolutions/toolkit": "^0.0.34",
 		"clsx": "^2.1.1",
 		"react-use": "^17.6.0",
 		"tailwind-merge": "^3.4.0",
