@@ -10,10 +10,10 @@ export default defineConfig({
 	treeshake: true,
 	splitting: false,
 	target: "es2024",
+	skipNodeModulesBundle: true,
 	esbuildOptions: (options) => {
 		// options.sourcemap = "inline";
 		options.keepNames = true;
 	},
-	skipNodeModulesBundle: true,
 	external: ["tslib"],
 });

@@ -2,7 +2,14 @@
 	"name": "@incloodsolutions/react-toolkit",
 	"version": "0.0.3",
 	"description": "A collection of reusable React utilities, hooks, and components designed to accelerate development and improve code consistency across React applications.",
-	"main": "dist/index.js",
+	"main": "./dist/index.mjs",
+	"module": "./dist/index.mjs",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs"
+		}
+	},
 	"author": "Inclood Solutions",
 	"license": "MIT",
 	"files": [
@@ -36,27 +43,30 @@
 	"dependencies": {
 		"@incloodsolutions/toolkit": "^0.0.33",
 		"clsx": "^2.1.1",
-		"react-router-dom": "^7.10.1",
 		"react-use": "^17.6.0",
 		"tailwind-merge": "^3.4.0",
 		"usehooks-ts": "^3.1.1"
 	},
 	"devDependencies": {
-		"@types/react": "^19.2.7",
+		"@types/react": "^19.2.8",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react-swc": "^4.2.2",
 		"glob": "^13.0.0",
-		"prettier": "^3.7.4",
+		"prettier": "^3.8.0",
+		"react": ">=18.0.0",
+		"react-dom": ">=18.0.0",
+		"react-router-dom": "^7.12.0",
 		"rimraf": "^6.1.2",
 		"rollup-plugin-peer-deps-external": "^2.2.4",
 		"tsup": "^8.5.1",
 		"typescript": "^5.9.3",
-		"vite": "^7.2.7",
+		"vite": "^7.3.1",
 		"vite-plugin-dts": "^4.5.4",
-		"vite-tsconfig-paths": "^6.0.1"
+		"vite-tsconfig-paths": "^6.0.4"
 	},
 	"peerDependencies": {
 		"react": ">=18.0.0",
-		"react-dom": ">=18.0.0"
+		"react-dom": ">=18.0.0",
+		"react-router-dom": ">=7.10.1"
 	}
 }

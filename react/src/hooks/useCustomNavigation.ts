@@ -33,12 +33,18 @@ function stripFunctions<T extends Record<string, any>>(obj: T) {
 	) as T;
 }
 
+function debugLog(enableDebug: boolean | undefined, ...args: any[]) {
+	if (!enableDebug) return;
+	console.log('[useCustomNavigation]', ...args);
+}
+
 /* -------------------------------------------------- */
 /* hook                                               */
 /* -------------------------------------------------- */
 
 export function useCustomNavigation(
-	onRouteChange?: (info: ICurrentNavigationMetadata) => void
+	onRouteChange?: (info: ICurrentNavigationMetadata) => void,
+	enableDebug?: boolean
 ): ICurrentNavigationMetadata {
 	const navigateFn = useNavigate();
 	const location = useLocation();
@@ -52,44 +58,53 @@ export function useCustomNavigation(
 	const buildQueryString = useCallback((params: Record<string, any>) => {
 		const query = new URLSearchParams();
 
-		Object.entries(params).forEach(([k, v]) => {
-			if (v == null) return;
-			Array.isArray(v)
-				? v.forEach(val => query.append(k, String(val)))
-				: query.set(k, String(v));
+		Object.entries(params).forEach(([key, value]) => {
+			if (!value) return;
+			Array.isArray(value)
+				? value.forEach(val => query.append(key, String(val)))
+				: query.set(key, String(value));
 		});
 
 		return query.toString() ? `?${query}` : '';
 	}, []);
 
-	const query = useMemo(
-		() => Object.fromEntries(new URLSearchParams(location.search).entries()),
-		[location.search]
-	);
+	const query = useMemo(() => {
+		const q = Object.fromEntries(new URLSearchParams(location.search).entries());
+		debugLog(enableDebug, 'Parsed query:', q);
+		return q;
+	}, [location.search, enableDebug]);
 
 	const navigate = useCallback(
-		(url: string, options?: NavigateOptions & { queries?: Record<string, any> }) => {
+		(url: string, options?: NavigateOptions & { queries?: Record<string, any>; }) => {
 			const { queries = {}, ...rest } = options || {};
-			navigateFn(`${url}${buildQueryString(queries)}`, rest);
+			const finalUrl = `${url}${buildQueryString(queries)}`;
+
+			debugLog(enableDebug, 'navigate() called →', finalUrl);
+			navigateFn(finalUrl, rest);
 		},
-		[navigateFn, buildQueryString]
+		[navigateFn, buildQueryString, enableDebug]
 	);
 
 	/* ---------- metadata ---------- */
 
-	const metadata = useMemo<ICurrentNavigationMetadata>(() => ({
-		params,
-		navigate,               // function (ignored later)
-		data: loader,
-		matchedData,
-		state: location.state,
-		query,
-		path: location.pathname,
-		url: `${location.pathname}${location.search}`,
-		fullUrl: `${window.location.origin}${location.pathname}${location.search}${location.hash || ''}`,
-		hash: location.hash || undefined,
-		navigationType,
-	}), [
+	const metadata = useMemo<ICurrentNavigationMetadata>(() => {
+		const meta = {
+			params,
+			navigate,
+			data: loader,
+			matchedData,
+			state: location.state,
+			query,
+			path: location.pathname,
+			url: `${location.pathname}${location.search}${location.hash || ''}`,
+			fullUrl: `${window.location.origin}${location.pathname}${location.search}${location.hash || ''}`,
+			hash: location.hash || undefined,
+			navigationType,
+		};
+
+		debugLog(enableDebug, 'Metadata created:', meta);
+		return meta;
+	}, [
 		params,
 		navigate,
 		loader,
@@ -100,28 +115,35 @@ export function useCustomNavigation(
 		location.hash,
 		navigationType,
 		query,
+		enableDebug
 	]);
 
 	/* ---------- route-change detection ---------- */
 
-	const stableMetadata = useMemo(
-		() => stripFunctions(metadata),
-		[metadata]
-	);
+	const stableMetadata = useMemo(() => {
+		const stripped = stripFunctions(metadata);
+		debugLog(enableDebug, 'Stable metadata (functions stripped):', stripped);
+		return stripped;
+	}, [metadata, enableDebug]);
 
-	const metadataKey = useMemo(
-		() => JSON.stringify(stableMetadata),
-		[stableMetadata]
-	);
+	const metadataKey = useMemo(() => {
+		const key = JSON.stringify(stableMetadata);
+		debugLog(enableDebug, 'Metadata key:', key);
+		return key;
+	}, [stableMetadata, enableDebug]);
 
 	const lastKeyRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (lastKeyRef.current === metadataKey) return;
+		if (lastKeyRef.current === metadataKey) {
+			debugLog(enableDebug, 'Effect skipped (no route change)');
+			return;
+		}
 
+		debugLog(enableDebug, 'Route change detected');
 		lastKeyRef.current = metadataKey;
 		onRouteChange?.(metadata);
-	}, [metadataKey, onRouteChange, metadata]);
+	}, [metadataKey, onRouteChange, metadata, enableDebug]);
 
 	return metadata;
 }

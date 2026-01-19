@@ -469,3 +469,95 @@ export function normalizeMongooseData<TData extends ObjectType>(data: TData): TD
 
 	return normalised as TData;
 }
+
+
+/**
+ * Normalizes Mongoose documents and plain JavaScript data structures
+ * into API-safe, frontend-friendly objects.
+ *
+ * @remarks
+ * This utility is designed for use at application boundaries (e.g. REST or
+ * GraphQL responses). It performs a deep traversal of objects and arrays,
+ * converting MongoDB ObjectIds into strings and exposing a stable `id` field
+ * derived from `_id`.
+ *
+ * The function is intentionally non-mutating and preserves the original
+ * data shape. Mongoose documents are converted using `toObject()` before
+ * normalization.
+ *
+ * @template T
+ * The input data type. The returned value preserves this shape.
+ *
+ * @param data
+ * A Mongoose document, plain object, array, or primitive value.
+ *
+ * @returns
+ * A deeply normalized version of the input where:
+ * - MongoDB ObjectIds are converted to strings
+ * - Nested objects and arrays are fully normalized
+ * - An `id` field is added when `_id` is present
+ *
+ * @throws
+ * This function may throw a `TypeError` if a `Symbol` value is encountered
+ * during string coercion (e.g. when converting ObjectIds).
+ *
+ * @example
+ * ```ts
+ * const user = await UserModel.findById(id);
+ *
+ * const normalized = normalizeMongooseData(user);
+ *
+ * // Result:
+ * // {
+ * //   _id: "64fa123",
+ * //   id: "64fa123",
+ * //   name: "John Doe",
+ * //   roles: ["admin", "editor"]
+ * // }
+ * ```
+ *
+ * @example
+ * ```ts
+ * normalizeMongooseData([
+ *   { _id: new ObjectId("1") },
+ *   { _id: new ObjectId("2") }
+ * ]);
+ *
+ * // Result:
+ * // [
+ * //   { _id: "1", id: "1" },
+ * //   { _id: "2", id: "2" }
+ * // ]
+ * ```
+ */
+export function snormalizeMongooseData<T>(data: T): T {
+	if (data === null || data === undefined) return data;
+
+	if (Array.isArray(data)) {
+		return data.map(item => normalizeMongooseData(item)) as T;
+	}
+
+	if (typeof data !== 'object') {
+		return data;
+	}
+
+	const plain = typeof (data as any).toObject === 'function'
+		? (data as any).toObject()
+		: data;
+
+	const normalized: any = {};
+
+	for (const [key, value] of Object.entries(plain)) {
+		if (isValidMongoId(value)) {
+			normalized[key] = String(value);
+		} else {
+			normalized[key] = normalizeMongooseData(value);
+		}
+	}
+
+	if (normalized._id && !normalized.id) {
+		normalized.id = String(normalized._id);
+	}
+
+	return normalized as T;
+}
