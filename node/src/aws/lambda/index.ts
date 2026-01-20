@@ -39,7 +39,7 @@ export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEv
 	app: Express;
 	event: TEvent;
 	context: Context;
-	callback: TCallback;
+	callback?: TCallback;
 	/** ConfigureParams from serverless-express */
 	options?: {
 		loggerOptions?: {
