@@ -31,7 +31,7 @@ export interface IBaseRoles<TType = string> {
 }
 
 /** Base interface for timestamped entities */
-export interface IBaseTimestamp<TType = string> {
+export interface IBaseTimestamp<TType extends number | string = string> {
 	/** Timestamp of the entity */
 	timestamp: TType;
 }
@@ -73,7 +73,7 @@ export interface IBaseReferenceId<TType = string> {
 }
 
 /** Base interface for objects associated with a business entity */
-export interface IBaseBusiness<TBusiness extends ObjectType = any, TType = string> {
+export interface IBaseBusiness<TBusiness extends ObjectType = any, TType extends number | string = string> {
 	/** ID of the business */
 	businessId: TType;
 	/** Optional full business object */
@@ -81,7 +81,7 @@ export interface IBaseBusiness<TBusiness extends ObjectType = any, TType = strin
 }
 
 /** Base interface for objects associated with a store entity */
-export interface IBaseStore<TStore extends ObjectType = any, TType = string> {
+export interface IBaseStore<TStore extends ObjectType = any, TType extends number | string = string> {
 	/** ID of the store */
 	storeId: TType;
 	/** Optional full store object */
@@ -89,7 +89,7 @@ export interface IBaseStore<TStore extends ObjectType = any, TType = string> {
 }
 
 /** Base interface for objects associated with a customer entity */
-export interface IBaseCustomer<TCustomer extends ObjectType = any, TType = string> {
+export interface IBaseCustomer<TCustomer extends ObjectType = any, TType extends number | string = string> {
 	/** ID of the customer */
 	customerId: TType;
 	/** Optional full customer object */
@@ -97,7 +97,7 @@ export interface IBaseCustomer<TCustomer extends ObjectType = any, TType = strin
 }
 
 /** Base interface for soft-deletable entities */
-export interface IBaseDelete<TDeleter extends ObjectType = any, TType = string> {
+export interface IBaseDelete<TDeleter extends ObjectType = any, TType extends number | string = string> {
 	/** Indicates whether the item is deleted */
 	isDeleted: boolean;
 	/** Timestamp of deletion */
@@ -109,7 +109,7 @@ export interface IBaseDelete<TDeleter extends ObjectType = any, TType = string> 
 }
 
 /** Base interface for tracking creator metadata */
-export interface IBaseCreator<TCreator extends ObjectType<any> = any, TType = string> {
+export interface IBaseCreator<TCreator extends ObjectType<any> = any, TType extends number | string = string> {
 	/** Timestamp of creation */
 	createdAtDate: string;
 	/** ID of the user who created the item */
@@ -119,7 +119,7 @@ export interface IBaseCreator<TCreator extends ObjectType<any> = any, TType = st
 }
 
 /** Base interface for tracking last modified metadata */
-export interface IBaseEditor<TModifier extends ObjectType = any, TType = string> {
+export interface IBaseEditor<TModifier extends ObjectType = any, TType extends number | string = string> {
 	/** Timestamp of the last modification */
 	lastModifiedAtDate?: string;
 	/** ID of the user who last modified the item */
@@ -164,11 +164,11 @@ export type TimezoneType = TimezoneName;
 /** Alias for ISO country codes */
 export type CountryCodeType = CountryCode;
 
-/** Extracts value types from a given entity object */
-export type ExtractValueTypes<TEntity> = TEntity[keyof TEntity];
-
 /** Literal string type of AppEnvironmentEnum values */
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
+
+/** Extracts value types from a given entity object */
+export type ExtractValueTypes<TEntity> = TEntity[keyof TEntity];
 
 /** Generic key-value object type */
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;
