@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish-library:
-    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-library.yml@main
+    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-lambda-aws-cdk.yml@main
     with:
       working_directory: 'node'
     secrets: inherit
