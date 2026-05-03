@@ -7,12 +7,12 @@ on:
 
 jobs:
   publish-library:
-    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+    uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-library.yml@main
     with:
       working_directory: 'node'
     secrets: inherit
 
-
+# comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-react-app-aws-s3.yml@main
 # jobs:
 #   publish-library:
 #     runs-on: ubuntu-latest
