@@ -12,6 +12,7 @@
 		"sourceMap": true,
 		"outDir": "./dist",
 		"baseUrl": "./",
+		"ignoreDeprecations": "6.0",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
