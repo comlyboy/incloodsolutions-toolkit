@@ -182,10 +182,11 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
  */
 export async function generateQrBarcode<TData extends ObjectType | string>(qrData: TData, options?: {
 	type?: 'qrcode' | 'barcode';
+	renderOptions: RenderOptions;
 }): Promise<string> {
 
 	const renderOptions: RenderOptions = {
-		...options || {},
+		...options?.renderOptions || {},
 		bcid: options?.type === 'barcode' ? 'code128' : "qrcode",
 		text: typeof qrData === 'object' ? JSON.stringify(qrData) : qrData,
 		paddingwidth: options?.type === 'barcode' ? 3 : 5,
