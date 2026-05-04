@@ -30,7 +30,7 @@ export class BaseLambdaConstruct extends Construct {
 			functionName: `${props?.options?.lambdaOptions?.functionName || props?.stackName}-handler`,
 			description: props?.options?.lambdaOptions?.description || 'A lambda function',
 			handler: props?.options?.lambdaOptions?.handler || 'lambda.handler',
-			runtime: props?.options?.lambdaOptions?.runtime || Runtime.NODEJS_22_X,
+			runtime: props?.options?.lambdaOptions?.runtime || Runtime.NODEJS_24_X,
 			timeout: props?.options?.lambdaOptions?.timeout || Duration.seconds(props.stage === AppEnvironmentEnum.PRODUCTION ? 30 : 15),
 			memorySize: props?.options?.lambdaOptions?.memorySize || 1024,
 			architecture: props?.options?.lambdaOptions?.architecture || Architecture.ARM_64,
