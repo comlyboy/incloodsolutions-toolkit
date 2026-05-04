@@ -12,7 +12,7 @@ import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'cl
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 
 import { getCurrentLambdaInvocation } from '../aws';
-import { CustomException, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '@incloodsolutions/toolkit';
+import { CustomException, IBaseEnableDebug, ObjectType } from '@incloodsolutions/toolkit';
 import { IBaseApiResult } from 'src/interface';
 
 

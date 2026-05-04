@@ -1,4 +1,4 @@
-import { AppEnvironmentType, IBaseEnableDebug, IBaseTimestamp, ObjectType } from "@incloodsolutions/toolkit";
+import { AppEnvironmentType, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
 import { Document, ObjectId } from "mongoose";
 
 /** Base interface that enables debugging features */
@@ -40,25 +40,29 @@ export interface IBaseEnvironmentVariable {
 }
 
 
+/**
+ * Standard API response structure.
+ *
+ * @template TData - The type of the response payload.
+ */
 export interface IBaseApiResult<TData = any> extends ObjectType {
+	/**
+	 * The main response data returned from the API.
+	 * Typically contains the requested resource or result.
+	 */
 	data?: TData;
+
+	/**
+	 * A human-readable message describing the outcome of the request.
+	 * Usually used for success or informational responses.
+	 */
 	message?: string;
+
+	/**
+	 * Error information returned when the request fails.
+	 * Combines a base error structure with additional dynamic properties.
+	 */
 	error?: IBaseErrorResponse & ObjectType;
-}
-
-
-/** Base structure for HTTP error responses */
-export interface IBaseErrorResponse extends IBaseTimestamp {
-	/** HTTP path where the error occurred */
-	path: string;
-	/** HTTP method used (GET, POST, PATCH, PUT, DELETE, etc.) */
-	method: string;
-	/** Error message */
-	message: string;
-	/** Optional success flag */
-	success?: boolean;
-	/** HTTP status code */
-	statusCode: number;
 }
 
 /** Base interface for CDK construct configuration */
