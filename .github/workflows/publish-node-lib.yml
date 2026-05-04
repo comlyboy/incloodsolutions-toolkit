@@ -7,11 +7,10 @@ on:
 
 # jobs:
 #   publish-library:
-#     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
+#     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-library.yml@main
 #     with:
 #       working_directory: 'node'
 #     secrets: inherit
-
 
 jobs:
   publish-library:
@@ -24,10 +23,10 @@ jobs:
       - name: Checkout code (make repo branch code available in this pipeline)
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v22
+      - name: Setup Node.js v24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24.x'
 
       - name: Set npm Authentication
         run: |
