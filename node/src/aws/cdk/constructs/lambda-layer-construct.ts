@@ -30,7 +30,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 				code: props?.options?.layerOptions?.code || Code.fromAsset('./dist-layer'),
 				description: props?.options?.layerOptions?.description || 'Lambda Layer written in NodeJS, NestJS, NodeJS-express, serverless-express',
 				compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
-				compatibleRuntimes: [Runtime.NODEJS_20_X, Runtime.NODEJS_22_X]
+				compatibleRuntimes: [Runtime.NODEJS_22_X, Runtime.NODEJS_24_X, Runtime.NODEJS_LATEST]
 			} as LayerVersionProps);
 		}
 
