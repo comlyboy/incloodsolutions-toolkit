@@ -13,6 +13,7 @@ import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-
 
 import { getCurrentLambdaInvocation } from '../aws';
 import { CustomException, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from '@incloodsolutions/toolkit';
+import { IBaseApiResult } from 'src/interface';
 
 
 export function isIsoDate(date: string): boolean {
@@ -202,23 +203,12 @@ export function isLambdaEnvironment() {
 }
 
 /** Map and return API operation results */
-export function apiResult<TBody extends ObjectType | ObjectType[]>({ data, message, error }: {
-	message?: string;
-	data?: TBody;
-	error?: IBaseErrorResponse & ObjectType;
-}) {
-	return {
-		message: message || null,
-		data: data || null,
-		error: error || null
-	} as const;
+export function apiResult<TBody extends ObjectType | ObjectType[]>(apiResponse: IBaseApiResult<TBody>) {
+	return { ...apiResponse } as Readonly<IBaseApiResult>;
 }
 
 /** Return API call response */
-export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: {
-	message?: string; data?: TBody;
-	error?: IBaseErrorResponse & ObjectType;
-}, statusCode = 200) {
+export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: IBaseApiResult<TBody>, statusCode = 200) {
 	return res.status(statusCode).json({
 		success: statusCode < 400,
 		statusCode,

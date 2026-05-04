@@ -40,6 +40,13 @@ export interface IBaseEnvironmentVariable {
 }
 
 
+export interface IBaseApiResult<TData = any> extends ObjectType {
+	data?: TData;
+	message?: string;
+	error?: IBaseErrorResponse & ObjectType;
+}
+
+
 /** Base structure for HTTP error responses */
 export interface IBaseErrorResponse extends IBaseTimestamp {
 	/** HTTP path where the error occurred */

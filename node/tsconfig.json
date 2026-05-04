@@ -10,7 +10,8 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"sourceMap": true,
-		"outDir": "./dist",
+		"rootDir": "./src",
+		"ignoreDeprecations": "6.0",
 		"baseUrl": "./",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
@@ -27,7 +28,9 @@
 		"noFallthroughCasesInSwitch": false,
 		"useUnknownInCatchVariables": false
 	},
-	"include": ["./src"],
+	"include": [
+		"./src"
+	],
 	"exclude": [
 		"node_modules",
 		"./dist"
