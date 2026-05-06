@@ -9,7 +9,7 @@ export default defineConfig({
 	minify: false,
 	treeshake: true,
 	splitting: false,
-	target: "es2024",
+	target: "es2020",
 	esbuildOptions: (options) => {
 		// options.sourcemap = "inline";
 		options.keepNames = true;

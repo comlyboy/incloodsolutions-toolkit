@@ -1,19 +1,44 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
-	entry: ["src/index.ts"],
-	format: ["esm", "cjs"],
-	dts: true,
-	sourcemap: true,
-	clean: true,
-	minify: false,
-	treeshake: true,
-	splitting: false,
-	target: "es2024",
-	skipNodeModulesBundle: true,
-	esbuildOptions: (options) => {
-		// options.sourcemap = "inline";
-		options.keepNames = true;
+export default defineConfig([
+	// 🔹 CJS build (Lambda + Node safe)
+	{
+		entry: ["src/index.ts"],
+		format: ["cjs"],
+		target: "node18",
+		dts: true,
+		sourcemap: true,
+		clean: true,
+
+		bundle: true,
+		splitting: false,
+		treeshake: true,
+		minify: false,
+
+		// noExternal: ["uuid"],
+		external: ["tslib"],
+
+		esbuildOptions(options) {
+			options.keepNames = true;
+		},
 	},
-	external: ["tslib"],
-});
+
+	// 🔹 ESM build (modern environments)
+	{
+		entry: ["src/index.ts"],
+		format: ["esm"],
+		target: "es2022",
+		dts: true,
+
+		bundle: true,
+		splitting: false,
+		treeshake: true,
+		minify: false,
+
+		noExternal: ["uuid"],
+		external: ["tslib"],
+		esbuildOptions(options) {
+			options.keepNames = true;
+		},
+	},
+]);

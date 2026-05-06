@@ -1,1 +1,1 @@
-export type ViteModeType = 'development' | 'staging' | 'production';
+export type ViteModeType = 'development' | 'qa' | 'staging' | 'production';

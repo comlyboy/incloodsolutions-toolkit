@@ -6,100 +6,189 @@ import { logDebugger } from '../../../utility';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../../interface';
 
 /**
- * Properties for configuring the BaseDynamoDBConstruct.
+ * Props for BaseDynamoDBConstruct
+ *
+ * Provides configuration for:
+ * - Creating a new DynamoDB table
+ * - Importing an existing table (by name, ARN, or attributes)
+ * - Defining Global Secondary Indexes (GSI) and Local Secondary Indexes (LSI)
  */
 interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
+	/** Configuration for creating a new table */
 	readonly tableOptions?: TableProps;
+
+	/** Import an existing table by ARN */
 	readonly fromExistingTableArn?: string;
+
+	/** Import an existing table by name */
 	readonly fromExistingTableName?: string;
+
+	/** Import an existing table using attributes */
 	readonly fromExistingTableAttributes?: TableAttributes;
-	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
+
+	/** Global Secondary Index definitions */
 	readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
+
+	/** Local Secondary Index definitions */
+	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
 }>, 'appName' | 'stackName'> { }
 
 /**
- * A reusable CDK construct that manages the creation or import of a DynamoDB table,
- * including optional GSI and LSI indexes.
+ * CDK construct for DynamoDB table management
+ *
+ * Responsibilities:
+ * - Creates a new DynamoDB table or imports an existing one
+ * - Applies default billing mode and deletion protection
+ * - Attaches optional GSIs and LSIs
+ * - Exposes table ARN as a CloudFormation output
  */
 export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
-	/** The newly created DynamoDB table (if applicable). */
+	/** Newly created DynamoDB table (null if importing existing table) */
 	readonly table: Table;
 
-	/** The existing table imported by ARN or name (if applicable). */
+	/** Imported DynamoDB table reference (null if creating new table) */
 	readonly existingTable: ITable;
 
-	/** Enable debug logging. */
+	/** Enables debug logging */
 	enableDebug = false;
 
 	/**
-	 * Creates a new instance of the BaseDynamoDBConstruct.
-	 *
-	 * @param scope - The scope in which this construct is defined.
-	 * @param id - The ID of the construct.
-	 * @param props - The configuration properties.
+	 * @param scope Parent construct
+	 * @param id Unique construct identifier
+	 * @param props Configuration for table creation or import
 	 */
 	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
 		super(scope, id);
 
 		this.enableDebug = props?.enableDebug;
 
-
-
-		// Import table from name
+		/**
+		 * Import table by name
+		 */
 		if (props.options?.fromExistingTableName) {
 			this.table = null;
-			this.existingTable = Table.fromTableName(this, `${id}-RefName`, props.options.fromExistingTableName);
+
+			this.existingTable = Table.fromTableName(
+				this,
+				`${id}-RefName`,
+				props.options.fromExistingTableName
+			);
+
 			if (this.enableDebug) {
-				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`);
+				logDebugger(
+					BaseDynamoDBConstruct.name,
+					`Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`
+				);
 			}
+
+			/**
+			 * Import table by ARN
+			 */
 		} else if (props.options?.fromExistingTableArn) {
 			this.table = null;
-			this.existingTable = Table.fromTableArn(this, `${id}-RefArn`, props.options.fromExistingTableArn);
+
+			this.existingTable = Table.fromTableArn(
+				this,
+				`${id}-RefArn`,
+				props.options.fromExistingTableArn
+			);
+
 			if (this.enableDebug) {
-				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing using ARN`);
+				logDebugger(
+					BaseDynamoDBConstruct.name,
+					`Created Dynamo-DB table from existing using ARN`
+				);
 			}
+
+			/**
+			 * Import table using attributes
+			 */
 		} else if (props.options?.fromExistingTableAttributes) {
 			this.table = null;
-			this.existingTable = Table.fromTableAttributes(this, `${id}-RefAttributes`, props.options.fromExistingTableAttributes);
+
+			this.existingTable = Table.fromTableAttributes(
+				this,
+				`${id}-RefAttributes`,
+				props.options.fromExistingTableAttributes
+			);
+
 			if (this.enableDebug) {
-				logDebugger(BaseDynamoDBConstruct.name, `Created Dynamo-DB table from existing attributes`);
+				logDebugger(
+					BaseDynamoDBConstruct.name,
+					`Created Dynamo-DB table from existing attributes`
+				);
 			}
+
+			/**
+			 * Create new table
+			 */
 		} else {
 			this.existingTable = null;
 
-			// Create new table
 			this.table = new Table(this, id, {
 				...props.options?.tableOptions,
-				billingMode: props.options?.tableOptions?.billingMode || BillingMode.PAY_PER_REQUEST,
+
+				/**
+				 * Billing mode defaults to PAY_PER_REQUEST if not provided
+				 */
+				billingMode:
+					props.options?.tableOptions?.billingMode
+					|| BillingMode.PAY_PER_REQUEST,
+
+				/**
+				 * Deletion protection:
+				 * - Uses explicit value if provided
+				 * - Defaults to true in production stage
+				 */
 				deletionProtection:
-					(props.options?.tableOptions?.deletionProtection === true || props.options?.tableOptions?.deletionProtection === false)
+					(props.options?.tableOptions?.deletionProtection === true ||
+						props.options?.tableOptions?.deletionProtection === false)
 						? props.options.tableOptions.deletionProtection
 						: props.stage === 'production',
 			});
 
-			// Add Global Secondary Indexes
+			/**
+			 * Attach Global Secondary Indexes (GSI)
+			 */
 			if (props.options?.globalSecondaryIndexes?.length) {
 				props.options.globalSecondaryIndexes.forEach(globalIndex => {
 					this.table.addGlobalSecondaryIndex(globalIndex);
+
 					if (this.enableDebug) {
-						logDebugger(BaseDynamoDBConstruct.name, `Added GSI: ${globalIndex.indexName}`);
+						logDebugger(
+							BaseDynamoDBConstruct.name,
+							`Added GSI: ${globalIndex.indexName}`
+						);
 					}
 				});
 			}
 
-			// Add Local Secondary Indexes
+			/**
+			 * Attach Local Secondary Indexes (LSI)
+			 */
 			if (props.options?.localSecondaryIndexes?.length) {
 				props.options.localSecondaryIndexes.forEach(localIndex => {
 					this.table.addLocalSecondaryIndex(localIndex);
+
 					if (this.enableDebug) {
-						logDebugger(BaseDynamoDBConstruct.name, `Added LSI: ${localIndex.indexName}`);
+						logDebugger(
+							BaseDynamoDBConstruct.name,
+							`Added LSI: ${localIndex.indexName}`
+						);
 					}
 				});
 			}
 		}
 
+		/**
+		 * CloudFormation output exposing the table ARN
+		 * Resolves to either created or imported table
+		 */
 		new CfnOutput(this, 'DynamoDbArn', {
-			value: props.options?.fromExistingTableName || props.options?.fromExistingTableArn ? this.existingTable.tableArn : this.table.tableArn
+			value:
+				(props.options?.fromExistingTableName || props.options?.fromExistingTableArn)
+					? this.existingTable.tableArn
+					: this.table.tableArn
 		});
 	}
 }
