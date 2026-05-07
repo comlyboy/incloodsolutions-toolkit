@@ -27,7 +27,7 @@ export default defineConfig([
 	{
 		entry: ["src/index.ts"],
 		format: ["esm"],
-		target: "es2022",
+		target: "es2020",
 		dts: true,
 
 		bundle: true,
