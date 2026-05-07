@@ -15,7 +15,7 @@ export default defineConfig([
 		treeshake: true,
 		minify: false,
 
-		// noExternal: ["uuid"],
+		noExternal: ["uuid"],
 		external: ["tslib"],
 
 		esbuildOptions(options) {
