@@ -59,12 +59,6 @@ jobs:
 
           echo "PUBLISHED_VERSION=$TAG" >> $GITHUB_ENV
 
-      - name: Log versions
-        run: |
-          echo "Package name: $PACKAGE_NAME"
-          echo "Local version: $LOCAL_VERSION"
-          echo "Published version: $PUBLISHED_VERSION"
-
       - name: Prevent duplicate publish
         run: |
           if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
@@ -72,7 +66,7 @@ jobs:
             exit 1
           else
             echo "✅ New version detected. Proceeding to publish."
-            echo "Local: $LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
+            echo "Local: $PACKAGE_NAME@$LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
           fi
 
       - name: Build
