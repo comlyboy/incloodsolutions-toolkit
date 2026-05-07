@@ -19,6 +19,11 @@ jobs:
       run:
         working-directory: 'toolkit'
 
+    env:
+      PACKAGE_NAME: ""
+      LOCAL_VERSION: ""
+      PUBLISHED_VERSION: ""
+
     steps:
       - name: Checkout code (make repo branch code available in this pipeline)
         uses: actions/checkout@v4
@@ -37,17 +42,28 @@ jobs:
           echo "** Installing dependencies... **"
           npm ci --no-audit --no-fund --quiet
 
-      - name: Build
-        run: npm run build
-
-      - name: Check if version already published
+      - name: Resolve package info
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          NAME=$(node -p "require('./package.json').name")
-          if npm view "$NAME@$VERSION" > /dev/null 2>&1; then
-            echo "Version $VERSION already exists on npm. Skipping publish."
+          echo "PACKAGE_NAME=$(node -p "require('./package.json').name")" >> $GITHUB_ENV
+          echo "LOCAL_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+          PUBLISHED=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "not-published")
+          echo "PUBLISHED_VERSION=$PUBLISHED" >> $GITHUB_ENV
+
+      - name: Log versions
+        run: |
+          echo "Package name: $PACKAGE_NAME"
+          echo "Local version: $LOCAL_VERSION"
+          echo "Published version: $PUBLISHED_VERSION"
+
+      - name: Prevent duplicate publish
+        run: |
+          if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
+            echo "❌ Version already exists on npm"
             exit 1
           fi
+
+      - name: Build
+        run: npm run build
 
       - name: Publish to npm
         run: npm publish --access=public
