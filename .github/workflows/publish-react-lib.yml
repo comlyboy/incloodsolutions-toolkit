@@ -6,14 +6,11 @@ on:
       - publish-react
 
 # jobs:
-
 #   publish:
 #     uses: comlyboy/ci-cd-workflow-templates/.github/workflows/publish-npm-package.yml@main
-#     # uses: comlyboy/ci-cd-workflow-templates/.github/workflows/deploy-lambda-aws-cdk.yml@main
 #     with:
 #       working_directory: 'react'
 #     secrets: inherit
-
 
 jobs:
   publish-library:
@@ -21,6 +18,11 @@ jobs:
     defaults:
       run:
         working-directory: 'react'
+
+    env:
+      PACKAGE_NAME: ""
+      LOCAL_VERSION: ""
+      PUBLISHED_VERSION: ""
 
     steps:
       - name: Checkout code (make repo branch code available in this pipeline)
@@ -30,27 +32,45 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
-
-      - name: Set npm Authentication
-        run: |
-          echo "*** Authenticating with npm ***"
-          echo "//registry.npmjs.org/:_authToken=${{ secrets._NPM_TOKEN }}" > ~/.npmrc
-          echo "*** Authenticate with npm successful!!! ***"
+          registry-url: https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets._NPM_TOKEN }}
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          pwd
+          echo "** Installing dependencies... **"
+          npm ci --no-audit --no-fund --quiet
+
+      - name: Resolve package info
+        run: |
+          PACKAGE_NAME=$(node -p 'require("./package.json").name')
+          LOCAL_VERSION=$(node -p 'require("./package.json").version')
+
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "LOCAL_VERSION=$LOCAL_VERSION" >> $GITHUB_ENV
+
+          PUBLISHED=$(npm view "$PACKAGE_NAME@latest" name version --json 2>/dev/null || echo '{}')
+
+          TAG=$(echo "$PUBLISHED" | node -p '
+            const d = JSON.parse(require("fs").readFileSync(0, "utf-8") || "{}");
+            (d.name || process.env.PACKAGE_NAME) + "@" + (d.version || "not-published")
+          ')
+
+          echo "PUBLISHED_VERSION=$TAG" >> $GITHUB_ENV
+
+      - name: Prevent duplicate publish
+        run: |
+          if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
+            echo "❌ Version already exists on npm ($LOCAL_VERSION)"
+            exit 1
+          else
+            echo "✅ New version detected. Proceeding to publish."
+            echo "Local: $PACKAGE_NAME@$LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
+          fi
 
       - name: Build
         run: npm run build
-
-      - name: Check if version already published
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          NAME=$(node -p "require('./package.json').name")
-          if npm view "$NAME@$VERSION" > /dev/null 2>&1; then
-            echo "Version $VERSION already exists on npm. Skipping publish."
-            exit 1
-          fi
 
       - name: Publish to npm
         run: npm publish --access=public
