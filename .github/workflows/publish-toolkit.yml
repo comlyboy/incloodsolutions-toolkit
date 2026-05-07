@@ -46,7 +46,12 @@ jobs:
         run: |
           echo "PACKAGE_NAME=$(node -p "require('./package.json').name")" >> $GITHUB_ENV
           echo "LOCAL_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-          PUBLISHED=$(npm view "$PACKAGE_NAME" version 2>/dev/null || echo "not-published")
+          RESULT=$(npm view "$PACKAGE_NAME@latest" name version --json 2>/dev/null || echo '{}')
+          PUBLISHED=$(echo "$RESULT" | node -p "
+            const d = JSON.parse(require('fs').readFileSync(0, 'utf-8') || '{}');
+            (d.name || '$PACKAGE_NAME') + '@' + (d.version || 'not-published')
+          ")
+
           echo "PUBLISHED_VERSION=$PUBLISHED" >> $GITHUB_ENV
 
       - name: Log versions
@@ -58,8 +63,11 @@ jobs:
       - name: Prevent duplicate publish
         run: |
           if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
-            echo "❌ Version already exists on npm"
+            echo "❌ Version already exists on npm ($LOCAL_VERSION)"
             exit 1
+          else
+            echo "✅ New version detected. Proceeding to publish."
+            echo "Local: $LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
           fi
 
       - name: Build
