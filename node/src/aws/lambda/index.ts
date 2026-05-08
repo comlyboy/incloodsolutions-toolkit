@@ -3,15 +3,12 @@ import serverlessExpress, { getCurrentInvoke } from '@codegenie/serverless-expre
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Context, EventBridgeEvent, SNSEvent, SQSEvent } from "aws-lambda";
 
 import { ObjectType } from "@incloodsolutions/toolkit";
+import { INestAppInstance } from "../../interface";
+import { isNestApplication } from "../../utility";
+import Framework from "@codegenie/serverless-express/src/frameworks";
 
-let serverInstance: APIGatewayProxyHandlerV2;
-// const currentInvocation: {
-// 	context: Context;
-// 	event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
-// } = {
-// 	event: null,
-// 	context: null
-// };
+let expressInstance: Express = null;
+let lambdaInstance: APIGatewayProxyHandlerV2;
 
 type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' | 'AWS_KINESIS_DATA_STREAM' | 'AWS_S3' | 'AWS_STEP_FUNCTIONS' | 'AWS_SELF_MANAGED_KAFKA';
 
@@ -36,7 +33,7 @@ type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' |
  * @returns {Promise<any>} - The result of invoking the serverless Express handler
  */
 export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> = any, TCallback = any>({ app, event, context, callback, options }: {
-	app: Express;
+	app: Express | INestAppInstance;
 	event: TEvent;
 	context: Context;
 	callback?: TCallback;
@@ -48,14 +45,33 @@ export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEv
 		eventOptions?: {
 			eventSource?: { getRequest?: any; getResponse?: any; };
 			eventSourceRoutes?: { [key in EventSources]?: string };
+			logSettings?: { level: string; };
+			log?: Logger;
+			framework?: Framework;
+			binarySettings?: {
+				isBinary?: boolean | Function;
+				contentTypes: string[];
+				contentEncodings: string[];
+			};
+			eventSourceName?: string;
+			respondWithErrors?: boolean;
 		} & ObjectType;
 	} & ObjectType;
 }): Promise<any> {
 	context.callbackWaitsForEmptyEventLoop = false;
-	if (!serverInstance) {
-		serverInstance = serverlessExpress({ ...options?.eventOptions, app });
+	if (!lambdaInstance) {
+		if (!expressInstance) {
+			if (isNestApplication(app)) {
+				await app.init();
+				expressInstance = app.getHttpAdapter().getInstance();
+			} else {
+				expressInstance = app;
+			}
+		}
+
+		lambdaInstance = serverlessExpress({ app: expressInstance, ...options?.eventOptions as any });
 	}
-	return await serverInstance(event as any, context, callback as any);
+	return await lambdaInstance(event as any, context, callback as any);
 }
 
 /**

@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
 import morgan, { Options } from 'morgan';
-import { Request, Response } from 'express';
+import { Express, Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
@@ -13,7 +13,7 @@ import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-
 
 import { getCurrentLambdaInvocation } from '../aws';
 import { CustomException, IBaseEnableDebug, ObjectType } from '@incloodsolutions/toolkit';
-import { IBaseApiResult } from 'src/interface';
+import { IBaseApiResult, INestAppInstance } from 'src/interface';
 
 
 export function isIsoDate(date: string): boolean {
@@ -520,7 +520,7 @@ export function normalizeMongooseData<TData extends ObjectType>(data: TData): TD
  * // ]
  * ```
  */
-export function snormalizeMongooseData<T>(data: T): T {
+export function normalizeMongooseData_v2<T>(data: T): T {
 	if (data === null || data === undefined) return data;
 
 	if (Array.isArray(data)) {
@@ -550,4 +550,14 @@ export function snormalizeMongooseData<T>(data: T): T {
 	}
 
 	return normalized as T;
+}
+
+
+export function isNestApplication(
+	instance: Express | INestAppInstance,
+): instance is INestAppInstance {
+	return (
+		typeof instance === "object" && instance &&
+		typeof (instance as INestAppInstance).getHttpAdapter === "function"
+	);
 }

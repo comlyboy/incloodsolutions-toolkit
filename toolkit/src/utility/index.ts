@@ -1,4 +1,4 @@
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash.clonedeep';
 import { compile, RuntimeOptions } from 'handlebars';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';

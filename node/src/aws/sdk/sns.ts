@@ -1,4 +1,5 @@
 import { PublishBatchCommand, PublishBatchCommandInput, PublishCommand, PublishCommandInput, SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import { ObjectType } from "@incloodsolutions/toolkit";
 
 /**
  * Initialize an Amazon SNS (Simple Notification Service) client wrapper
@@ -16,12 +17,16 @@ export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
 		 * @param options Additional SNS publish options
 		 * @returns Promise resolving when message is sent
 		 */
-		sendSnsMessage: async <TMessage = any>(message: TMessage, options?: Omit<PublishCommandInput, 'Message' | 'PhoneNumber'>) => {
+		sendSnsMessage: async <TMessage extends ObjectType = any>({ message, options }: {
+			message: TMessage;
+			options?: Omit<PublishCommandInput, 'Message' | 'PhoneNumber'>
+		}) => {
 			await snsInstance.send(new PublishCommand({
 				Message: JSON.stringify(message),
 				...options
 			}));
 		},
+
 		/**
 		 * Sends an SMS message via SNS
 		 * @param message The text message to send
@@ -34,6 +39,7 @@ export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
 				PhoneNumber: phoneNumber
 			}));
 		},
+
 		/**
 		 * Sends multiple messages to SNS topics in a single request
 		 * @param command The batch publish command input

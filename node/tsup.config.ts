@@ -14,7 +14,8 @@ export default defineConfig({
 	treeshake: true,
 
 	external: [
-		"tslib",
+		"express",
+		/^@aws-sdk\//,
 		"@incloodsolutions/toolkit" // ✅ only your internal lib
 	],
 

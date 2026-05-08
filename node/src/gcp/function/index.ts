@@ -1,23 +1,26 @@
-import { CloudEventFunction, CloudEventFunctionWithCallback } from "@google-cloud/functions-framework";
+import { Express, Request, Response } from "express";
+
 import { CustomException } from "@incloodsolutions/toolkit";
-import { Express } from "express";
+import { isNestApplication } from "../../utility";
+import { INestAppInstance } from "../../interface";
 
-export async function initGcpFunctionHandler<TData = any>({ app, cloudEventFn }: {
-	app?: Express;
-	cloudEventFn?: CloudEventFunction<TData> | CloudEventFunctionWithCallback<TData>;
+let expressApplication: Express = null;
+
+export async function initGcpFunctionHandler({ app, request, response }: {
+	app: Express | INestAppInstance;
+	request: Request; response: Response;
 }) {
-
-	if (!app && (!cloudEventFn || typeof cloudEventFn !== 'function')) {
-		throw new CustomException('CloudEvent, cloudEventPath must be defined!');
+	if (!app) {
+		throw new CustomException('App instance must be defined!');
 	}
-
-	if (app && cloudEventFn) {
-		throw new CustomException('Two event type cannot be defined at same time!');
+	if (!expressApplication) {
+		console.log('Initializing new API instance!');
+		if (isNestApplication(app)) {
+			expressApplication = app.getHttpAdapter().getInstance();
+			await app.init();
+		} else {
+			expressApplication = app;
+		}
 	}
-
-	if (cloudEventFn) {
-		return cloudEventFn;
-	}
-
-	return app;
+	return expressApplication(request, response);
 }

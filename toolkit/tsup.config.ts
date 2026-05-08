@@ -15,7 +15,7 @@ export default defineConfig([
 		treeshake: true,
 		minify: false,
 
-		noExternal: ["uuid"],
+		noExternal: ["uuid", 'lodash.clonedeep'],
 		external: ["tslib"],
 
 		esbuildOptions(options) {

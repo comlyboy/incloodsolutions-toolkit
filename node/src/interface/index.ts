@@ -1,5 +1,7 @@
-import { AppEnvironmentType, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
+import { Express } from "express";
 import { Document, ObjectId } from "mongoose";
+
+import { AppEnvironmentType, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
 
 /** Base interface that enables debugging features */
 export interface IBaseConstruct extends IBaseEnableDebug { }
@@ -97,3 +99,11 @@ export interface IBaseMongoDocument<TType extends string | number | ObjectId = s
  * - `'descending'` means highest to lowest.
  */
 export type SortOrderType = 'descending' | 'ascending';
+
+
+export interface INestAppInstance extends ObjectType {
+	init: () => Promise<void>;
+	getHttpAdapter: () => {
+		getInstance: () => Express;
+	} & ObjectType;
+}
