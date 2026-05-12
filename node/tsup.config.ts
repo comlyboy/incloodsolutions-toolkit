@@ -16,7 +16,9 @@ export default defineConfig({
 	external: [
 		"express",
 		/^@aws-sdk\//,
-		"@incloodsolutions/toolkit" // ✅ only your internal lib
+		"mongoose",
+		"aws-cdk-lib",
+		"@incloodsolutions/toolkit"
 	],
 
 	noExternal: [
