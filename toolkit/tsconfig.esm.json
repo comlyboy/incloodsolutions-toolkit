@@ -1,0 +1,17 @@
+{
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "./dist/esm",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"rootDir": "./src",
+		"declarationDir": "./dist",
+	},
+	"include": [
+		"./src",
+	],
+	"exclude": [
+		"node_modules",
+		"./dist"
+	]
+}

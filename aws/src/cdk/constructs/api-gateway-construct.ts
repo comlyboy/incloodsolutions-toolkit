@@ -4,8 +4,8 @@ import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
-import { logDebugger } from '../../../utility';
-import { IBaseCdkConstructProps, IBaseConstruct, } from '../../../interface';
+import { IBaseCdkConstructProps, IBaseConstruct, logDebugger } from '@incloodsolutions/node-toolkit';
+
 
 /**
  * Route definition for API Gateway resources

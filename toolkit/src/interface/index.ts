@@ -179,3 +179,10 @@ export type ObjectType<TValue = any, TKey extends string | number | symbol = str
  * - `'descending'` means highest to lowest.
  */
 export type SortOrderType = 'descending' | 'ascending';
+
+export interface INestAppInstance<TInstance = ObjectType> extends ObjectType {
+	init: () => Promise<void>;
+	getHttpAdapter: () => {
+		getInstance: () => TInstance;
+	} & ObjectType;
+}

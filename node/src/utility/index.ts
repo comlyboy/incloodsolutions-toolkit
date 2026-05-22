@@ -7,13 +7,11 @@ import { Express, Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 
-import { getCurrentLambdaInvocation } from '../aws';
 import { CustomException, IBaseEnableDebug, ObjectType } from '@incloodsolutions/toolkit';
-import { IBaseApiResult, INestAppInstance } from 'src/interface';
+import { IBaseApiResult, INestAppInstance } from '../interface';
 
 
 export function isIsoDate(date: string): boolean {
@@ -199,7 +197,7 @@ export async function readFileFromLambda(fileName: string) {
 
 /** Check if currently in Lambda environment */
 export function isLambdaEnvironment() {
-	return Boolean(process.env?.LAMBDA_TASK_ROOT || process.env?.AWS_LAMBDA_FUNCTION_NAME);
+	return Boolean(process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME);
 }
 
 /** Map and return API operation results */
@@ -372,13 +370,13 @@ export function reqResLogger({ formats = [], options }: {
 	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];
 
 	if (isLambdaEnvironment()) {
-		const { context, event } = getCurrentLambdaInvocation() as {
-			context: Context;
-			event: APIGatewayProxyEventV2;
-		};
+		// const { context, event } = getCurrentLambdaInvocation() as {
+		// 	context: Context;
+		// 	event: APIGatewayProxyEventV2;
+		// };
 
-		requestId = event?.requestContext?.requestId || requestId;
-		morgan.token('invocationId', () => context?.awsRequestId);
+		// requestId = event?.requestContext?.requestId || requestId;
+		// morgan.token('invocationId', () => context?.awsRequestId);
 	}
 
 	morgan.token('id', () => requestId);

@@ -4,8 +4,8 @@ import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Callback, Context, Ev
 import Framework from "@codegenie/serverless-express/src/frameworks";
 
 import { ObjectType } from "@incloodsolutions/toolkit";
-import { INestAppInstance } from "../../interface";
-import { isNestApplication } from "../../utility";
+import { INestAppInstance, isNestApplication } from "@incloodsolutions/node-toolkit";
+
 
 let expressInstance: Express = null;
 let lambdaInstance: APIGatewayProxyHandlerV2;
