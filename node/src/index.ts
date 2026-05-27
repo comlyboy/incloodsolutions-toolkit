@@ -1,3 +1,4 @@
+export * from './aws';
 export * from './config';
 export * from './gcp';
 export * from './interface';

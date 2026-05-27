@@ -1,4 +1,3 @@
-import { CountryCode, TimezoneName } from "countries-and-timezones";
 
 /** Base interface for objects with an ID of generic type */
 export interface IBaseId<TType extends number | string = string> {
@@ -158,12 +157,6 @@ export enum AppEnvironmentEnum {
 	DEVELOPMENT = 'development'
 }
 
-/** Alias for IANA timezone names */
-export type TimezoneType = TimezoneName;
-
-/** Alias for ISO country codes */
-export type CountryCodeType = CountryCode;
-
 /** Literal string type of AppEnvironmentEnum values */
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
@@ -179,10 +172,3 @@ export type ObjectType<TValue = any, TKey extends string | number | symbol = str
  * - `'descending'` means highest to lowest.
  */
 export type SortOrderType = 'descending' | 'ascending';
-
-export interface INestAppInstance<TInstance = ObjectType> extends ObjectType {
-	init: () => Promise<void>;
-	getHttpAdapter: () => {
-		getInstance: () => TInstance;
-	} & ObjectType;
-}

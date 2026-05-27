@@ -4,7 +4,6 @@ import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
-import { getAllCountries, getAllTimezones } from 'countries-and-timezones';
 import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
@@ -194,7 +193,7 @@ export async function generateQrBarcode<TData extends ObjectType | string>(qrDat
 		scale: options?.type === 'barcode' ? 16 : 10,
 		includetext: true,
 		textyoffset: 4,
-		barcolor: '3B3D45',
+		barcolor: '121214',
 		textxalign: 'center',
 		backgroundcolor: 'ffffff',
 	}
@@ -263,19 +262,10 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 	}
 }
 
-/** Get all country names and timezones */
-export function getCountryTimezones(withDeprecated?: boolean) {
-	return {
-		countries: getAllCountries({ deprecated: withDeprecated }),
-		timezones: getAllTimezones({ deprecated: withDeprecated })
-	}
-}
-
 /** Encode URL */
 export function encodeUrlComponent<TData = any>(data: TData) {
 	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
 }
-
 
 /** Decode URL */
 export function decodeUrlComponent<TType>(data: string) {

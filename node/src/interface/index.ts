@@ -24,6 +24,7 @@ export interface IBaseEnvironmentVariable {
 
 	/**
 	 * The current runtime environment.
+	 * 
 	 * Should be one of: 'development', 'production', 'test', etc.
 	 */
 	NODE_ENV: AppEnvironmentType;

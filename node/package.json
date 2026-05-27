@@ -34,19 +34,24 @@
 		"test": "jest"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.1055.0",
+		"@aws-sdk/client-ses": "^3.1055.0",
+		"@aws-sdk/client-sns": "^3.1055.0",
+		"@aws-sdk/lib-dynamodb": "^3.1055.0",
+		"@aws-sdk/s3-request-presigner": "^3.1055.0",
+		"@codegenie/serverless-express": "^5.0.0",
+		"@incloodsolutions/toolkit": "^0.1.2",
 		"bcryptjs": "^3.0.3",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.15.1",
-		"constructs": "^10.6.0",
 		"crypto-js": "^4.2.0",
-		"express": "^5.2.1",
 		"handlebars": "^4.7.9",
 		"morgan": "^1.10.1",
 		"tslib": "^2.8.1"
 	},
 	"devDependencies": {
 		"@esbuild-plugins/tsconfig-paths": "^0.1.2",
-		"@incloodsolutions/toolkit": "^0.1.2",
+		"@types/aws-lambda": "^8.10.161",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/crypto-js": "^4.2.2",
 		"@types/express": "^5.0.6",
@@ -59,6 +64,7 @@
 		"eslint": "^10.4.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-prettier": "^5.5.5",
+		"express": "^5.2.1",
 		"jest": "^30.4.2",
 		"mongoose": "^9.6.3",
 		"prettier": "^3.8.3",
@@ -71,36 +77,11 @@
 		"typescript": "^6.0.3"
 	},
 	"peerDependencies": {
-		"@aws-sdk/client-dynamodb": ">=3.1045.0",
-		"@aws-sdk/client-s3": ">=3.1045.0",
-		"@aws-sdk/client-ses": ">=3.1045.0",
-		"@aws-sdk/client-sns": ">=3.1045.0",
-		"@aws-sdk/lib-dynamodb": ">=3.1045.0",
-		"@aws-sdk/s3-request-presigner": ">=3.1045.0",
-		"@incloodsolutions/toolkit": ">=0.1.1",
-		"aws-cdk-lib": ">=2.253.0",
+		"express": ">=5.2.1",
 		"mongoose": ">=9.6.1"
 	},
 	"peerDependenciesMeta": {
-		"@aws-sdk/client-dynamodb": {
-			"optional": true
-		},
-		"@aws-sdk/client-s3": {
-			"optional": true
-		},
-		"@aws-sdk/client-ses": {
-			"optional": true
-		},
-		"@aws-sdk/client-sns": {
-			"optional": true
-		},
-		"@aws-sdk/lib-dynamodb": {
-			"optional": true
-		},
-		"@aws-sdk/s3-request-presigner": {
-			"optional": true
-		},
-		"aws-cdk-lib": {
+		"express": {
 			"optional": true
 		},
 		"mongoose": {
