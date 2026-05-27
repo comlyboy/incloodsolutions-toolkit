@@ -12,7 +12,7 @@ export default defineConfig([
 		bundle: true,
 		splitting: false,
 		treeshake: true,
-		minify: true,
+		minify: false,
 		noExternal: ["uuid", 'lodash.clonedeep'],
 		external: ["tslib"],
 		esbuildOptions(options) {
@@ -30,7 +30,7 @@ export default defineConfig([
 		bundle: true,
 		splitting: false,
 		treeshake: true,
-		minify: true,
+		minify: false,
 		noExternal: ["uuid", 'lodash.clonedeep'],
 		external: ["tslib"],
 		esbuildOptions(options) {
