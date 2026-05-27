@@ -3,8 +3,7 @@
 		"module": "CommonJS",
 		"target": "ES2022",
 		"lib": [
-			"esnext",
-			"dom"
+			"esnext"
 		],
 		"declaration": true,
 		"declarationMap": true,
@@ -26,10 +25,10 @@
 		"noEmitOnError": true,
 		"strictBindCallApply": false,
 		"allowUnreachableCode": false,
+		"noFallthroughCasesInSwitch": false,
+		"useUnknownInCatchVariables": false,
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": false,
-		"noFallthroughCasesInSwitch": false,
-		"useUnknownInCatchVariables": false
 	},
 	"include": [
 		"./src",
