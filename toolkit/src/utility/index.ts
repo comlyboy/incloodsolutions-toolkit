@@ -1,7 +1,5 @@
 import cloneDeep from 'lodash.clonedeep';
 import { compile, RuntimeOptions } from 'handlebars';
-import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
-// import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
@@ -9,6 +7,11 @@ import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberW
 
 import { ObjectType } from '../interface';
 import { CustomException } from '../error';
+
+/** Check if string is ISO date */
+export function isIsoDate(date: string): boolean {
+	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
+}
 
 /** Generates ISO date */
 export function generateISODate(date?: string | number | Date) {
@@ -88,10 +91,6 @@ export function transformText({ text, format, trim = false }: {
 	return text;
 }
 
-export function isIsoDate(date: string): boolean {
-	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
-}
-
 /** Generates customized uuid. v7 is default */
 export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
 	asUpperCase?: boolean;
@@ -153,58 +152,6 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 		.filter(([key, value]) => ![undefined, null, '', 'undefined'].includes(value) || !keysToRemove.includes(key))
 		.map(([key, value]) => [key, sanitizeObject(value)])
 	) as TData;
-}
-
-/**
- * Generates a QR code or barcode as a Base64-encoded PNG image string.
- *
- * @template TData - The type of data to encode. Can be an object (`ObjectType`) or a string.
- *
- * @param {TData} qrData - The data to be encoded. If an object, it will be stringified as JSON.
- * @param {Object} [options] - Optional rendering configuration.
- * @param {'qrcode' | 'barcode'} [options.type='qrcode'] - The type of code to generate.
- *   - `'qrcode'` (default): Generates a QR code.
- *   - `'barcode'`: Generates a Code128 barcode.
- *
- * @returns {Promise<string>} A promise that resolves to a Base64-encoded PNG image string,
- * prefixed with `data:image/png;base64,`.
- *
- * @example
- * // Generate a QR code from text (default type is 'qrcode')
- * const qr = await generateQrBarcode('Hello World');
- * console.log(qr); // data:image/png;base64,iVBORw0...
- *
- * @example
- * // Generate a barcode from an object
- * const barcode = await generateQrBarcode({ id: 123 }, { type: 'barcode' });
- * console.log(barcode); // data:image/png;base64,iVBORw0...
- */
-export async function generateQrBarcode<TData extends ObjectType | string>(qrData: TData, options?: {
-	type?: 'qrcode' | 'barcode';
-	renderOptions: RenderOptions;
-}): Promise<string> {
-
-	const renderOptions: RenderOptions = {
-		...options?.renderOptions || {},
-		bcid: options?.type === 'barcode' ? 'code128' : "qrcode",
-		text: typeof qrData === 'object' ? JSON.stringify(qrData) : qrData,
-		paddingwidth: options?.type === 'barcode' ? 3 : 5,
-		paddingheight: options?.type === 'barcode' ? 3 : 5,
-		scale: options?.type === 'barcode' ? 16 : 10,
-		includetext: true,
-		textyoffset: 4,
-		barcolor: '121214',
-		textxalign: 'center',
-		backgroundcolor: 'ffffff',
-	}
-
-	if (options?.type === 'qrcode') {
-		renderOptions.width = 120;
-		renderOptions.height = 120;
-	}
-
-	const pngBuffer = await qrBarcodeFn({ ...renderOptions });
-	return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }
 
 /** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */

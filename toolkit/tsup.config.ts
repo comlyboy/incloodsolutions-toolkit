@@ -13,10 +13,12 @@ export default defineConfig([
 		splitting: false,
 		treeshake: true,
 		minify: false,
-		noExternal: ["uuid", 'lodash.clonedeep'],
-		external: ["tslib"],
+		noExternal: ['uuid', 'lodash.clonedeep'],
+		external: ['tslib'],
+		keepNames: true,
 		esbuildOptions(options) {
 			options.keepNames = true;
+			options.logLevel = 'error';
 		},
 	},
 

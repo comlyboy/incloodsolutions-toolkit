@@ -3,20 +3,21 @@ import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
 import morgan, { Options } from 'morgan';
-import { Express, Request, Response } from 'express';
 import { compare, genSalt, hash } from 'bcryptjs';
+import { Express, Request, Response } from 'express';
 import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
+import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
+// import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 
 import { CustomException, IBaseEnableDebug, ObjectType } from '@incloodsolutions/toolkit';
+
+import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult, INestAppInstance } from '../interface';
 
-
-export function isIsoDate(date: string): boolean {
-	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
-}
 
 /** Removes properties with values `undefined`, `null`, or `' '` */
 export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
@@ -141,7 +142,6 @@ export async function validateHashWithBcrypt(plainData: string, hashedData: stri
 	return await compare(plainData, hashedData);
 }
 
-
 /** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
 export async function writeFileToLambda({ filePath, file }: {
 	filePath?: string;
@@ -242,10 +242,11 @@ export function decodeUrlComponent<TType>(data: string) {
 }
 
 /** Create a custom logger instance */
-export function createLogger(context?: string) {
+export function initCustomLogger(context?: string) {
 	function logMessage(level: string, message: string) {
 		const ctx = context ? `[${context}]` : '';
-		return console.log(`${new Date().toISOString()} - ${level.toUpperCase()} ${ctx} ${message}`);
+		const msg = `${new Date().toISOString()} - ${level.toUpperCase()} ${ctx} ${message}`;
+		return console.log(msg.trim());
 	}
 
 	return {
@@ -370,13 +371,13 @@ export function reqResLogger({ formats = [], options }: {
 	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];
 
 	if (isLambdaEnvironment()) {
-		// const { context, event } = getCurrentLambdaInvocation() as {
-		// 	context: Context;
-		// 	event: APIGatewayProxyEventV2;
-		// };
+		const { context, event } = getCurrentLambdaInvocation() as {
+			context: Context;
+			event: APIGatewayProxyEventV2;
+		};
 
-		// requestId = event?.requestContext?.requestId || requestId;
-		// morgan.token('invocationId', () => context?.awsRequestId);
+		requestId = event?.requestContext?.requestId || requestId;
+		morgan.token('invocationId', () => context?.awsRequestId);
 	}
 
 	morgan.token('id', () => requestId);
@@ -558,4 +559,56 @@ export function isNestApplication(
 		typeof instance === "object" && instance &&
 		typeof (instance as INestAppInstance).getHttpAdapter === "function"
 	);
+}
+
+/**
+ * Generates a QR code or barcode as a Base64-encoded PNG image string.
+ *
+ * @template TData - The type of data to encode. Can be an object (`ObjectType`) or a string.
+ *
+ * @param {TData} qrData - The data to be encoded. If an object, it will be stringified as JSON.
+ * @param {Object} [options] - Optional rendering configuration.
+ * @param {'qrcode' | 'barcode'} [options.type='qrcode'] - The type of code to generate.
+ *   - `'qrcode'` (default): Generates a QR code.
+ *   - `'barcode'`: Generates a Code128 barcode.
+ *
+ * @returns {Promise<string>} A promise that resolves to a Base64-encoded PNG image string,
+ * prefixed with `data:image/png;base64,`.
+ *
+ * @example
+ * // Generate a QR code from text (default type is 'qrcode')
+ * const qr = await generateQrBarcode('Hello World');
+ * console.log(qr); // data:image/png;base64,iVBORw0...
+ *
+ * @example
+ * // Generate a barcode from an object
+ * const barcode = await generateQrBarcode({ id: 123 }, { type: 'barcode' });
+ * console.log(barcode); // data:image/png;base64,iVBORw0...
+ */
+export async function generateQrBarcode<TData extends ObjectType | string>(qrData: TData, options?: {
+	type?: 'qrcode' | 'barcode';
+	renderOptions: RenderOptions;
+}): Promise<string> {
+
+	const renderOptions: RenderOptions = {
+		...options?.renderOptions || {},
+		bcid: options?.type === 'barcode' ? 'code128' : "qrcode",
+		text: typeof qrData === 'object' ? JSON.stringify(qrData) : qrData,
+		paddingwidth: options?.type === 'barcode' ? 3 : 5,
+		paddingheight: options?.type === 'barcode' ? 3 : 5,
+		scale: options?.type === 'barcode' ? 16 : 10,
+		includetext: true,
+		textyoffset: 4,
+		barcolor: '121214',
+		textxalign: 'center',
+		backgroundcolor: 'ffffff',
+	}
+
+	if (options?.type === 'qrcode') {
+		renderOptions.width = 120;
+		renderOptions.height = 120;
+	}
+
+	const pngBuffer = await qrBarcodeFn({ ...renderOptions });
+	return `data:image/png;base64,${pngBuffer.toString('base64')}`;
 }
