@@ -1,10 +1,7 @@
 import { Express } from "express";
 import { Document, ObjectId } from "mongoose";
 
-import { AppEnvironmentType, IBaseEnableDebug, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
-
-/** Base interface that enables debugging features */
-export interface IBaseConstruct extends IBaseEnableDebug { }
+import { AppEnvironmentType, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
 
 /**
  * Interface representing the environment variables required by the application.
@@ -24,7 +21,7 @@ export interface IBaseEnvironmentVariable {
 
 	/**
 	 * The current runtime environment.
-	 * 
+	 *
 	 * Should be one of: 'development', 'production', 'test', etc.
 	 */
 	NODE_ENV: AppEnvironmentType;
@@ -67,19 +64,6 @@ export interface IBaseApiResult<TData = any> extends ObjectType {
 	 */
 	error?: IBaseErrorResponse & ObjectType;
 }
-
-/** Base interface for CDK construct configuration */
-export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> extends Readonly<Partial<IBaseEnableDebug>> {
-	/** Deployment stage/environment */
-	readonly stage?: AppEnvironmentType;
-	/** Additional construct options */
-	readonly options?: Readonly<TOptions>;
-	/** Optional stack name */
-	readonly stackName?: string;
-	/** Optional application name */
-	readonly appName?: string;
-}
-
 
 /** Represents a MongoDB identifier, which can either be an ObjectId or a string. */
 export type MongoIdType = ObjectId | string;

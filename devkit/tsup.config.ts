@@ -1,0 +1,43 @@
+import { defineConfig } from "tsup";
+
+export default defineConfig([
+	// 🔹 CJS build (Lambda + Node safe)
+	{
+		entry: ['src/**/*.ts'],
+		format: ["cjs"],
+		target: "node18",
+		dts: true,
+		sourcemap: true,
+		clean: true,
+		bundle: true,
+		splitting: false,
+		treeshake: true,
+		minify: false,
+		noExternal: [],
+		external: ['tslib'],
+		keepNames: true,
+		esbuildOptions(options) {
+			options.keepNames = true;
+			options.logLevel = 'error';
+		},
+	},
+
+	// 🔹 ESM build (modern environments)
+	{
+		entry: ['src/**/*.ts'],
+		format: ["esm"],
+		target: "es2020",
+		dts: true,
+		sourcemap: true,
+		bundle: true,
+		splitting: false,
+		treeshake: true,
+		minify: false,
+		noExternal: [],
+		external: ["tslib"],
+		esbuildOptions(options) {
+			options.keepNames = true;
+			options.logLevel = 'error';
+		},
+	},
+]);
