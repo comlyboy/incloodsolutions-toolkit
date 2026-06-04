@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash.clonedeep';
 import { compile, RuntimeOptions } from 'handlebars';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
@@ -7,6 +6,7 @@ import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberW
 
 import { ObjectType } from '../interface';
 import { CustomException } from '../error';
+import { nanoid } from 'nanoid';
 
 /** Check if string is ISO date */
 export function isIsoDate(date: string): boolean {
@@ -102,6 +102,11 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
 	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 
+/** Generates nanoid. Default length to 10. */
+export function generateNanoid(size = 10) {
+	return nanoid(size);
+}
+
 /** Check if a string is uuid */
 export function isValidUUID(uuid: string) {
 	return uuidValidate(uuid);
@@ -127,18 +132,26 @@ export async function sendHttpRequest<TResponse = any, TBody extends ObjectType 
 	}
 }
 
-/** Throws error if the phonenumber format isn't correct */
-export function parsePhonenumberOrError(phoneNumber: string, defaultCountry?: CountryCode): PhoneNumber {
-	if (!phoneNumber || phoneNumber === ' ') {
-		throw new CustomException('Invalid phoneNumber format!');
-	}
-	return parsePhoneNumberWithError(phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`, defaultCountry);
-}
-
 /** Returns undefined if the phonenumber format isn't correct */
-export function parsePhonenumber(phoneNumber: string, defaultCountry?: CountryCode): PhoneNumber | undefined {
-	if (!phoneNumber.trim() || phoneNumber === ' ') return undefined;
-	return parsePhoneNumberFromString(phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`, defaultCountry);
+export function parsePhonenumber(phoneNumber: string, options?: {
+	throwUnfound?: boolean;
+	defaultCountry?: CountryCode;
+	defaultCallingCode?: string;
+	extract?: boolean;
+}): PhoneNumber | undefined {
+	if (!phoneNumber.trim() || !phoneNumber) {
+		if (options?.throwUnfound) {
+			throw new CustomException('Invalid phoneNumber format!');
+		}
+		return undefined;
+	}
+
+	const phonenumber = phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+
+	if (options?.throwUnfound) {
+		return parsePhoneNumberWithError(phonenumber, { ...options });
+	}
+	return parsePhoneNumberFromString(phonenumber, { ...options });
 }
 
 /** Removes properties with values `undefined`, `null`, or `' '` */
@@ -173,11 +186,11 @@ export function generateDateInNumber({ date, withSeparation }: {
 }
 
 /** Clone object/array deep */
-export function deepClone<TData = ObjectType>(data: TData) {
+export function cloneDeep<TData = ObjectType>(data: TData) {
 	// const objectIsValid = typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0;
 	// const arrayIsValid = Array.isArray(data) && data?.length > 0;
 	if (!data || typeof data !== 'object') return data;
-	return cloneDeep(data);
+	return structuredClone(data);
 }
 
 /** Remove duplicate from an array */

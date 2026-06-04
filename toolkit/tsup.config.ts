@@ -14,7 +14,7 @@ export default defineConfig([
 		minify: false,
 		keepNames: true,
 		external: ['tslib'],
-		noExternal: ['uuid', 'lodash.clonedeep'],
+		noExternal: ['uuid'],
 		esbuildOptions(options) {
 			options.keepNames = true;
 			options.logLevel = 'error';

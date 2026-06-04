@@ -1,8 +1,19 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
-	"main": "dist/index.js",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"require": "./dist/index.js"
+		}
+	},
+	"engines": {
+		"node": ">=22"
+	},
 	"author": "Inclood Solutions",
 	"private": false,
 	"license": "MIT",
@@ -34,20 +45,20 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.1057.0",
-		"@aws-sdk/client-ses": "^3.1057.0",
-		"@aws-sdk/client-sns": "^3.1057.0",
-		"@aws-sdk/lib-dynamodb": "^3.1057.0",
-		"@aws-sdk/s3-request-presigner": "^3.1057.0",
+		"@aws-sdk/client-s3": "^3.1061.0",
+		"@aws-sdk/client-ses": "^3.1061.0",
+		"@aws-sdk/client-sns": "^3.1061.0",
+		"@aws-sdk/lib-dynamodb": "^3.1061.0",
+		"@aws-sdk/s3-request-presigner": "^3.1061.0",
 		"@codegenie/serverless-express": "^5.0.0",
-		"@incloodsolutions/toolkit": "^0.1.3",
+		"@incloodsolutions/toolkit": "^0.1.4",
 		"bcryptjs": "^3.0.3",
 		"bwip-js": "^4.11.1",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.15.1",
 		"crypto-js": "^4.2.0",
 		"handlebars": "^4.7.9",
-		"morgan": "^1.10.1",
+		"morgan": "^1.11.0",
 		"tslib": "^2.8.1"
 	},
 	"devDependencies": {
@@ -59,8 +70,8 @@
 		"@types/jest": "^30.0.0",
 		"@types/morgan": "^1.9.10",
 		"@types/node": "^25.9.1",
-		"@typescript-eslint/eslint-plugin": "^8.60.0",
-		"@typescript-eslint/parser": "^8.60.0",
+		"@typescript-eslint/eslint-plugin": "^8.60.1",
+		"@typescript-eslint/parser": "^8.60.1",
 		"esbuild": "^0.28.0",
 		"eslint": "^10.4.1",
 		"eslint-config-prettier": "^10.1.8",
