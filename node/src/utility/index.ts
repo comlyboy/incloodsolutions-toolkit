@@ -2,6 +2,7 @@ import { writeFile } from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
+import sqlBrick from 'sql-bricks';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { Express, Request, Response } from 'express';
@@ -195,7 +196,7 @@ export async function readFileFromLambda(fileName: string) {
 	});
 }
 
-/** Check if currently in Lambda environment */
+/** Check if currently in AWS Lambda environment */
 export function isLambdaEnvironment() {
 	return Boolean(process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME);
 }
@@ -234,7 +235,6 @@ export function isValidMongoId(data: string | ObjectType | ObjectId): boolean {
 	}
 	return false;
 }
-
 
 /** Decode URL */
 export function decodeUrlComponent<TType>(data: string) {
@@ -611,4 +611,32 @@ export async function generateQrBarcode<TData extends ObjectType | string>(qrDat
 
 	const pngBuffer = await qrBarcodeFn({ ...renderOptions });
 	return `data:image/png;base64,${pngBuffer.toString('base64')}`;
+}
+
+// export function sqlBuilder<TEntitySchema extends Record<string, any>>(tableName: string) {
+// 	if (!tableName.trim()) throw new Error('Table name is needed!');
+// 	return knex<{ [k in keyof TEntitySchema as Lowercase<keyof TEntitySchema & string>]: TEntitySchema[k] }, TEntitySchema>({
+// 		client: 'pg',
+// 		connection: false as any,
+// 		pool: { min: 0, max: 0 }
+// 	})(tableName);
+// }
+
+export function initSqlParser<TEntitySchema extends ObjectType = ObjectType>(tableName: string) {
+	if (!tableName.trim()) throw new Error('Table name is needed!');
+	return {
+		select: (...columns: any[]) => {
+			return sqlBrick.select(columns.length ? columns : ['*'])
+				.from(tableName);
+		},
+		insert: (values: Partial<TEntitySchema>) => {
+			return sqlBrick.insert(tableName, values).into(tableName);
+		},
+		update: (values: Partial<TEntitySchema>) => {
+			return sqlBrick.update(tableName, values);
+		},
+		delete: () => {
+			return sqlBrick.delete().from(tableName);
+		}
+	};
 }

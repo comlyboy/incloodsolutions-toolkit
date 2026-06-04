@@ -51,7 +51,7 @@
 		"@aws-sdk/lib-dynamodb": "^3.1061.0",
 		"@aws-sdk/s3-request-presigner": "^3.1061.0",
 		"@codegenie/serverless-express": "^5.0.0",
-		"@incloodsolutions/toolkit": "^0.1.4",
+		"@incloodsolutions/toolkit": "^0.1.5",
 		"bcryptjs": "^3.0.3",
 		"bwip-js": "^4.11.1",
 		"class-transformer": "^0.5.1",
@@ -59,6 +59,7 @@
 		"crypto-js": "^4.2.0",
 		"handlebars": "^4.7.9",
 		"morgan": "^1.11.0",
+		"sql-bricks": "^3.0.1",
 		"tslib": "^2.8.1"
 	},
 	"devDependencies": {
