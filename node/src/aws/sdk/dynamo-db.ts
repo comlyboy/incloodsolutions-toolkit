@@ -1,17 +1,102 @@
 import { DynamoDBClient, DynamoDBClientConfig, ReturnConsumedCapacity } from "@aws-sdk/client-dynamodb";
 import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, QueryCommandInput, QueryCommandOutput, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
 import { plainToInstance } from "class-transformer";
+import { ZodObject } from "zod";
 import { validate, ValidationError, ValidatorOptions } from "class-validator";
 
 import { ObjectType, IBaseEnableDebug, CustomException, generateISODate, generateDateInNumber, generateCustomUUID } from "@incloodsolutions/toolkit";
+
 import { logDebugger } from "../../utility";
+
+/**
+ * Validates data using either Zod or class-validator.
+ *
+ * @template TData
+ * @param options Validation options.
+ * @param options.data Data to validate.
+ * @param options.schema Validation schema or DTO class.
+ * @param options.platform Validation platform to use.
+ * @param options.enableDebug Enables validation debug logs.
+ * @param options.skipMissingProperties Skips validation for missing properties.
+ * @param options.validationOptions Additional validator options.
+ *
+ * @throws {CustomException}
+ * Thrown when validation fails.
+ *
+ * @returns Validated and transformed data.
+ */
+export async function validateSchema<TData>({ schema, data, enableDebug = false, platform, skipMissingProperties = false, validationOptions }: {
+	data: TData;
+	enableDebug?: boolean;
+	// options?: {
+	// 	debugContext?: string;
+	// }
+	skipMissingProperties?: boolean;
+	platform?: 'zod' | 'class-validator';
+	validationOptions?: ValidatorOptions & ObjectType;
+	schema: new () => ObjectType | ZodObject;
+}) {
+
+	if (platform === 'zod') {
+		const schemaa: ZodObject = skipMissingProperties ? (schema as any).partial()
+			: schema;
+
+		const { data: parsedData, success, error } = await schemaa.safeParseAsync(data);
+
+		if (!success) {
+			const errorMessages = error.issues.map(issue => {
+				const path = issue.path.join('.');
+				return `${path ? `${path}: ` : ''}${issue.message}`;
+			});
+			throw new CustomException(errorMessages);
+		}
+
+		return parsedData;
+	} else {
+
+		/**
+	 * Flattens validation errors into an array of error messages
+	 * @param errors The validation errors to flatten
+	 * @returns Array of error messages
+	 */
+		function flattenValidationErrors(errors: ValidationError[]): string[] {
+			return errors.flatMap(error => {
+				const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
+					const [first, ...rest] = constraint.split(' ');
+					return `'${first}': ${rest.join(' ')}`;
+				}) : [];
+				const childConstraints = error.children?.length ? flattenValidationErrors(error.children) : [];
+				return [...currentConstraints, ...childConstraints];
+			});
+		}
+
+		const instance = plainToInstance(schema, data);
+		if (enableDebug) {
+			// logDebugger(`${} Validation`, 'Validating entity instance:', instance);
+		}
+		const errors = await validate(instance, {
+			...validationOptions,
+			enableDebugMessages: validationOptions?.enableDebugMessages || validationOptions?.options?.enableDebug,
+			whitelist: validationOptions?.whitelist === false ? validationOptions.validationOptions?.whitelist : true,
+			// forbidNonWhitelisted: validationOptions?.forbidNonWhitelisted === false ? validationOptions.forbidNonWhitelisted : true,
+			forbidNonWhitelisted: true,
+			forbidUnknownValues: validationOptions?.forbidUnknownValues === false ? validationOptions?.forbidUnknownValues : true,
+			skipMissingProperties
+		});
+		if (errors.length > 0) {
+			throw new CustomException(flattenValidationErrors(errors));
+		}
+		return instance;
+	}
+
+}
 
 
 export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTableIndexType = string>(options: {
 	/** Dynamo-db table name */
 	readonly tableName: string;
 	/** Class with class-validator and class-transformer decorators @ */
-	readonly schema: new () => ObjectType;
+	readonly schema: new () => ObjectType | ZodObject;
 	/** Options for primary and sort keys */
 	readonly compositePrimaryKeyOptions?: {
 		/** Dynamo-db primary key name @default 'id' */
@@ -28,67 +113,36 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	}
 	/** Dynamo-db client configuration */
 	readonly config?: DynamoDBClientConfig;
-	/** Schema validation options */
-	readonly schemaConfig?: ValidatorOptions;
+	/** Validation options. */
+	readonly validationOptions?: {
+		readonly platform?: 'zod' | 'class-validator';
+		/** Class validator options */
+		readonly classValidator?: ValidatorOptions;
+		/** Zod validator options */
+		readonly zod?: ObjectType;
+	}
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
 	readonly options?: {
 		readonly timestamp?: boolean;
 		/** Debuging context, only when `enableDebug` is `true` */
 		readonly debugContext?: string;
-		/** Enable debuging mode */
-		readonly enableDebug?: boolean;
-	} & Partial<IBaseEnableDebug>;
+	} & Readonly<Partial<IBaseEnableDebug>>;
 }) {
 	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names', 'type', 'types'];
-
 	const primaryKeyName = options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
-
 	const debugContext = `${options?.options?.debugContext || ''} | DynamoDb Wrapper`;
-
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
 
 	/**
 	 * Validates the data against the provided schema using class-validator
 	 * @param data The data to validate
-	 * @param ignoreMissingProperties Whether to skip validation for missing properties
+	 * @param skipMissingProperties Whether to skip validation for missing properties
 	 * @throws {CustomException} If validation fails
 	 * @returns The validated and transformed instance
 	 */
-	async function validateSchema<TData>(data: TData, ignoreMissingProperties = false) {
-		/**
-		 * Flattens validation errors into an array of error messages
-		 * @param errors The validation errors to flatten
-		 * @returns Array of error messages
-		 */
-		function flattenValidationErrors(errors: ValidationError[]): string[] {
-			return errors.flatMap(error => {
-				const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
-					const [first, ...rest] = constraint.split(' ');
-					return `'${first}': ${rest.join(' ')}`;
-				}) : [];
-				const childConstraints = error.children?.length ? flattenValidationErrors(error.children) : [];
-				return [...currentConstraints, ...childConstraints];
-			});
-		}
+	async function validateSchemaWithClassValidator<TData>(data: TData, skipMissingProperties = false) {
 
-		const instance = plainToInstance(options.schema, data);
-		if (options?.options?.enableDebug) {
-			logDebugger(`${debugContext} Validation`, 'Validating entity instance:', instance);
-		}
-		const errors = await validate(instance, {
-			...options?.schemaConfig,
-			enableDebugMessages: options?.schemaConfig?.enableDebugMessages || options?.options?.enableDebug,
-			whitelist: options?.schemaConfig?.whitelist === false ? options.schemaConfig.whitelist : true,
-			// forbidNonWhitelisted: options?.schemaConfig?.forbidNonWhitelisted === false ? options.schemaConfig.forbidNonWhitelisted : true,
-			forbidNonWhitelisted: true,
-			forbidUnknownValues: options?.schemaConfig?.forbidUnknownValues === false ? options.schemaConfig.forbidUnknownValues : true,
-			skipMissingProperties: ignoreMissingProperties
-		});
-		if (errors.length > 0) {
-			throw new CustomException(flattenValidationErrors(errors) as any, 400);
-		}
-		return instance;
 	}
 
 	/**
@@ -130,7 +184,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
-			await validateSchema(data);
+			await validateSchemaWithClassValidator(data);
 
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(new PutCommand({
 				Item: { ...data },
@@ -392,7 +446,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 				logDebugger(`${debugContext} UpdateCommand`, 'Validating data:', data);
 			}
 
-			await validateSchema(data, true);
+			await validateSchema({ schema: options.schema, data, platform: options.validationOptions?.platform });
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
