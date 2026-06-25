@@ -2,7 +2,7 @@ import { writeFile } from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 
-import sqlBrick from 'sql-bricks';
+// import sqlBrick from 'sql-bricks';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { Express, Request, Response } from 'express';
@@ -622,21 +622,21 @@ export async function generateQrBarcode<TData extends ObjectType | string>(qrDat
 // 	})(tableName);
 // }
 
-export function initSqlParser<TEntitySchema extends ObjectType = ObjectType>(tableName: string) {
-	if (!tableName.trim()) throw new Error('Table name is needed!');
-	return {
-		select: (...columns: any[]) => {
-			return sqlBrick.select(columns.length ? columns : ['*'])
-				.from(tableName);
-		},
-		insert: (values: Partial<TEntitySchema>) => {
-			return sqlBrick.insert(tableName, values).into(tableName);
-		},
-		update: (values: Partial<TEntitySchema>) => {
-			return sqlBrick.update(tableName, values);
-		},
-		delete: () => {
-			return sqlBrick.delete().from(tableName);
-		}
-	};
-}
+// export function initSqlParser<TEntitySchema extends ObjectType = ObjectType>(tableName: string) {
+// 	if (!tableName.trim()) throw new Error('Table name is needed!');
+// 	return {
+// 		select: (...columns: any[]) => {
+// 			return sqlBrick.select(columns.length ? columns : ['*'])
+// 				.from(tableName);
+// 		},
+// 		insert: (values: Partial<TEntitySchema>) => {
+// 			return sqlBrick.insert(tableName, values).into(tableName).;
+// 		},
+// 		update: (values: Partial<TEntitySchema>) => {
+// 			return sqlBrick.update(tableName, values);
+// 		},
+// 		delete: () => {
+// 			return sqlBrick.delete().from(tableName);
+// 		}
+// 	};
+// }
