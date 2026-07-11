@@ -11,6 +11,7 @@ import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
+import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
 import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
 
@@ -199,6 +200,22 @@ export async function readFileFromLambda(fileName: string) {
 /** Check if currently in AWS Lambda environment */
 export function isLambdaEnvironment() {
 	return Boolean(process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME);
+}
+
+/** Check if a string is uuid */
+export function isValidUUID(uuid: string) {
+	return uuidValidate(uuid);
+}
+
+/** Generates customized uuid. v7 is default */
+export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
+	asUpperCase?: boolean;
+	symbol?: string;
+	version?: 4 | 7;
+} = {}): string {
+	let uuid = version === 4 ? uuidv4() : uuidv7();
+	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
+	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 
 /** Map and return API operation results */

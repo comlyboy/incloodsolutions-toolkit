@@ -31,5 +31,5 @@ export function initEnvironmentVariables<TSchema extends ObjectType = any>(schem
 			);
 		}
 	});
-	return { ...options?.includeAllVariables ? process?.env : {}, ...cachedEnvironmentVariables } as TSchema & IBaseEnvironmentVariable & ObjectType<string | number>;
+	return { ...options?.includeAllVariables ? process?.env : {}, ...cachedEnvironmentVariables } as TSchema & IBaseEnvironmentVariable & ObjectType;
 }

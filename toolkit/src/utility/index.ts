@@ -1,7 +1,6 @@
 import { compile, RuntimeOptions } from 'handlebars';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
-import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
 
 import { ObjectType } from '../interface';
@@ -91,25 +90,9 @@ export function transformText({ text, format, trim = false }: {
 	return text;
 }
 
-/** Generates customized uuid. v7 is default */
-export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
-	asUpperCase?: boolean;
-	symbol?: string;
-	version?: 4 | 7;
-} = {}): string {
-	let uuid = version === 4 ? uuidv4() : uuidv7();
-	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
-	return asUpperCase ? uuid.toUpperCase() : uuid;
-}
-
 /** Generates nanoid. Default length to 10. */
 export function generateNanoid(size = 10) {
 	return nanoid(size);
-}
-
-/** Check if a string is uuid */
-export function isValidUUID(uuid: string) {
-	return uuidValidate(uuid);
 }
 
 /** Check if a string contains uuid */
