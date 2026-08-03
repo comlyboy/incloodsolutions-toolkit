@@ -270,3 +270,29 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlS
 	const templateDelegate = compile<TData>(htmlString, compileOptions);
 	return templateDelegate(data, runtimeOptions as unknown as RuntimeOptions);
 }
+
+/** Log beautifully without library */
+export function printLog(
+	context: string,
+	message: string,
+	data?: any,
+	options?: {
+		prettify?: boolean;
+		ignoreDate?: boolean;
+	}
+) {
+	const yellowColor = "\x1b[33m";
+	const resetColor = '\x1b[0m';
+	const greenColor = '\x1b[32m';
+
+	const ctx = context
+		? options?.prettify
+			? `${yellowColor}[${context}]${resetColor} `
+			: `[${context}] `
+		: '';
+
+	const logLabel = options?.prettify ? `${greenColor}LOG${resetColor}` : 'LOG';
+	const logMessage = options?.prettify ? `${greenColor}${message}${resetColor}` : message;
+
+	console.log(`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`, data || '');
+}

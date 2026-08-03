@@ -1,2 +1,2 @@
 // export * from './cli';
-export * from './aws/cdk';
+export * from './aws';

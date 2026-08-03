@@ -22,54 +22,104 @@
  */
 export class CustomException extends Error {
 	/**
-	 * HTTP status code associated with the exception.
-	 *
-	 * This property exists for compatibility with frameworks that expect
-	 * a `status` field on error objects.
-	 *
-	 * @example
-	 * error.status // 404
+	 * HTTP status code.
 	 */
-	status: number;
+	public readonly status: number;
 
 	/**
-	 * HTTP status code associated with the exception.
-	 *
-	 * This property mirrors `status` and is provided because some libraries
-	 * and middleware expect `statusCode` instead.
-	 *
-	 * @example
-	 * error.statusCode // 404
+	 * Alias for `status` for framework compatibility.
 	 */
-	statusCode: number;
+	public readonly statusCode: number;
 
-	/**
-	 * Creates a new custom exception.
-	 *
-	 * @param message - Human-readable error message describing the failure.
-	 * @param statusCode - HTTP status code for the error. Defaults to `400`
-	 * (Bad Request).
-	 *
-	 * @example
-	 * new CustomException('Invalid email address');
-	 *
-	 * @example
-	 * new CustomException('Resource not found', 404);
-	 */
 	constructor(
-		message: any,
-		statusCode = 400,
+		error: string | Error | CustomException | unknown,
+		statusCode?: number,
 		options?: ErrorOptions
 	) {
-		super(message, options);
+		const normalized = CustomException.normalize(error, statusCode);
 
-		this.status = statusCode;
-		this.statusCode = statusCode;
+		super(normalized.message, {
+			...options,
+			cause: options?.cause ?? normalized.cause,
+		});
+
 		this.name = this.constructor.name;
+		this.status = normalized.status;
+		this.statusCode = normalized.status;
 
-		// Maintain proper stack traces in V8 environments.
-		if (typeof Error.captureStackTrace === 'function') {
+		// Preserve stack if an Error was wrapped
+		if (normalized.cause instanceof Error && normalized.cause.stack) {
+			this.stack = normalized.cause.stack;
+		} else if (typeof Error.captureStackTrace === "function") {
 			Error.captureStackTrace(this, this.constructor);
 		}
+	}
+
+	private static normalize(
+		error: unknown,
+		fallbackStatus = 400
+	): {
+		message: string;
+		status: number;
+		cause?: Error;
+	} {
+		// Already a CustomException
+		if (error instanceof CustomException) {
+			return {
+				message: error.message,
+				status: error.status,
+				cause: error,
+			};
+		}
+
+		// Native Error
+		if (error instanceof Error) {
+			const err = error as Error & {
+				status?: number;
+				statusCode?: number;
+			};
+
+			return {
+				message: err.message,
+				status: err.status ?? err.statusCode ?? fallbackStatus,
+				cause: err,
+			};
+		}
+
+		// String
+		if (typeof error === "string") {
+			return {
+				message: error,
+				status: fallbackStatus,
+			};
+		}
+
+		// Error-like object
+		if (error && typeof error === "object") {
+			const obj = error as {
+				message?: unknown;
+				status?: unknown;
+				statusCode?: unknown;
+			};
+
+			return {
+				message:
+					typeof obj.message === "string"
+						? obj.message
+						: "An unexpected error occurred.",
+				status:
+					typeof obj.status === "number"
+						? obj.status
+						: typeof obj.statusCode === "number"
+							? obj.statusCode
+							: fallbackStatus,
+			};
+		}
+
+		// Everything else
+		return {
+			message: "An unexpected error occurred.",
+			status: fallbackStatus,
+		};
 	}
 }

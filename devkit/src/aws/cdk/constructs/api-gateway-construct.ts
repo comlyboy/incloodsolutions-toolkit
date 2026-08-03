@@ -5,7 +5,6 @@ import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
-import { logDebugger } from '../../../utility';
 
 
 /**
@@ -170,7 +169,7 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 
 			/** Optional debug logging */
 			if (this.enableDebug) {
-				logDebugger(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
+				// printLog(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
 			}
 		});
 	}
