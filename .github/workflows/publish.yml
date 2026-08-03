@@ -42,6 +42,7 @@ jobs:
         run: |
           pwd
           echo "** Installing dependencies... **"
+          cat package.json
           npm ci --no-audit --no-fund --quiet
 
       - name: Resolve package info
