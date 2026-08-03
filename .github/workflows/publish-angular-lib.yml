@@ -3,7 +3,7 @@ name: Publish Angular library to npm
 on:
   push:
     branches:
-      - publish-angular
+      - publish-angularr
 
 jobs:
   publish-library:

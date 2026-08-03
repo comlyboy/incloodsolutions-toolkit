@@ -3,7 +3,7 @@ name: Publish Toolkit library to npm
 on:
   push:
     branches:
-      - publish-toolkit
+      - publish-toolkitt
 
 # jobs:
 #   publish-library:
