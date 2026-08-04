@@ -7,14 +7,11 @@ on:
       - publish-node
       - publish-react
       # - publish-angular
-      # - publish-devkit
+      - publish-devkit
 
 jobs:
   publish-library:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 'toolkit'
 
     env:
       PACKAGE_NAME: ""
@@ -39,12 +36,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets._NPM_TOKEN }}
 
       - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           echo "** Installing dependencies... **"
           pwd
-          npm i --verbose
+          npm i
 
       - name: Resolve package info
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           PACKAGE_NAME=$(node -p 'require("./package.json").name')
           LOCAL_VERSION=$(node -p 'require("./package.json").version')
@@ -72,7 +71,9 @@ jobs:
           fi
 
       - name: Build
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm run build
 
       - name: Publish to npm
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm publish --access=public
