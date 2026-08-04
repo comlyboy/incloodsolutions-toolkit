@@ -48,17 +48,16 @@ jobs:
           PACKAGE_NAME=$(node -p 'require("./package.json").name')
           LOCAL_VERSION=$(node -p 'require("./package.json").version')
 
-          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
-          echo "LOCAL_VERSION=$LOCAL_VERSION" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
+          echo "LOCAL_VERSION=$LOCAL_VERSION" >> "$GITHUB_ENV"
 
-          PUBLISHED=$(npm view "$PACKAGE_NAME@latest" name version --json 2>/dev/null || echo '0.0.0')
+          PUBLISHED_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || true)
 
-          TAG=$(echo "$PUBLISHED" | node -p '
-            const d = JSON.parse(require("fs").readFileSync(0, "utf-8") || "{}");
-            (d.name || process.env.PACKAGE_NAME) + "@" + (d.version || "not-published")
-          ')
+          if [ -z "$PUBLISHED_VERSION" ]; then
+            PUBLISHED_VERSION="not-published"
+          fi
 
-          echo "PUBLISHED_VERSION=$TAG" >> $GITHUB_ENV
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_ENV"
 
       - name: Prevent duplicate publish
         run: |
