@@ -23,10 +23,6 @@ jobs:
       - name: Checkout code (make repo branch code available in this pipeline)
         uses: actions/checkout@v4
 
-      - name: Determine working directory
-        run: |
-          echo "WORKING_DIRECTORY=${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
-
       - name: Setup Node.js v24
         uses: actions/setup-node@v4
         with:
@@ -34,6 +30,10 @@ jobs:
           registry-url: https://registry.npmjs.org
         env:
           NODE_AUTH_TOKEN: ${{ secrets._NPM_TOKEN }}
+
+      - name: Determine working directory
+        run: |
+          echo "WORKING_DIRECTORY=${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
 
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -51,7 +51,7 @@ jobs:
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
           echo "LOCAL_VERSION=$LOCAL_VERSION" >> $GITHUB_ENV
 
-          PUBLISHED=$(npm view "$PACKAGE_NAME@latest" name version --json 2>/dev/null || echo '{}')
+          PUBLISHED=$(npm view "$PACKAGE_NAME@latest" name version --json 2>/dev/null || echo '0.0.0')
 
           TAG=$(echo "$PUBLISHED" | node -p '
             const d = JSON.parse(require("fs").readFileSync(0, "utf-8") || "{}");
