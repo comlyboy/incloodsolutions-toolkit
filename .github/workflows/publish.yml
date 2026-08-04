@@ -1,4 +1,4 @@
-name: Publish Toolkit library to npm
+name: Publish library to npm
 
 on:
   push:
