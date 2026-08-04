@@ -42,7 +42,7 @@ jobs:
         run: |
           echo "** Installing dependencies... **"
           pwd
-          npm ci --no-audit --no-fund --quiet
+          npm i
 
       - name: Resolve package info
         run: |
