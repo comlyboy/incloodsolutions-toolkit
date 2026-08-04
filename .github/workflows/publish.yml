@@ -70,6 +70,12 @@ jobs:
             echo "Local: $PACKAGE_NAME@$LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
           fi
 
+      - name: Install dependencies
+        run: |
+          echo "** Installing dependencies... **"
+          pwd
+          npm i
+
       - name: Build
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm run build

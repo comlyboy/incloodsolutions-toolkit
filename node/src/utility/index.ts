@@ -47,13 +47,13 @@ export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug 
 		}
 
 		if (enableDebug) {
-			logDebugger(encryptData.name, 'Encrypting with type aes256', data);
+			printLog(encryptData.name, 'Encrypting with type aes256', data);
 		}
 
 		const dataToString = JSON.stringify(data);
 
 		if (enableDebug) {
-			logDebugger(encryptData.name, 'Stringified encryption data', dataToString);
+			printLog(encryptData.name, 'Stringified encryption data', dataToString);
 		}
 
 		if (type === 'hmacSha512') {
@@ -66,7 +66,7 @@ export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug 
 	} catch (error) {
 		error['message'] = error?.message || 'Encryption errored out!';
 		if (enableDebug) {
-			logDebugger(encryptData.name, error.message);
+			printLog(encryptData.name, error.message);
 		}
 		throw error;
 	}
@@ -89,17 +89,17 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', en
 		}
 
 		if (enableDebug) {
-			logDebugger(decryptData.name, 'Decryption WordArray to Utf8 string', decryptedString);
+			printLog(decryptData.name, 'Decryption WordArray to Utf8 string', decryptedString);
 		}
 		const result = JSON.parse(decryptedString);
 		if (enableDebug) {
-			logDebugger(decryptData.name, 'Decryption parsed data to JSON', result);
+			printLog(decryptData.name, 'Decryption parsed data to JSON', result);
 		}
 		return result as TResponse;
 	} catch (error) {
 		error['message'] = error?.message || 'Decryption errored out!';
 		if (enableDebug) {
-			logDebugger(decryptData.name, error.message);
+			printLog(decryptData.name, error.message);
 		}
 		throw error;
 	}
@@ -353,7 +353,7 @@ export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', des
 }
 
 /** Log beautifully without library */
-export function logDebugger(
+export function printLog(
 	context: string,
 	message: string,
 	data?: any,
