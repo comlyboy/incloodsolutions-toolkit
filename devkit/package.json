@@ -1,7 +1,7 @@
 {
 	"name": "@incloodsolutions/devkit",
-	"version": "0.0.1",
-	"description": "A toolkit containing aws utility, helper, config, interfaces.",
+	"version": "0.0.2",
+	"description": "A comprehensive development toolkit for Node.js and TypeScript, providing development utilities, configuration helpers, AWS CDK constructs, stacks, and infrastructure tooling.",
 	"type": "module",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
