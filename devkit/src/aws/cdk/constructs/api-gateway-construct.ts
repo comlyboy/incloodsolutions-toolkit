@@ -4,6 +4,8 @@ import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
 import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
 
+import { printLog } from '@incloodsolutions/toolkit';
+
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
 
@@ -169,7 +171,7 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 
 			/** Optional debug logging */
 			if (this.enableDebug) {
-				// printLog(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
+				printLog(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
 			}
 		});
 	}

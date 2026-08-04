@@ -2,7 +2,8 @@ import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableAttributes, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 
-import { logDebugger } from '../../../utility';
+import { printLog } from '@incloodsolutions/toolkit';
+
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
 /**
@@ -75,7 +76,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				logDebugger(
+				printLog(
 					BaseDynamoDBConstruct.name,
 					`Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`
 				);
@@ -94,7 +95,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				logDebugger(
+				printLog(
 					BaseDynamoDBConstruct.name,
 					`Created Dynamo-DB table from existing using ARN`
 				);
@@ -113,7 +114,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				logDebugger(
+				printLog(
 					BaseDynamoDBConstruct.name,
 					`Created Dynamo-DB table from existing attributes`
 				);
@@ -155,7 +156,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 					this.table.addGlobalSecondaryIndex(globalIndex);
 
 					if (this.enableDebug) {
-						logDebugger(
+						printLog(
 							BaseDynamoDBConstruct.name,
 							`Added GSI: ${globalIndex.indexName}`
 						);
@@ -171,7 +172,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 					this.table.addLocalSecondaryIndex(localIndex);
 
 					if (this.enableDebug) {
-						logDebugger(
+						printLog(
 							BaseDynamoDBConstruct.name,
 							`Added LSI: ${localIndex.indexName}`
 						);
