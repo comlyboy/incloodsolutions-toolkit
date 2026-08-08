@@ -4,9 +4,9 @@ import { plainToInstance } from "class-transformer";
 import { ZodObject } from "zod";
 import { validate, ValidationError, ValidatorOptions } from "class-validator";
 
-import { ObjectType, IBaseEnableDebug, CustomException, generateISODate, generateDateInNumber, generateCustomUUID } from "@incloodsolutions/toolkit";
+import { ObjectType, IBaseEnableDebug, CustomException, generateISODate, generateDateInNumber } from "@incloodsolutions/toolkit";
 
-import { printLog } from "../../utility";
+import { generateCustomUUID, printLog } from "../../utility";
 
 /**
  * Validates data using either Zod or class-validator.
