@@ -1,9 +1,46 @@
 import { ObjectType, IBaseEnableDebug, CustomException } from "@incloodsolutions/toolkit";
 import { IBaseEnvironmentVariable } from "../interface";
 
+/**
+ * Module-level cache of resolved variables, shared across every call so that
+ * repeated `initEnvironmentVariables` calls accumulate rather than recompute.
+ */
 const cachedEnvironmentVariables: ObjectType = {} as const;
 
-/** Initialize environment variable, no dotenv library */
+/**
+ * Reads and validates environment variables from `process.env` against a schema,
+ * without depending on `dotenv`.
+ *
+ * For each schema entry the value is taken from `process.env`, falling back to
+ * `defaultValue`. A `required` entry with neither an env value nor a
+ * `defaultValue` throws. Resolved values are cached at module scope and returned
+ * merged together on every call.
+ *
+ * @typeParam TSchema - Shape of your environment object. The result is typed as
+ *   `TSchema & IBaseEnvironmentVariable & ObjectType`.
+ * @param schema - Map of variable name to its rules.
+ * @param schema.<key>.required - Throw if the variable is absent and has no `defaultValue`. Defaults to `false`.
+ * @param schema.<key>.defaultValue - Value used when the variable is not set in `process.env`.
+ * @param options - Additional options.
+ * @param options.envPath - Reserved for a future custom `.env` file path. Currently unused.
+ * @param options.includeAllVariables - Spread the entire `process.env` into the
+ *   result in addition to the schema keys. Defaults to `false`.
+ * @param options.enableDebug - Log each resolved variable and its source
+ *   (`process.env` vs `defaultValue`). Suppressed when `NODE_ENV === 'production'`.
+ *   Defaults to `false`.
+ * @returns The resolved, typed environment object.
+ * @throws {CustomException} When a `required` variable is missing and has no default.
+ *
+ * @example
+ * export const env = initEnvironmentVariables(
+ *   {
+ *     NODE_ENV: { required: true, defaultValue: 'development' },
+ *     PORT: { defaultValue: 8080 },
+ *     MONGO_DATABASE_URL: { required: true },
+ *   },
+ *   { enableDebug: true },
+ * );
+ */
 export function initEnvironmentVariables<TSchema extends ObjectType = any>(schema: {
 	[key in keyof Partial<TSchema & IBaseEnvironmentVariable>]: {
 		required?: boolean;

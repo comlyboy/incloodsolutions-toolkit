@@ -9,17 +9,35 @@ import {
 	useParams,
 } from "react-router-dom";
 
+/**
+ * The snapshot of routing state returned by {@link useCustomNavigation}.
+ */
 interface ICurrentNavigationMetadata {
+	/** `location.pathname`. */
 	readonly path: string;
+	/**
+	 * Navigate to `url`, optionally appending a query string built from
+	 * `options.queries` (arrays produce repeated keys, falsy values are skipped).
+	 * Remaining options are forwarded to React Router's `navigate`.
+	 */
 	navigate: (url: string, options?: NavigateOptions & { queries?: Record<string, any> }) => void;
+	/** Parsed query-string parameters as a flat string map. */
 	readonly query: Record<string, string>;
+	/** Value from the route's loader (`useLoaderData`). */
 	readonly data?: any;
+	/** `location.state`. */
 	readonly state?: any;
+	/** Matched route handles/data (`useMatches`). */
 	readonly matchedData?: Record<string, any>;
+	/** `location.hash` (or `undefined` when empty). */
 	readonly hash?: string;
+	/** `pathname + search + hash`. */
 	readonly url: string;
+	/** Dynamic route params (`useParams`). */
 	readonly params: Record<string, string | undefined>;
+	/** Absolute URL: `origin + pathname + search + hash`. */
 	readonly fullUrl: string;
+	/** `'POP' | 'PUSH' | 'REPLACE'` from `useNavigationType`. */
 	readonly navigationType: string;
 }
 
@@ -42,6 +60,21 @@ function debugLog(enableDebug: boolean | undefined, ...args: any[]) {
 /* hook                                               */
 /* -------------------------------------------------- */
 
+/**
+ * A convenience wrapper over several React Router hooks that returns one
+ * {@link ICurrentNavigationMetadata} object plus a query-string-aware `navigate`.
+ *
+ * `onRouteChange` fires only when the route actually changes: the metadata is
+ * serialised (with functions stripped) and compared to the previous value.
+ *
+ * @param onRouteChange - Called with the fresh metadata whenever the route changes.
+ * @param enableDebug - When `true`, logs internal steps to the console. Defaults to `false`.
+ * @returns The current navigation metadata (recomputed on every relevant change).
+ *
+ * @example
+ * const nav = useCustomNavigation((info) => track(info.path));
+ * nav.navigate('/users', { queries: { page: 2 }, replace: true });
+ */
 export function useCustomNavigation(
 	onRouteChange?: (info: ICurrentNavigationMetadata) => void,
 	enableDebug?: boolean

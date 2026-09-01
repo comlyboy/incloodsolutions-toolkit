@@ -1,11 +1,20 @@
 import { useEffect, useMemo } from "react";
 
+/**
+ * Options for {@link usePageMetadata}.
+ */
 interface PageMetaOptions {
+	/** Document `<title>`, also mirrored to `og:title` and `twitter:title`. */
 	title?: string;
+	/** Meta description, also mirrored to `og:description` and `twitter:description`. */
 	description?: string;
+	/** URL set as a cover `background-image` on `document.body` (with `cover` / `no-repeat` / `center`). */
 	backgroundImageUrl?: string;
+	/** Extra inline styles applied to `document.body`. Reverted on unmount. Defaults to `{}`. */
 	backgroundStyle?: Partial<CSSStyleDeclaration>;
+	/** Image URL for `og:image` and `twitter:image`. */
 	ogImage?: string;
+	/** `twitter:card` value. Defaults to `'summary_large_image'`. */
 	twitterCardType?: "summary" | "summary_large_image";
 }
 
@@ -19,6 +28,21 @@ function setOrCreateMeta(attrName: string, attrValue: string, content: string) {
 	meta.setAttribute("content", content);
 }
 
+/**
+ * Imperatively sets document metadata for the current page: the `<title>`, the
+ * `description` meta tag, Open Graph / Twitter card tags, and (optionally) a
+ * `document.body` background.
+ *
+ * Missing existing meta tags are created; the `og:type` (`website`) and
+ * `twitter:card` tags are always set. Any body background applied here is
+ * removed when the component unmounts or the inputs change.
+ *
+ * @param options - See {@link PageMetaOptions}. `backgroundStyle` defaults to
+ *   `{}` and `twitterCardType` defaults to `'summary_large_image'`.
+ *
+ * @example
+ * usePageMetadata({ title: 'Dashboard', description: 'Your account overview', ogImage: '/og.png' });
+ */
 export function usePageMetadata({
 	title,
 	description,

@@ -1,10 +1,29 @@
+/**
+ * @packageDocumentation
+ *
+ * Ready-made validation building blocks.
+ *
+ * Two things live here:
+ *
+ * 1. **Zod schemas** for common fields. Simple ones are exported as schema
+ *    *instances* (use `.parse()` directly); configurable ones are exported as
+ *    *factory functions* that take size/length bounds with sensible defaults and
+ *    return a fresh schema.
+ * 2. **Every predicate and sanitiser from the `validator` package**, re-exported
+ *    individually (`isEmail`, `isURL`, `normalizeEmail`, `trim`, ...) plus the
+ *    `validator` type namespace as {@link ValidatorTypes}.
+ */
+
 import validator from "validator";
 import type * as ValidatorTypes from "validator";
 
 import { boolean, email, ipv4, ipv6, iso, number, string, url, uuid } from "zod";
 
 /**
- * Validates UUID values.
+ * Zod schema instance that validates a UUID string (any version).
+ *
+ * @example
+ * UuidValidationSchema.parse('9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d');
  */
 export const UuidValidationSchema = uuid();
 
@@ -233,6 +252,22 @@ export const LatitudeValidationSchema = () => number().min(-90).max(90);
  */
 export const LongitudeValidationSchema = () => number().min(-180).max(180);
 
+/**
+ * Individually re-exported predicates and sanitisers from the `validator`
+ * package, so they can be imported by name from `@incloodsolutions/toolkit`
+ * without pulling in the default export.
+ *
+ * Includes the `is*` predicates (`isEmail`, `isURL`, `isUUID`, `isJWT`,
+ * `isStrongPassword`, `isCreditCard`, `isMobilePhone`, every ISO-standard check,
+ * and more) and the sanitisers (`normalizeEmail`, `trim`, `ltrim`, `rtrim`,
+ * `escape`, `unescape`, `blacklist`, `whitelist`, `stripLow`, `toBoolean`,
+ * `toDate`, `toFloat`, `toInt`).
+ *
+ * @example
+ * import { isEmail, normalizeEmail } from '@incloodsolutions/toolkit';
+ * isEmail('a@b.com');            // true
+ * normalizeEmail('A@B.Com');     // "a@b.com"
+ */
 export const {
 	blacklist,
 	escape,

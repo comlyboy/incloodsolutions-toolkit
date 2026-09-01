@@ -1,111 +1,141 @@
 # IncloodSolutions Toolkits
 
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E.svg?logo=javascript&logoColor=000&style=for-the-badge)
-![Typescript](https://img.shields.io/badge/TypeScript-3178C6.svg?logo=typescript&logoColor=fff&style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6.svg?logo=typescript&logoColor=fff&style=for-the-badge)
 ![React](https://img.shields.io/badge/ReactJs-61DAFB.svg?logo=react&logoColor=000&style=for-the-badge)
 ![Angular](https://img.shields.io/badge/Angular-%23DD0031.svg?logo=angular&logoColor=fff&style=for-the-badge)
 ![NodeJS](https://img.shields.io/badge/Node.js-6DA55F.svg?logo=node.js&logoColor=fff&style=for-the-badge)
-![GithubAction](https://img.shields.io/badge/GitHub_Actions-2088FF.svg?logo=github-actions&logoColor=fff&style=for-the-badge)
-![GithubAction](https://img.shields.io/badge/npm-CB3837.svg?logo=npm&logoColor=fff&style=for-the-badge)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF.svg?logo=github-actions&logoColor=fff&style=for-the-badge)
+![npm](https://img.shields.io/badge/npm-CB3837.svg?logo=npm&logoColor=fff&style=for-the-badge)
 
-This monorepo contains a collection of open-source toolkits designed to simplify development across multiple frameworks and runtimes, including **React**, **Angular**, and **Node.js**. Each package is published under the `@incloodsolutions` scope.
+A multi-package repository of open-source toolkits that share a common core and target
+different runtimes: framework-agnostic JavaScript/TypeScript, Node.js backends, React apps,
+Angular apps, and AWS CDK infrastructure. Every package is published to npm under the
+`@incloodsolutions` scope.
 
----
-
-## 📦 Packages
-
-### 1. @incloodsolutions/react-toolkit
-
-- A collection of utilities and components for React applications.
-- Prebuilt hooks for state management and side effects.
-- UI helpers and reusable patterns.
-- Simplified context management.
-- TypeScript-first utilities
-
-👉 Best for React developers who want ready-to-use patterns and utilities.
+Repository: <https://github.com/comlyboy/incloodsolutions-toolkit>
 
 ---
 
-### 2. @incloodsolutions/angular-toolkit
+## Documentation map
 
-- A set of utilities and decorators for Angular projects.
-- Lifecycle helpers (e.g., UntilDestroy decorator).
-- Reusable RxJS operators.
-- Utility services and directives.
-- Cleaner component patterns.
+| I want to...                                              | Read                                            |
+| -------------------------------------------------------- | ----------------------------------------------- |
+| Look up any exported symbol across all packages          | [`docs/AI-INDEX.md`](./docs/AI-INDEX.md)        |
+| Use the core utilities, schemas, and types               | [`toolkit/README.md`](./toolkit/README.md)      |
+| Build a Node.js / serverless backend                     | [`node/README.md`](./node/README.md)            |
+| Build a React app                                        | [`react/README.md`](./react/README.md)          |
+| Build an Angular app                                     | [`angular/README.md`](./angular/README.md)      |
+| Define AWS infrastructure with CDK                       | [`devkit/README.md`](./devkit/README.md)        |
 
-👉 Ideal for Angular developers working with RxJS-heavy apps.
-
----
-
-### 3. @incloodsolutions/node-toolkit
-
-- Utility functions and helpers for Node.js backends.
-- Async helpers and error handling utilities.
-- File system utilities.
-- HTTP and API helpers.
-- Common TypeScript patterns for backend apps.
-
-👉 Suitable for Node.js developers building APIs, CLIs, or backends.
+[`docs/AI-INDEX.md`](./docs/AI-INDEX.md) is a single flat index of **every** public export
+(name, kind, signature, one-line description, source path). It is the fastest way for a
+person or an AI assistant to answer "does this repo already have a helper for X, and where
+does it live?".
 
 ---
 
-### 4. @incloodsolutions/toolkit
+## Packages
 
-- A general-purpose JavaScript/TypeScript utility library.
-- Common data manipulation utilities.
-- String, number, and date helpers.
-- Functional programming utilities.
-- Lightweight and framework-agnostic.
+| Package | Directory | npm | Runtime | Status |
+| ------- | --------- | --- | ------- | ------ |
+| `@incloodsolutions/toolkit` | [`toolkit/`](./toolkit) | [link](https://www.npmjs.com/package/@incloodsolutions/toolkit) | Any JS/TS (Node 18+) | Stable, actively used |
+| `@incloodsolutions/node-toolkit` | [`node/`](./node) | [link](https://www.npmjs.com/package/@incloodsolutions/node-toolkit) | Node.js 18+ | Active, some helpers are stubs |
+| `@incloodsolutions/react-toolkit` | [`react/`](./react) | [link](https://www.npmjs.com/package/@incloodsolutions/react-toolkit) | React 18+ | Active, small surface |
+| `@incloodsolutions/devkit` | [`devkit/`](./devkit) | [link](https://www.npmjs.com/package/@incloodsolutions/devkit) | Node.js + AWS CDK v2 | Active, AWS CDK constructs only |
+| `@incloodsolutions/angular-toolkit` | [`angular/`](./angular) | [link](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit) | Angular 21+ | Placeholder, not yet functional |
 
-👉 Perfect for both frontend and backend projects where small reusable helpers are needed.
+### `@incloodsolutions/toolkit` — the core
+
+Framework-agnostic building blocks that every other package depends on:
+
+- `CustomException` — HTTP-status-aware error class.
+- ~20 utility functions: text formatting, ID generation, deep clone, object sanitising,
+  phone-number parsing, XML/JSON conversion, Handlebars templating, HTTP requests, logging.
+- ~25 ready-made [Zod](https://zod.dev) validation schemas plus every predicate from
+  [`validator`](https://github.com/validatorjs/validator.js).
+- ~20 shared base interfaces (`IBaseId`, `IBaseCreator`, `IBaseDelete`, ...), the
+  `AppEnvironmentEnum`, and helper types (`ObjectType`, `SortOrderType`).
+
+### `@incloodsolutions/node-toolkit`
+
+Server-side helpers built on the core:
+
+- AWS SDK v3 wrappers for S3, SES, SNS, and DynamoDB (a document-client CRUD wrapper).
+- Serverless adapters: run an Express or NestJS app as an AWS Lambda or GCP Function handler.
+- MongoDB/Mongoose: cached connection for serverless, schema factory, ObjectId normalisers.
+- Crypto (`crypto-js`, `bcryptjs`), env-var loading without `dotenv`, request logging with
+  `morgan`, QR/barcode generation, class-validator/class-transformer helpers, API response
+  helpers.
+
+### `@incloodsolutions/react-toolkit`
+
+A small React layer:
+
+- Hooks: `useKeyEvent`, `usePageMetadata`, `useCustomNavigation` (React Router).
+- Utilities: `parseClassnames` (clsx + tailwind-merge), `getScreenSize`.
+- Form resolver helpers for `react-hook-form` (zod, joi, class-validator).
+- Re-exports the entire `usehooks-ts` API and a large slice of `react-use`.
+
+### `@incloodsolutions/devkit`
+
+AWS CDK v2 "Base" constructs with sensible defaults — Lambda, Lambda layer, both REST and
+HTTP API Gateway, WebSocket API, DynamoDB, S3, S3 + CloudFront static-site deployment,
+CloudFront, CloudWatch log group, SNS, SQS, EventBridge, VPC, IAM role/policy, and two
+Lambda authorizer variants.
+
+### `@incloodsolutions/angular-toolkit`
+
+Currently a published placeholder (`StorageService` is an empty injectable). Not ready for
+use.
 
 ---
 
-## 🚀 Getting Started
+## Getting started
 
-Each package is published separately on npm under the @incloodsolutions scope.
-
-Install any package with:
+Each package is installed independently:
 
 ```bash
-# Example for React
-npm install @incloodsolutions/react-toolkit
-
-# For Angular
-npm install @incloodsolutions/angular-toolkit
-
-# For Node.js
-npm install @incloodsolutions/node-toolkit
-
-# For general JS/TS utilities
 npm install @incloodsolutions/toolkit
+npm install @incloodsolutions/node-toolkit
+npm install @incloodsolutions/react-toolkit
+npm install @incloodsolutions/devkit
 ```
----
 
-## 📖 Documentation
+## Repository layout
 
-Each package contains its own **README** with:
+```
+incloodsolutions-toolkit/
+├── docs/AI-INDEX.md      # flat index of every export in every package
+├── toolkit/              # @incloodsolutions/toolkit         (core)
+├── node/                 # @incloodsolutions/node-toolkit
+├── react/                # @incloodsolutions/react-toolkit
+├── devkit/               # @incloodsolutions/devkit
+├── angular/              # @incloodsolutions/angular-toolkit  (ng-packagr workspace)
+├── shared/               # tsup base config shared by packages
+└── .github/workflows/    # publish.yml
+```
 
-- 📖 Usage examples
-- ⚙️ API references
-- 🧩 Integration guidelines
+Each package is a self-contained npm project with its own `package.json`, `tsconfig`, and
+build. There is no root workspace; run `npm install` inside the package you are working on.
 
-Check [`angular/*`](./angular), [`react/*`](./react), [`toolkit/*`](./toolkit), [`node/*`](./node) folders for details.
+## Building and publishing
 
----
+Most packages build with [`tsup`](https://tsup.egg.js.org) to dual ESM + CommonJS output
+with type declarations; `angular/` builds with `ng-packagr`.
 
-## 🤝 Contributing
+Releases are automated by [`.github/workflows/publish.yml`](./.github/workflows/publish.yml).
+Pushing a branch named `publish-<package-dir>` (for example `publish-toolkit`,
+`publish-node`, `publish-react`, `publish-devkit`) triggers a job that installs, refuses to
+republish an existing version, runs `npm run build`, and runs `npm publish --access=public`
+in that directory. Bump the version in the package's `package.json` before pushing.
 
-- Contributions are welcome!
-- Open issues for bugs, suggestions, or features.
-- Submit PRs for fixes and improvements.
-- Follow the contribution guide in each package.
+## Contributing
 
----
+Issues and pull requests are welcome. When you add or change an export, update the package
+README **and** [`docs/AI-INDEX.md`](./docs/AI-INDEX.md) in the same change so the index
+stays authoritative.
 
-## 📜 License
+## License
 
-All packages in this monorepo are licensed under the MIT License.
-
----
+MIT for every package in this repository.

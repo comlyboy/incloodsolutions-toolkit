@@ -13,24 +13,40 @@
  * - Preserves the stack trace in V8 environments (Node.js, Chrome).
  *
  * @example
+ * // From a message and an explicit status
  * throw new CustomException('User not found', 404);
  *
  * @example
- * throw new CustomException('Unauthorized access', 401);
+ * // Re-wrapping an unknown error in a catch block; status defaults to 400
+ * try { await doWork(); } catch (error) { throw new CustomException(error); }
  *
  * @extends Error
  */
 export class CustomException extends Error {
 	/**
-	 * HTTP status code.
+	 * The resolved HTTP status code.
+	 *
+	 * Resolution order: an explicit `statusCode` argument, then a `status` /
+	 * `statusCode` found on the wrapped error, then the fallback of `400`.
 	 */
 	public readonly status: number;
 
 	/**
-	 * Alias for `status` for framework compatibility.
+	 * Alias of {@link CustomException.status}, provided because different
+	 * frameworks and libraries read one name or the other.
 	 */
 	public readonly statusCode: number;
 
+	/**
+	 * @param error - The source of the error. May be a message `string`, a native
+	 *   `Error`, another `CustomException`, or any error-like object with
+	 *   `message` / `status` / `statusCode` fields. Anything else yields a generic
+	 *   "An unexpected error occurred." message.
+	 * @param statusCode - Explicit HTTP status. Used as the fallback when the
+	 *   source carries no status of its own. Defaults to `400`.
+	 * @param options - Native `ErrorOptions`. An explicit `options.cause` takes
+	 *   precedence over the automatically derived cause.
+	 */
 	constructor(
 		error: string | Error | CustomException | unknown,
 		statusCode?: number,
@@ -55,6 +71,15 @@ export class CustomException extends Error {
 		}
 	}
 
+	/**
+	 * Normalises an arbitrary thrown value into a consistent
+	 * `{ message, status, cause? }` shape.
+	 *
+	 * @param error - The value to normalise (string, `Error`, `CustomException`,
+	 *   error-like object, or anything else).
+	 * @param fallbackStatus - Status to use when the value carries none. Defaults to `400`.
+	 * @returns The normalised message, status, and (when available) the original error as `cause`.
+	 */
 	private static normalize(
 		error: unknown,
 		fallbackStatus = 400

@@ -147,28 +147,62 @@ export interface IBaseErrorResponse extends IBaseTimestamp {
 	statusCode: number;
 }
 
-/** Supported application environments */
+/**
+ * The set of deployment environments an application can run in.
+ *
+ * Values are the lowercase environment names, suitable for use directly as
+ * `NODE_ENV` or a deploy `stage`.
+ *
+ * @example
+ * if (env === AppEnvironmentEnum.PRODUCTION) { enableStrictMode(); }
+ */
 export enum AppEnvironmentEnum {
+	/** Quality-assurance environment. */
 	QA = 'qa',
+	/** Automated-test environment. */
 	TEST = 'test',
+	/** Developer's local machine. */
 	LOCAL = 'local',
+	/** Pre-production staging environment. */
 	STAGING = 'staging',
+	/** Live production environment. */
 	PRODUCTION = 'production',
+	/** Shared development environment. */
 	DEVELOPMENT = 'development'
 }
 
-/** Literal string type of AppEnvironmentEnum values */
+/**
+ * String-literal union of every {@link AppEnvironmentEnum} value
+ * (`'qa' | 'test' | 'local' | 'staging' | 'production' | 'development'`).
+ *
+ * Use this where a plain string is expected but you still want the values
+ * constrained, e.g. a config schema or a CDK construct's `stage` prop.
+ */
 export type AppEnvironmentType = `${AppEnvironmentEnum}`;
 
-/** Extracts value types from a given entity object */
+/**
+ * The union of all value types of `TEntity`.
+ *
+ * @typeParam TEntity - The object type to extract from.
+ * @example
+ * type Values = ExtractValueTypes<{ a: string; b: number }>; // string | number
+ */
 export type ExtractValueTypes<TEntity> = TEntity[keyof TEntity];
 
-/** Generic key-value object type */
+/**
+ * A generic key-value record.
+ *
+ * @typeParam TValue - Value type. Defaults to `any`.
+ * @typeParam TKey - Key type. Defaults to `string`.
+ * @example
+ * const headers: ObjectType<string> = { 'content-type': 'application/json' };
+ */
 export type ObjectType<TValue = any, TKey extends string | number | symbol = string> = Record<TKey, TValue>;
 
 /**
- * Describes sorting directions for queries.
- * - `'ascending'` means lowest to highest.
- * - `'descending'` means highest to lowest.
+ * Sort direction for queries and list endpoints.
+ *
+ * - `'ascending'` — lowest to highest (A→Z, 0→9, oldest→newest).
+ * - `'descending'` — highest to lowest (Z→A, 9→0, newest→oldest).
  */
 export type SortOrderType = 'descending' | 'ascending';

@@ -7,17 +7,60 @@ import { ObjectType } from '../interface';
 import { CustomException } from '../error';
 import { nanoid } from 'nanoid';
 
-/** Check if string is ISO date */
+/**
+ * Checks whether a string is a valid ISO 8601 date or date-time.
+ *
+ * Accepts a bare calendar date (`2024-04-12`) or a full date-time with an
+ * optional milliseconds component and an optional timezone (`Z` or `±HH:MM`),
+ * e.g. `2024-04-12T01:02:55.666Z`.
+ *
+ * @param date - The string to test.
+ * @returns `true` when the string matches the ISO 8601 pattern, otherwise `false`.
+ *
+ * @example
+ * isIsoDate('2024-04-12');                    // true
+ * isIsoDate('2024-04-12T01:02:55.666Z');      // true
+ * isIsoDate('12/04/2024');                    // false
+ */
 export function isIsoDate(date: string): boolean {
 	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
 }
 
-/** Generates ISO date */
+/**
+ * Converts a date to an ISO 8601 string.
+ *
+ * @param date - A `Date`, epoch number, or parsable date string. When omitted,
+ *   the current date and time is used.
+ * @returns The ISO 8601 representation, e.g. `2024-04-12T01:02:55.666Z`.
+ *
+ * @example
+ * generateISODate();                 // now, e.g. "2024-04-12T01:02:55.666Z"
+ * generateISODate(1712883775666);    // "2024-04-12T01:02:55.666Z"
+ * generateISODate('2024-04-12');     // "2024-04-12T00:00:00.000Z"
+ */
 export function generateISODate(date?: string | number | Date) {
 	return date ? new Date(date).toISOString() : new Date().toISOString();
 }
 
-/** Generates random ID, number, alphabet, or mixed */
+/**
+ * Generates a pseudo-random identifier.
+ *
+ * Uses `Math.random()` and is **not** cryptographically secure. For tokens and
+ * secrets prefer {@link generateNanoid} or a crypto-backed generator.
+ *
+ * @param options - Generation options.
+ * @param options.length - Length of the generated ID. Defaults to `6`.
+ * @param options.variant - Character set to draw from. Defaults to `'numeric'`.
+ *   - `'numeric'`: digits `0-9` only.
+ *   - `'alphabet'`: lowercase letters `a-z` only.
+ *   - `'alphanumeric'`: alternates one letter then one digit for an even mix.
+ * @returns A string of exactly `length` characters.
+ *
+ * @example
+ * generateRandomId();                                  // e.g. "480913"
+ * generateRandomId({ length: 8, variant: 'alphabet' }); // e.g. "qmzkbwra"
+ * generateRandomId({ length: 6, variant: 'alphanumeric' }); // e.g. "a1b2c3"
+ */
 export function generateRandomId({ length = 6, variant = 'numeric' }: {
 	length?: number;
 	variant?: 'alphabet' | 'numeric' | 'alphanumeric';
@@ -45,23 +88,25 @@ export function generateRandomId({ length = 6, variant = 'numeric' }: {
 }
 
 /**
- * Transforms a text string based on the specified format type.
+ * Reformats a string according to a casing/spacing style.
  *
- * Supported formats:
- * - `"uppercase"`: Converts all text to uppercase.
- * - `"lowercase"`: Converts all text to lowercase.
- * - `"capitalize"`: Capitalises the first letter of each word.
- * - `"titlecase"`: Capitalises the first letter of the text.
- * - `"kebab"`: Converts all text to kebab (e.g., hello-world).
+ * Non-string or empty input is returned unchanged. When no `format` is given the
+ * text is returned as-is (subject only to `trim`).
  *
- * @param {Object} options - Options object.
- * @param {string} options.text - The input text to transform.
- * @param {"uppercase" | "lowercase" | "titlecase" | "capitalize" | "kebab"} options.format - The transformation type.
- * @returns {string} - The transformed text.
+ * @param options - Transformation options.
+ * @param options.text - The input string to transform.
+ * @param options.trim - Trim surrounding whitespace after formatting. Defaults to `false`.
+ * @param options.format - The style to apply:
+ *   - `'uppercase'`: `HELLO WORLD`
+ *   - `'lowercase'`: `hello world`
+ *   - `'capitalize'`: `Hello World` (first letter of every word)
+ *   - `'titlecase'`: `Hello world` (first letter of the string only)
+ *   - `'kebab'`: `hello-world` (whitespace runs replaced with a single `-`)
+ * @returns The transformed string.
  *
  * @example
- * transformText({ text: 'hello world', format: 'capitalize' });
- * // Returns: "Hello World"
+ * transformText({ text: 'hello world', format: 'capitalize' }); // "Hello World"
+ * transformText({ text: '  Scalable Systems  ', format: 'kebab', trim: true }); // "Scalable-Systems"
  */
 export function transformText({ text, format, trim = false }: {
 	text: string;
@@ -90,12 +135,30 @@ export function transformText({ text, format, trim = false }: {
 	return text;
 }
 
-/** Generates nanoid. Default length to 10. */
+/**
+ * Generates a URL-safe unique ID using the `nanoid` library.
+ *
+ * @param size - Number of characters to generate. Defaults to `10`.
+ * @returns A random `nanoid` string.
+ *
+ * @example
+ * generateNanoid();    // e.g. "V1StGXR8_Z"
+ * generateNanoid(21);  // default nanoid length
+ */
 export function generateNanoid(size = 10) {
 	return nanoid(size);
 }
 
-/** Check if a string contains uuid */
+/**
+ * Checks whether a string contains a UUID (version 1–5) anywhere within it.
+ *
+ * @param input - The string to search.
+ * @returns `true` when at least one UUID is found, otherwise `false`.
+ *
+ * @example
+ * containsUUID('user/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d/profile'); // true
+ * containsUUID('no id here'); // false
+ */
 export function containsUUID(input: string): boolean {
 	const matches = input.match(
 		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi
@@ -103,7 +166,23 @@ export function containsUUID(input: string): boolean {
 	return matches && matches.length > 0;
 }
 
-/** Send Http request with Axios. */
+/**
+ * Sends an HTTP request with Axios and resolves directly to the response body.
+ *
+ * An empty `headers` object is applied by default and merged with anything you
+ * pass in `options`. On failure the rejection is a normalised plain object that
+ * always has a `message` string (taken from the response body, then the response
+ * body itself, then the Axios error message, then a generic fallback).
+ *
+ * @typeParam TResponse - Expected shape of the response body.
+ * @typeParam TBody - Shape of the request body.
+ * @param options - Standard Axios request config (`url`, `method`, `data`, ...).
+ * @returns A promise resolving to `response.data` typed as `TResponse`.
+ * @throws A normalised `{ ...responseBody, message: string }` object on any request error.
+ *
+ * @example
+ * const user = await sendHttpRequest<User>({ url: '/users/1' });
+ */
 export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
 	try {
 		const response = await axios({ headers: {}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
@@ -115,7 +194,26 @@ export async function sendHttpRequest<TResponse = any, TBody extends ObjectType 
 	}
 }
 
-/** Returns undefined if the phonenumber format isn't correct */
+/**
+ * Parses a phone number with `libphonenumber-js`.
+ *
+ * A leading `+` is added automatically when missing. By default an invalid or
+ * empty number resolves to `undefined`; set `throwUnfound` to make it throw
+ * instead (a `CustomException` for empty input, or the underlying parser error).
+ *
+ * @param phoneNumber - The raw phone number string.
+ * @param options - Parsing options.
+ * @param options.throwUnfound - Throw on invalid/empty input instead of returning `undefined`. Defaults to `false`.
+ * @param options.defaultCountry - ISO 3166-1 alpha-2 country used to resolve national-format numbers, e.g. `'NG'`.
+ * @param options.defaultCallingCode - Default calling code used when no country is supplied.
+ * @param options.extract - Passed through to the parser; extract a number embedded in surrounding text.
+ * @returns A `PhoneNumber` instance, or `undefined` when parsing fails and `throwUnfound` is not set.
+ * @throws {CustomException} When input is empty and `throwUnfound` is `true`.
+ *
+ * @example
+ * parsePhonenumber('8031234567', { defaultCountry: 'NG' })?.number; // "+2348031234567"
+ * parsePhonenumber('not a number'); // undefined
+ */
 export function parsePhonenumber(phoneNumber: string, options?: {
 	throwUnfound?: boolean;
 	defaultCountry?: CountryCode;
@@ -137,7 +235,23 @@ export function parsePhonenumber(phoneNumber: string, options?: {
 	return parsePhoneNumberFromString(phonenumber, { ...options });
 }
 
-/** Removes properties with values `undefined`, `null`, or `' '` */
+/**
+ * Recursively removes "empty" properties from an object.
+ *
+ * A property is dropped when its value is `undefined`, `null`, `''`, or the
+ * literal string `'undefined'`. Arrays and non-objects are returned unchanged.
+ *
+ * @typeParam TData - Shape of the object being sanitised.
+ * @param options - Sanitisation options.
+ * @param options.data - The object to sanitise.
+ * @param options.keysToRemove - Keys that should be preserved even if empty
+ *   (the current filter keeps a key when it is **not** in this list). Defaults to `[]`.
+ * @returns A new object with empty properties removed.
+ *
+ * @example
+ * sanitizeObject({ data: { name: 'Ada', middleName: '', age: null } });
+ * // => { name: 'Ada' }
+ */
 export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
 	data: TData;
 	keysToRemove?: (keyof TData)[];
@@ -150,7 +264,21 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	) as TData;
 }
 
-/** Gets current date as number... e.g 20240412-010255666 or 20240412010255666 */
+/**
+ * Builds a compact numeric timestamp string.
+ *
+ * Format: `YYYYMMDDHH[-]MMSSmmm` — year, month, day, hour, an optional `-`
+ * separator, then minute, seconds, and milliseconds.
+ *
+ * @param options - Options.
+ * @param options.date - Source date (`Date`, epoch, or string). Defaults to now.
+ * @param options.withSeparation - Insert a `-` between the hour and minute segments. Defaults to `false`.
+ * @returns The numeric timestamp string.
+ *
+ * @example
+ * generateDateInNumber();                        // "20240412010255666"
+ * generateDateInNumber({ withSeparation: true }); // "2024041201-0255666"
+ */
 export function generateDateInNumber({ date, withSeparation }: {
 	date?: string | number | Date;
 	withSeparation?: boolean;
@@ -168,7 +296,20 @@ export function generateDateInNumber({ date, withSeparation }: {
 	return `${year}${month}${day}${hour}${withSeparation ? '-' : ''}${minute}${seconds}${milliseconds}`;
 }
 
-/** Clone object/array deep */
+/**
+ * Deep-clones an object or array using the structured-clone algorithm.
+ *
+ * Primitives (and `null`) are returned unchanged. Values that are not
+ * structured-cloneable (functions, DOM nodes, class instances with private
+ * state, ...) will throw, per `structuredClone` semantics.
+ *
+ * @typeParam TData - Type of the value being cloned.
+ * @param data - The value to clone.
+ * @returns A deep copy of `data`.
+ *
+ * @example
+ * const copy = cloneDeep({ tags: ['a', 'b'], meta: { n: 1 } });
+ */
 export function cloneDeep<TData = ObjectType>(data: TData) {
 	// const objectIsValid = typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length > 0;
 	// const arrayIsValid = Array.isArray(data) && data?.length > 0;
@@ -176,7 +317,21 @@ export function cloneDeep<TData = ObjectType>(data: TData) {
 	return structuredClone(data);
 }
 
-/** Remove duplicate from an array */
+/**
+ * Removes duplicate entries from an array.
+ *
+ * For primitive elements, equality is by value. When `property` is provided and
+ * an element is an object, the join of those property names is used as the
+ * dedupe key.
+ *
+ * @typeParam TData - The array type.
+ * @param dataList - The array to de-duplicate. Non-arrays are returned unchanged.
+ * @param property - Property names used to build the comparison key for object elements.
+ * @returns A new array with duplicates removed, preserving first-seen order.
+ *
+ * @example
+ * removeDuplicates([1, 1, 2, 3, 3]); // [1, 2, 3]
+ */
 export function removeDuplicates<TData extends any[]>(dataList: TData, property?: string[]) {
 	if (!dataList || !dataList.length || !Array.isArray(dataList)) return dataList;
 	const dataSet = new Set();
@@ -188,7 +343,19 @@ export function removeDuplicates<TData extends any[]>(dataList: TData, property?
 	});
 }
 
-/** Send message to Telegram */
+/**
+ * Sends a Markdown-formatted message to a Telegram chat via the Bot API.
+ *
+ * @param options - Message options.
+ * @param options.chatId - Target chat ID (`chat_id`).
+ * @param options.secret - Telegram bot token.
+ * @param options.message - Message text. Parsed with `parse_mode: 'Markdown'`.
+ * @returns The Telegram API response body.
+ * @throws {CustomException} Wrapping the Telegram error `description` and `error_code` on failure.
+ *
+ * @example
+ * await sendMessageToTelegram({ chatId: '12345', secret: process.env.TELEGRAM_BOT_TOKEN, message: '*Deploy done*' });
+ */
 export async function sendMessageToTelegram({ chatId, secret, message }: {
 	chatId: string;
 	secret: string;
@@ -205,22 +372,65 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 	}
 }
 
-/** Encode URL */
+/**
+ * URL-encodes a value for use in a query string or path segment.
+ *
+ * Strings are encoded directly; any other value is `JSON.stringify`-ed first.
+ * Pair with {@link decodeUrlComponent} to round-trip structured data.
+ *
+ * @typeParam TData - Type of the value being encoded.
+ * @param data - The value to encode.
+ * @returns The percent-encoded string.
+ *
+ * @example
+ * encodeUrlComponent({ q: 'a b', page: 2 }); // "%7B%22q%22%3A%22a%20b%22%2C%22page%22%3A2%7D"
+ */
 export function encodeUrlComponent<TData = any>(data: TData) {
 	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
 }
 
-/** Decode URL */
+/**
+ * Decodes a string produced by {@link encodeUrlComponent} back into a value.
+ *
+ * The decoded string is always `JSON.parse`-d, so it must be valid JSON.
+ *
+ * @typeParam TType - Expected type of the decoded value.
+ * @param data - The percent-encoded, JSON-stringified string.
+ * @returns The parsed value typed as `TType`.
+ *
+ * @example
+ * decodeUrlComponent<{ q: string }>(encoded).q;
+ */
 export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
 }
 
-/** Converts XML data format into JSON format */
+/**
+ * Parses an XML string into a JavaScript object using `xml2js`.
+ *
+ * @typeParam TResponse - Expected shape of the parsed result.
+ * @param xmlData - The XML document as a string.
+ * @param options - `xml2js` {@link ParserOptions} (e.g. `explicitArray`, `trim`).
+ * @returns A promise resolving to the parsed object.
+ *
+ * @example
+ * const obj = await xmlToJson<{ note: unknown }>('<note><to>A</to></note>', { explicitArray: false });
+ */
 export async function xmlToJson<TResponse>(xmlData: string, options: ParserOptions) {
 	return new Parser(options).parseStringPromise(xmlData) as TResponse;
 }
 
-/** Converts JSON data format into XML format */
+/**
+ * Serialises a JavaScript object into an XML string using `xml2js`.
+ *
+ * @typeParam TData - Type of the object being serialised.
+ * @param dataObject - The object to convert.
+ * @param options - `xml2js` {@link BuilderOptions} (e.g. `rootName`, `headless`).
+ * @returns A promise resolving to the XML string.
+ *
+ * @example
+ * const xml = await jsonToXml({ note: { to: 'A' } }, { headless: true });
+ */
 export async function jsonToXml<TData>(dataObject: TData, options: BuilderOptions) {
 	return new Promise<string>((resolve, reject) => {
 		try {
@@ -232,7 +442,22 @@ export async function jsonToXml<TData>(dataObject: TData, options: BuilderOption
 	});
 }
 
-/** Detects duplicated object property. Throws error when found */
+/**
+ * Recursively walks an object and throws when the same dotted key path appears twice.
+ *
+ * Useful for guarding merged configuration or environment maps against
+ * accidental overrides.
+ *
+ * @typeParam TObject - Shape of the object being checked.
+ * @param options - Options.
+ * @param options.data - The object to inspect.
+ * @param options.parentKey - Prefix applied to every key path, for nested calls. Defaults to `''`.
+ * @returns Nothing. Completes silently when no duplicates are found.
+ * @throws {CustomException} `Duplicate properties detected: <paths>` when a repeated key path is found.
+ *
+ * @example
+ * detectDuplicateProperties({ data: { a: { b: 1 }, 'a.b': 2 } }); // throws
+ */
 export function detectDuplicateProperties<TObject extends ObjectType = any>({ data, parentKey = '' }: { data: TObject; parentKey?: string; }): void {
 	const seen = new Set<string>();
 	const duplicateKeys: string[] = [];
@@ -260,7 +485,21 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 	}
 }
 
-/** Compile HTML with handlebar library */
+/**
+ * Compiles and renders a Handlebars template in one call.
+ *
+ * @typeParam TData - Shape of the template context.
+ * @param options - Options.
+ * @param options.data - The context object passed to the compiled template.
+ * @param options.htmlString - The raw Handlebars template source.
+ * @param options.compileOptions - Handlebars `CompileOptions` (e.g. `noEscape`, `strict`).
+ * @param options.runtimeOptions - Handlebars runtime options. `partials` may be supplied
+ *   as a `{ [name]: string }` map of template sources.
+ * @returns The rendered string.
+ *
+ * @example
+ * compileHtmlWithHandlebar({ data: { name: 'Ada' }, htmlString: 'Hi {{name}}' }); // "Hi Ada"
+ */
 export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlString, runtimeOptions, compileOptions }: {
 	data: TData;
 	htmlString: string;
@@ -271,7 +510,23 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlS
 	return templateDelegate(data, runtimeOptions as unknown as RuntimeOptions);
 }
 
-/** Log beautifully without library */
+/**
+ * Writes a formatted line to `console.log` without a logging library.
+ *
+ * Output shape: `<UTC date> - LOG [context] message <data>`. Colours and the
+ * leading date are opt-in.
+ *
+ * @param context - Short label shown in brackets, e.g. a module or function name.
+ * @param message - The message text.
+ * @param data - Optional payload appended to the line (object, array, etc.).
+ * @param options - Formatting options.
+ * @param options.prettify - Apply ANSI colours to the label, context, and message. Defaults to `false`.
+ * @param options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
+ *
+ * @example
+ * printLog('Auth', 'user signed in', { id: 1 });
+ * printLog('Auth', 'user signed in', undefined, { prettify: true, ignoreDate: true });
+ */
 export function printLog(
 	context: string,
 	message: string,

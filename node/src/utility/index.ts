@@ -21,7 +21,17 @@ import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult, INestAppInstance } from '../interface';
 
 
-/** Removes properties with values `undefined`, `null`, or `' '` */
+/**
+ * Recursively removes "empty" properties (`undefined`, `null`, `''`, or the
+ * string `'undefined'`) from an object. Arrays and non-objects pass through
+ * unchanged. Mirrors `sanitizeObject` from `@incloodsolutions/toolkit`.
+ *
+ * @typeParam TData - Shape of the object being sanitised.
+ * @param options - Options.
+ * @param options.data - The object to sanitise.
+ * @param options.keysToRemove - Keys preserved even when empty. Defaults to `[]`.
+ * @returns A new object with empty properties removed.
+ */
 export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
 	data: TData;
 	keysToRemove?: (keyof TData)[];
@@ -34,7 +44,25 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
 	) as TData;
 }
 
-/** Encrypted data using crypto-js. */
+/**
+ * Encrypts or hashes a value with `crypto-js`.
+ *
+ * The value is `JSON.stringify`-ed first. `aes256` is reversible with
+ * {@link decryptData}; the SHA/HMAC variants are one-way digests.
+ *
+ * @typeParam TData - Type of the value being encrypted.
+ * @param options - Options.
+ * @param options.data - The value to encrypt. A falsy value is returned as-is.
+ * @param options.secret - Secret key. Required for `aes256` and `hmacSha512`
+ *   (not required for plain `sha512`).
+ * @param options.type - Algorithm. Defaults to `'aes256'`.
+ *   - `'aes256'`: reversible AES encryption.
+ *   - `'hmacSha512'`: keyed HMAC-SHA-512 hex digest.
+ *   - `'sha512'` / `'sha256'`: unkeyed SHA-512 hex digest.
+ * @param options.enableDebug - Log intermediate steps. Defaults to `false`.
+ * @returns The cipher text (AES) or hex digest (SHA/HMAC).
+ * @throws {CustomException} When a secret is required but missing.
+ */
 export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug }: {
 	data?: TData;
 	secret: string;
@@ -72,7 +100,21 @@ export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug 
 	}
 }
 
-/** Decrypted data using crypto-js. aes256 type alone */
+/**
+ * Decrypts an AES-256 cipher text produced by {@link encryptData} and
+ * `JSON.parse`-s the result.
+ *
+ * Only `aes256` is supported (the SHA/HMAC modes are one-way).
+ *
+ * @typeParam TResponse - Expected type of the decrypted value.
+ * @param options - Options.
+ * @param options.hashedData - The AES cipher text. A falsy value yields `null`.
+ * @param options.secret - The same secret used to encrypt.
+ * @param options.type - Fixed to `'aes256'`. Defaults to `'aes256'`.
+ * @param options.enableDebug - Log intermediate steps. Defaults to `false`.
+ * @returns The decrypted, parsed value typed as `TResponse`.
+ * @throws {CustomException} When the secret is missing or decryption produces no output.
+ */
 export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', enableDebug }: {
 	secret: string;
 	hashedData: string;
@@ -105,7 +147,16 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', en
 	}
 }
 
-/** Get Current IP address from express.Request */
+/**
+ * Extracts the best-guess client IP address from an Express request.
+ *
+ * Checks, in order: the first entry of the `x-forwarded-for` header, then
+ * `socket.remoteAddress`, then `req.ip` — returning the first that is a valid
+ * IP. Returns `''` when none qualifies.
+ *
+ * @param req - The Express `Request`.
+ * @returns The client IP string, or `''` if it cannot be determined.
+ */
 export function getIpAddress(req: Request) {
 	const ipAddress = req?.ip;
 	const remoteAddress = req?.socket?.remoteAddress;
@@ -129,7 +180,15 @@ export function getIpAddress(req: Request) {
 	return '';
 }
 
-/** Hash string using bcrypt-js */
+/**
+ * Hashes a string with bcrypt (`bcryptjs`).
+ *
+ * @param data - The plaintext to hash. Must be non-empty.
+ * @param saltRounds - Cost factor passed to `genSalt`. When omitted, `bcryptjs`
+ *   uses its own default (10).
+ * @returns The bcrypt hash string.
+ * @throws {CustomException} When `data` is null/undefined/empty.
+ */
 export async function hashWithBcrypt(data: string, saltRounds?: number): Promise<string> {
 	if (!data) {
 		throw new CustomException('Cannot hash a null/undefined data!')
@@ -138,13 +197,32 @@ export async function hashWithBcrypt(data: string, saltRounds?: number): Promise
 	return await hash(data, salt);
 }
 
-/** Validates hashed string using bcrypt-js */
+/**
+ * Compares a plaintext string against a bcrypt hash.
+ *
+ * @param plainData - The candidate plaintext.
+ * @param hashedData - The stored bcrypt hash.
+ * @returns `true` when they match; `false` when they do not, or when either argument is missing.
+ */
 export async function validateHashWithBcrypt(plainData: string, hashedData: string) {
 	if (!plainData || !hashedData) return false;
 	return await compare(plainData, hashedData);
 }
 
-/** Write file to lambda function `/tmp` folder... Errors if not in lambda environment */
+/**
+ * Writes a file into the AWS Lambda writable directory (`/tmp`).
+ *
+ * A relative `filePath` is resolved under `/tmp`; an absolute path outside
+ * `/tmp` is still forced under `/tmp`. When `filePath` is omitted and `file` is
+ * a `File`, its `name` is used.
+ *
+ * @param options - Options.
+ * @param options.filePath - Destination path (relative to `/tmp`, or absolute).
+ * @param options.file - Contents: a string, an `ArrayBufferView`, or a `File`.
+ * @returns The absolute path the file was written to.
+ * @throws {CustomException} When `file` is missing, when not running in Lambda,
+ *   or when no destination path can be determined.
+ */
 export async function writeFileToLambda({ filePath, file }: {
 	filePath?: string;
 	file: string | NodeJS.ArrayBufferView | File;
@@ -179,7 +257,14 @@ export async function writeFileToLambda({ filePath, file }: {
 	return fullFilePath;
 }
 
-/** Get file from lambda function `/tmp` folder... Errors if not in lambda environment */
+/**
+ * Reads a file from the AWS Lambda writable directory (`/tmp`).
+ *
+ * @param fileName - File name relative to `/tmp`.
+ * @returns The file contents as a `Buffer`, or `null` when `fileName` is falsy
+ *   or the file does not exist.
+ * @throws When not running in a Lambda environment (rejects with a string message).
+ */
 export async function readFileFromLambda(fileName: string) {
 	return new Promise<Buffer>((resolve, reject) => {
 		try {
@@ -197,17 +282,41 @@ export async function readFileFromLambda(fileName: string) {
 	});
 }
 
-/** Check if currently in AWS Lambda environment */
+/**
+ * Detects whether the current process is running inside AWS Lambda.
+ *
+ * @returns `true` when both `LAMBDA_TASK_ROOT` and `AWS_LAMBDA_FUNCTION_NAME`
+ *   environment variables are set.
+ */
 export function isLambdaEnvironment() {
 	return Boolean(process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME);
 }
 
-/** Check if a string is uuid */
+/**
+ * Checks whether a string is a valid UUID, using the `uuid` package's validator.
+ *
+ * @param uuid - The string to test.
+ * @returns `true` when the string is a well-formed UUID.
+ */
 export function isValidUUID(uuid: string) {
 	return uuidValidate(uuid);
 }
 
-/** Generates customized uuid. v7 is default */
+/**
+ * Generates a UUID with optional formatting tweaks.
+ *
+ * @param options - Options.
+ * @param options.version - UUID version to generate, `4` or `7`. Defaults to `7`
+ *   (time-ordered, better for database keys).
+ * @param options.symbol - When set, every `-` in the UUID is replaced with this string.
+ * @param options.asUpperCase - Return the UUID upper-cased. Defaults to `false`.
+ * @returns The generated UUID string.
+ *
+ * @example
+ * generateCustomUUID();                              // "0190a1b2-..." (v7)
+ * generateCustomUUID({ version: 4, asUpperCase: true });
+ * generateCustomUUID({ symbol: '' });                // dashes stripped
+ */
 export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
 	asUpperCase?: boolean;
 	symbol?: string;
@@ -218,12 +327,32 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
 	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 
-/** Map and return API operation results */
+/**
+ * Returns a shallow, read-only copy of an API result object.
+ *
+ * A light normalisation helper for building `{ data, message, error }` payloads
+ * before passing them to {@link returnApiResponse}.
+ *
+ * @typeParam TBody - Shape of `data`.
+ * @param apiResponse - The {@link IBaseApiResult} to freeze.
+ * @returns A `Readonly<IBaseApiResult>` copy.
+ */
 export function apiResult<TBody extends ObjectType | ObjectType[]>(apiResponse: IBaseApiResult<TBody>) {
 	return { ...apiResponse } as Readonly<IBaseApiResult>;
 }
 
-/** Return API call response */
+/**
+ * Sends a JSON API response through an Express `Response`.
+ *
+ * The body is `{ success, statusCode, ...data.data }`, where `success` is
+ * `statusCode < 400`.
+ *
+ * @typeParam TBody - Shape of `data.data`.
+ * @param res - The Express `Response`.
+ * @param data - An {@link IBaseApiResult}; only its `data` field is spread into the body.
+ * @param statusCode - HTTP status code. Defaults to `200`.
+ * @returns The Express `Response` (result of `res.status().json()`).
+ */
 export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: IBaseApiResult<TBody>, statusCode = 200) {
 	return res.status(statusCode).json({
 		success: statusCode < 400,
@@ -232,7 +361,14 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: 
 	});
 }
 
-/** Encode URL */
+/**
+ * URL-encodes a value (strings directly, everything else `JSON.stringify`-ed
+ * first). Round-trips with {@link decodeUrlComponent}.
+ *
+ * @typeParam TData - Type of the value being encoded.
+ * @param data - The value to encode.
+ * @returns The percent-encoded string.
+ */
 export function encodeUrlComponent<TData = any>(data: TData) {
 	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
 }
@@ -253,12 +389,29 @@ export function isValidMongoId(data: string | ObjectType | ObjectId): boolean {
 	return false;
 }
 
-/** Decode URL */
+/**
+ * Decodes a string produced by {@link encodeUrlComponent} and `JSON.parse`-s it.
+ *
+ * @typeParam TType - Expected type of the decoded value.
+ * @param data - The percent-encoded, JSON string.
+ * @returns The parsed value typed as `TType`.
+ */
 export function decodeUrlComponent<TType>(data: string) {
 	return JSON.parse(decodeURIComponent(data)) as TType;
 }
 
-/** Create a custom logger instance */
+/**
+ * Creates a minimal timestamped console logger.
+ *
+ * Each call prints `<ISO date> - <LEVEL> [context] <message>`.
+ *
+ * @param context - Optional label shown in brackets on every line.
+ * @returns An object with `log`, `info`, `debug`, and `error` methods, each `(message: string) => void`.
+ *
+ * @example
+ * const logger = initCustomLogger('Payments');
+ * logger.info('charge succeeded');
+ */
 export function initCustomLogger(context?: string) {
 	function logMessage(level: string, message: string) {
 		const ctx = context ? `[${context}]` : '';
@@ -274,7 +427,20 @@ export function initCustomLogger(context?: string) {
 	};
 }
 
-/** Return API homepage */
+/**
+ * Builds a small self-contained HTML "API overview" page, handy as the response
+ * for an API's root route.
+ *
+ * The rendered card shows the name, description, docs link, current `NODE_ENV`,
+ * status `200`, and a timestamp.
+ *
+ * @param options - Options.
+ * @param options.name - API name shown as the heading and `<title>`.
+ * @param options.docsUrl - Optional documentation link.
+ * @param options.description - Optional short description.
+ * @param options.primaryColor - Accent colour for the card's left border. Defaults to `'#4f46e5'`.
+ * @returns A complete HTML document string.
+ */
 export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', description }: {
 	name: string;
 	docsUrl?: string;
@@ -352,7 +518,19 @@ export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', des
 	</html>`
 }
 
-/** Log beautifully without library */
+/**
+ * Writes a formatted line to `console.log` without a logging library. Mirrors
+ * `printLog` from `@incloodsolutions/toolkit`.
+ *
+ * Output: `<UTC date> - LOG [context] message <data>`.
+ *
+ * @param context - Short bracketed label.
+ * @param message - The message text.
+ * @param data - Optional payload appended to the line.
+ * @param options - Options.
+ * @param options.prettify - Apply ANSI colours. Defaults to `false`.
+ * @param options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
+ */
 export function printLog(
 	context: string,
 	message: string,
@@ -378,7 +556,23 @@ export function printLog(
 	console.log(`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`, data || '');
 }
 
-/** Log request and response using morgan */
+/**
+ * Builds a `morgan` request/response logging middleware with extra tokens.
+ *
+ * The log line is `:id | :method | :status | :url | <your formats> | :total-time ms | :res[content-length]`,
+ * plus an `:invocationId` segment when running in AWS Lambda. A per-request `:id`
+ * token is registered (the API Gateway request id in Lambda, otherwise a
+ * timestamp).
+ *
+ * @param options - Options.
+ * @param options.formats - Extra `morgan` token names to append. A leading `:` is
+ *   added automatically if missing. Defaults to `[]`.
+ * @param options.options - `morgan` {@link Options} passed through to `morgan()`.
+ * @returns An Express-compatible middleware function.
+ *
+ * @example
+ * app.use(reqResLogger({ formats: ['user-agent', 'referrer'] }));
+ */
 export function reqResLogger({ formats = [], options }: {
 	formats?: string[];
 	options?: Options<any, any>;
@@ -569,6 +763,13 @@ export function normalizeMongooseData_v2<T>(data: T): T {
 }
 
 
+/**
+ * Type guard that distinguishes a NestJS application instance from a bare
+ * Express app, by checking for a `getHttpAdapter` method.
+ *
+ * @param instance - An Express app or a NestJS app instance.
+ * @returns `true` (narrowing to {@link INestAppInstance}) when `instance` looks like a Nest app.
+ */
 export function isNestApplication(
 	instance: Express | INestAppInstance,
 ): instance is INestAppInstance {

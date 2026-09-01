@@ -1,35 +1,133 @@
 # @incloodsolutions/react-toolkit
 
 [![npm version](https://img.shields.io/npm/v/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
-[![npm dm](https://img.shields.io/npm/dm/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
-[![downloads](https://img.shields.io/npm/dt/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
-[![licensee](https://img.shields.io/npm/l/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
+[![npm downloads](https://img.shields.io/npm/dm/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
+[![license](https://img.shields.io/npm/l/@incloodsolutions/react-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/react-toolkit)
 
-A utility and helper library for React applications, built on top of `@incloodsolutions/toolkit`.
-Provides hooks, context utilities, and reusable patterns that simplify state management, component logic, and developer experience in modern React projects.
+A thin React layer over [`@incloodsolutions/toolkit`](../toolkit): a few purpose-built
+hooks and utilities, `react-hook-form` resolver helpers, and convenient re-exports of the
+full [`usehooks-ts`](https://usehooks-ts.com) API plus a large slice of
+[`react-use`](https://github.com/streamich/react-use).
+
+> For a one-line index of every export in this package (and the other toolkits), see
+> [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md). Every exported hook, utility, and type also
+> carries an inline TSDoc comment with parameter descriptions, default values, and examples.
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @incloodsolutions/react-toolkit
-# or
-yarn add @incloodsolutions/react-toolkit
 ```
 
-## 🚀 Usage
+Peer dependencies: `react`, `react-dom`, `react-router-dom`. Bundled: `clsx`,
+`tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`,
+`react-use`.
+
+## Own API
+
+### Hooks
+
+#### `useKeyEvent`
+
+Run an action when a key or key-combination is pressed.
+
 ```typescript
-import { useToggle } from "@incloodsolutions/react-toolkit";
+import { useKeyEvent } from '@incloodsolutions/react-toolkit';
 
-function ExampleComponent() {
-  const [isOpen, toggle] = useToggle();
-
-  return (
-    <button onClick={toggle}>
-      {isOpen ? "Open" : "Closed"}
-    </button>
-  );
-}
-
+useKeyEvent({
+  combinations: { keys: ['Control', 's'], matchAll: true },
+  eventType: 'keydown',
+  returnedAction: () => save(),
+});
 ```
+
+#### `usePageMetadata`
+
+Set the document title, `description`, Open Graph / Twitter card meta tags, and an optional
+`document.body` background. Everything is reverted on unmount.
+
+```typescript
+usePageMetadata({
+  title: 'Dashboard',
+  description: 'Your account overview',
+  ogImage: '/og.png',
+  twitterCardType: 'summary_large_image',
+});
+```
+
+#### `useCustomNavigation`
+
+A React Router wrapper that returns a single metadata object and a query-aware `navigate`.
+
+```typescript
+const nav = useCustomNavigation((info) => console.log('route changed', info.path), false);
+
+nav.navigate('/users', { queries: { page: 2, tags: ['a', 'b'] }, replace: true });
+// nav.path, nav.query, nav.params, nav.hash, nav.url, nav.fullUrl,
+// nav.state, nav.data (loader), nav.matchedData, nav.navigationType
+```
+
+`onRouteChange` fires only on real route changes (it diffs a function-stripped snapshot).
+
+### Utilities
+
+```typescript
+import { parseClassnames, getScreenSize } from '@incloodsolutions/react-toolkit';
+
+parseClassnames('px-2 py-1', condition && 'bg-red-500', { hidden: !open });
+// clsx + tailwind-merge: later Tailwind classes win
+
+getScreenSize(); // 'mobile' (<768) | 'tablet' (<1024) | 'desktop'
+```
+
+### `react-hook-form` resolver helpers
+
+```typescript
+import { zodCustomResolver, joiCustomResolver, classValidatorCustomResolver } from '@incloodsolutions/react-toolkit';
+import { useForm } from 'react-hook-form';
+
+const form = useForm({ resolver: zodCustomResolver(MySchema, {}) });
+```
+
+## Re-exported hook libraries
+
+`import ... from '@incloodsolutions/react-toolkit'` also gives you:
+
+- **All of `usehooks-ts`** — `useDebounceValue`, `useLocalStorage`, `useMediaQuery`,
+  `useOnClickOutside`, `useEventListener`, `useIntersectionObserver`, `useCopyToClipboard`,
+  and the rest.
+- **Much of `react-use`** — `useAsync`, `useAsyncFn`, `useDebounce`, `useThrottle`,
+  `useGeolocation`, `useBattery`, `useNetworkState`, `useMedia`, `useMeasure`,
+  `useClickAway`, `useFullscreen`, `useIdle`, `usePrevious`, `createBreakpoint`,
+  `createGlobalState`, and more.
+
+Where names collide with `usehooks-ts`, the `react-use` version is exported with a `2`
+suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToClipboard2`.
+
+## Known limitations in the current release
+
+- **`FormLayoutComponent` is not reachable from the package root.** It is a `default`
+  export and the barrel file uses `export *`, which does not forward defaults. Import it
+  from its source path, or wait for it to be changed to a named export.
+- **`useCustomReactHookForm` is not exported** — it exists in `src/hooks/useHookForm.ts`
+  but is not re-exported by `src/hooks/index.ts`.
+- **`EmailLoginValidationSchema` / `UsernameLoginValidationSchema` throw** — they reference
+  schema helpers that are not imported in `src/validators/index.ts`. Use the core
+  `EmailValidationSchema` / `PasswordValidationSchema` from `@incloodsolutions/toolkit`
+  directly instead.
+- `getViteConfiguration` (in `src/config`) and the emoji dataset (in `src/constant`) are
+  commented out and export nothing.
+
+## Development
+
+```bash
+npm install
+npm run build   # tsup
+npm test        # jest
+```
+
+## License
+
+MIT © Inclood Solutions

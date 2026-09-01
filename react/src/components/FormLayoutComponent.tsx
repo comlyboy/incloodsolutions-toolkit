@@ -4,15 +4,35 @@ import { Primitive } from "@radix-ui/react-primitive";
 
 import { parseClassnames } from "../utilities";
 
+/**
+ * Props for {@link FormLayoutComponent}.
+ */
 interface Props {
+	/** Extra classes merged after the base `space-y-6` (via `parseClassnames`). */
 	className?: string;
+	/** Form fields / content. */
 	children: ReactNode;
+	/** The `react-hook-form` instance; its `handleSubmit` wraps `onSubmit`. */
 	formGroup: UseFormReturn<any, any, any>;
+	/** Submit handler, run through `formGroup.handleSubmit`. */
 	onSubmit?: (event: SubmitEvent) => void;
+	/** Native form `change` handler. */
 	onChange?: (event: ChangeEvent<HTMLFormElement>) => void;
-	busy?: boolean; // optional loading state
+	/** Loading state; reflected as `aria-busy` on the form. */
+	busy?: boolean;
 }
 
+/**
+ * A minimal form wrapper: a radix `Primitive.form` with `space-y-6` spacing,
+ * `aria-busy`, and submit/change handlers bound to a `react-hook-form` instance.
+ *
+ * @param props - See {@link Props}.
+ * @returns The rendered `<form>` element.
+ *
+ * @remarks Exported as a **default**. Because the barrel file uses `export *`,
+ *   this is not currently reachable from the package entry point — import it from
+ *   this module path directly, or change it to a named export.
+ */
 export default function FormLayoutComponent({ onSubmit, onChange, formGroup, className, children, busy, }: Props) {
 
 	return <>

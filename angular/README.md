@@ -1,39 +1,49 @@
 # @incloodsolutions/angular-toolkit
 
-[![npm version](https://img.shields.io/npm/v/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
-[![npm dm](https://img.shields.io/npm/dm/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
-[![downloads](https://img.shields.io/npm/dt/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
-[![licensee](https://img.shields.io/npm/l/@incloodsolutions/node-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/node-toolkit)
+[![npm version](https://img.shields.io/npm/v/@incloodsolutions/angular-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit)
+[![license](https://img.shields.io/npm/l/@incloodsolutions/angular-toolkit.svg?style=for-the-badge)](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit)
 
-A collection of Angular utilities and services extending the shared `@incloodsolutions/toolkit`.
-Includes Angular-specific providers, RxJS helpers, and decorators that streamline common development tasks and improve productivity in Angular applications.
+Angular utilities and services that build on [`@incloodsolutions/toolkit`](../toolkit).
+
+> **Status: placeholder.** This package is published so the name is reserved, but it has no
+> usable API yet. The only export is an empty `StorageService`. Do not depend on it in
+> production. For a current index of what every package exports, see
+> [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md).
 
 ---
 
-## 📦 Installation
+## Layout
+
+This directory is an Angular CLI workspace built with `ng-packagr`.
+
+| Path | Purpose |
+| ---- | ------- |
+| `angular/` | Angular CLI workspace (`angular.json`, tooling) |
+| `angular/projects/toolkit/` | the publishable library (`@incloodsolutions/angular-toolkit`) |
+| `angular/projects/toolkit/src/public-api.ts` | public entry point |
+| `angular/projects/toolkit/src/lib/services/` | `StorageService` (stub) |
+
+Peer dependencies: `@angular/common` and `@angular/core` `^21`.
+
+## Current exports
+
+| Symbol | Kind | Notes |
+| ------ | ---- | ----- |
+| `StorageService` | `@Injectable({ providedIn: 'root' })` | No members yet. |
+
+## Building
 
 ```bash
-npm install @incloodsolutions/angular-toolkit
-# or
-yarn add @incloodsolutions/angular-toolkit
+cd angular
+npm install
+npm run build   # ng build  ->  dist/toolkit
 ```
 
-## 🚀 Usage
-```typescript
-import { UntilDestroy, untilDestroyed } from "@incloodsolutions/angular-toolkit";
-import { Component, OnInit } from "@angular/core";
-import { interval } from "rxjs";
+## Roadmap
 
-@UntilDestroy()
-@Component({
-  selector: "app-example",
-  template: "<p>Check console logs</p>",
-})
-export class ExampleComponent implements OnInit {
-  ngOnInit() {
-    interval(1000)
-      .pipe(untilDestroyed(this))
-      .subscribe(() => console.log("tick"));
-  }
-}
-```
+Planned: an `UntilDestroy` / `untilDestroyed` decorator pair for RxJS subscription cleanup,
+a working storage service, and shared RxJS operators. None of this is implemented yet.
+
+## License
+
+MIT © Inclood Solutions
