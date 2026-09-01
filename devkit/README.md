@@ -121,10 +121,14 @@ export class ApiStack extends Stack {
 
 ```bash
 npm install
-npm run build    # tsup: ESM + CJS + d.ts
+npm run build    # tsup (ESM + CJS), then `tsc --emitDeclarationOnly` for .d.ts
 npm run format   # prettier --write (tabs, single quotes, trailing commas)
 npm run lint     # eslint --fix
+npm run package  # build, then npm pack a tarball
 ```
+
+> This package is on **TypeScript 7**. Declarations are emitted by `tsc`, not tsup
+> (tsup's bundled `rollup-plugin-dts` does not support TS 7).
 
 ## License
 

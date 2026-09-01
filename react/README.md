@@ -113,10 +113,6 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
   from its source path, or wait for it to be changed to a named export.
 - **`useCustomReactHookForm` is not exported** — it exists in `src/hooks/useHookForm.ts`
   but is not re-exported by `src/hooks/index.ts`.
-- **`EmailLoginValidationSchema` / `UsernameLoginValidationSchema` throw** — they reference
-  schema helpers that are not imported in `src/validators/index.ts`. Use the core
-  `EmailValidationSchema` / `PasswordValidationSchema` from `@incloodsolutions/toolkit`
-  directly instead.
 - `getViteConfiguration` (in `src/config`) and the emoji dataset (in `src/constant`) are
   commented out and export nothing.
 

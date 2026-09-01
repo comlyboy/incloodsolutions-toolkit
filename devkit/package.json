@@ -45,7 +45,7 @@
 		"prebuild": "rimraf dist",
 		"build:cdk": "rimraf dist && mkdir -p dist/nodejs && cp package*.json dist/nodejs && npm i --omit=dev --prefix dist/nodejs && du -sh dist/nodejs/node_modules",
 		"buildd": "tsc",
-		"build": "tsup",
+		"build": "tsup && tsc -p tsconfig.json --emitDeclarationOnly",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"format": "prettier --write --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\"",

@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
-		"module": "CommonJS",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"target": "ES2022",
 		"lib": [
 			"esnext"
@@ -11,16 +12,13 @@
 		"experimentalDecorators": true,
 		"sourceMap": true,
 		"rootDir": "./src",
-		"baseUrl": "./",
 		"outDir": "dist",
 		"declarationDir": "./dist",
-		"ignoreDeprecations": "6.0",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,
 		"noUnusedLocals": true,
 		"strictNullChecks": false,
-		"moduleResolution": "node",
 		"noImplicitAny": true,
 		"noEmitOnError": true,
 		"strictBindCallApply": false,
@@ -38,44 +36,3 @@
 		"./dist"
 	]
 }
-// {
-// 	"compilerOptions": {
-// 		"target": "ES2022",
-// 		"module": "commonjs",
-// 		"lib": [
-// 			"esnext",
-// 			"dom"
-// 		],
-// 		"sourceMap": true,
-// 		"outDir": "./dist",
-// 		"strict": true,
-// 		"rootDir": "src",
-// 		"alwaysStrict": true,
-// 		"moduleResolution": "node",
-// 		"resolveJsonModule": true,
-// 		"useDefineForClassFields": false,
-// 		"stripInternal": true,
-// 		"useUnknownInCatchVariables": false,
-// 		"declaration": true,
-// 		"removeComments": true,
-// 		"emitDecoratorMetadata": true,
-// 		"experimentalDecorators": true,
-// 		"allowSyntheticDefaultImports": true,
-// 		"incremental": true,
-// 		"skipLibCheck": true,
-// 		"importHelpers": true,
-// 		"noUnusedLocals": true,
-// 		"strictNullChecks": false,
-// 		"noImplicitAny": true,
-// 		"strictBindCallApply": false,
-// 		"forceConsistentCasingInFileNames": false,
-// 		"noFallthroughCasesInSwitch": false
-// 	},
-// 	"include": [
-// 		"./src"
-// 	],
-// 	"exclude": [
-// 		"node_modules",
-// 		"./dist"
-// 	]
-// }

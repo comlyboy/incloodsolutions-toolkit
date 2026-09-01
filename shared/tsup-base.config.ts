@@ -3,7 +3,10 @@ export const tsupBaseConfig = {
 	format: ["cjs", "esm"],
 	platform: 'node',
 	target: "es2022",
-	dts: true,
+	// `.d.ts` files are emitted by `tsc --emitDeclarationOnly` in each package's
+	// build script, not by tsup. tsup's bundled rollup-plugin-dts does not work
+	// with TypeScript 7.
+	dts: false,
 	clean: true,
 	bundle: true,
 	minify: false,

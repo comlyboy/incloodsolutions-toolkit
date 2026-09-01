@@ -2,7 +2,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { joiResolver } from '@hookform/resolvers/joi';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldValues, Resolver } from 'react-hook-form';
-import { object, string } from 'zod';
+import { email, object, string } from 'zod';
 
 import { ObjectType } from '@incloodsolutions/toolkit';
 
@@ -54,33 +54,30 @@ export function joiCustomResolver<TSchema extends FieldValues = ObjectType>(
 /**
  * Zod schema factory for an email + password login form.
  *
+ * `email` must be a valid email address; `password` is a string of 6–100
+ * characters.
+ *
  * @returns A `z.object({ email, password })` schema.
  *
- * @remarks
- * **Broken in the current release.** It references `EmailValidationSchema` and
- * `PasswordValidationSchema`, which are not imported in this module, so calling
- * it throws a `ReferenceError`. Until fixed, build the schema yourself using
- * `EmailValidationSchema` / `PasswordValidationSchema` from
- * `@incloodsolutions/toolkit`.
+ * @example
+ * const form = useForm({ resolver: zodCustomResolver(EmailLoginValidationSchema(), {}) });
  */
 export const EmailLoginValidationSchema = () =>
 	object({
-		email: EmailValidationSchema,
-		password: PasswordValidationSchema(),
+		email: email(),
+		password: string().min(6).max(100),
 	});
 
 /**
- * Zod schema factory for a username + password login form. `username` is a
- * trimmed string of 2–100 characters.
+ * Zod schema factory for a username + password login form.
+ *
+ * `username` is a string of 2–100 characters; `password` is a string of 6–100
+ * characters.
  *
  * @returns A `z.object({ username, password })` schema.
- *
- * @remarks
- * **Broken in the current release.** It references `PasswordValidationSchema`,
- * which is not imported in this module, so calling it throws a `ReferenceError`.
  */
 export const UsernameLoginValidationSchema = () =>
 	object({
 		username: string().min(2).max(100),
-		password: PasswordValidationSchema(),
+		password: string().min(6).max(100),
 	});

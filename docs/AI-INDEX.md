@@ -271,8 +271,8 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 | `zodCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver` | Wrap a Zod schema as a `react-hook-form` resolver. |
 | `classValidatorCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver<TSchema>` | Wrap a class-validator DTO as a resolver. |
 | `joiCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver<TSchema>` | Wrap a Joi schema as a resolver. |
-| `EmailLoginValidationSchema` | `() => ZodObject` | **broken** — references `EmailValidationSchema`/`PasswordValidationSchema` which are not imported in this file; calling it throws `ReferenceError`. |
-| `UsernameLoginValidationSchema` | `() => ZodObject` | **broken** — references `PasswordValidationSchema` which is not imported. |
+| `EmailLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ email: email(), password: string().min(6).max(100) })`. |
+| `UsernameLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ username: string().min(2).max(100), password: string().min(6).max(100) })`. |
 
 ### Components — `src/components/`
 
