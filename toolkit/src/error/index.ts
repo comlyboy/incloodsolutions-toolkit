@@ -50,7 +50,7 @@ export class CustomException extends Error {
 	constructor(
 		error: string | Error | CustomException | unknown,
 		statusCode?: number,
-		options?: ErrorOptions
+		options?: ErrorOptions,
 	) {
 		const normalized = CustomException.normalize(error, statusCode);
 
@@ -66,7 +66,7 @@ export class CustomException extends Error {
 		// Preserve stack if an Error was wrapped
 		if (normalized.cause instanceof Error && normalized.cause.stack) {
 			this.stack = normalized.cause.stack;
-		} else if (typeof Error.captureStackTrace === "function") {
+		} else if (typeof Error.captureStackTrace === 'function') {
 			Error.captureStackTrace(this, this.constructor);
 		}
 	}
@@ -82,7 +82,7 @@ export class CustomException extends Error {
 	 */
 	private static normalize(
 		error: unknown,
-		fallbackStatus = 400
+		fallbackStatus = 400,
 	): {
 		message: string;
 		status: number;
@@ -112,7 +112,7 @@ export class CustomException extends Error {
 		}
 
 		// String
-		if (typeof error === "string") {
+		if (typeof error === 'string') {
 			return {
 				message: error,
 				status: fallbackStatus,
@@ -120,7 +120,7 @@ export class CustomException extends Error {
 		}
 
 		// Error-like object
-		if (error && typeof error === "object") {
+		if (error && typeof error === 'object') {
 			const obj = error as {
 				message?: unknown;
 				status?: unknown;
@@ -129,13 +129,13 @@ export class CustomException extends Error {
 
 			return {
 				message:
-					typeof obj.message === "string"
+					typeof obj.message === 'string'
 						? obj.message
-						: "An unexpected error occurred.",
+						: 'An unexpected error occurred.',
 				status:
-					typeof obj.status === "number"
+					typeof obj.status === 'number'
 						? obj.status
-						: typeof obj.statusCode === "number"
+						: typeof obj.statusCode === 'number'
 							? obj.statusCode
 							: fallbackStatus,
 			};
@@ -143,7 +143,7 @@ export class CustomException extends Error {
 
 		// Everything else
 		return {
-			message: "An unexpected error occurred.",
+			message: 'An unexpected error occurred.',
 			status: fallbackStatus,
 		};
 	}

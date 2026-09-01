@@ -20,7 +20,12 @@ export * from './useCustomNavigation';
 
 export * from 'usehooks-ts';
 
-export type { TernaryDarkMode, DebouncedState, TernaryDarkModeOptions, TernaryDarkModeReturn } from 'usehooks-ts';
+export type {
+	TernaryDarkMode,
+	DebouncedState,
+	TernaryDarkModeOptions,
+	TernaryDarkModeReturn,
+} from 'usehooks-ts';
 
 export {
 	// Renamed to avoid conflicts
@@ -150,5 +155,5 @@ export {
 
 	// Misc
 	useEnsuredForwardedRef,
-	ensuredForwardRef
+	ensuredForwardRef,
 } from 'react-use';

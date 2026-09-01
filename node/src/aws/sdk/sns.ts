@@ -1,13 +1,20 @@
-import { PublishBatchCommand, PublishBatchCommandInput, PublishCommand, PublishCommandInput, SNSClient, SNSClientConfig } from "@aws-sdk/client-sns";
+import {
+	PublishBatchCommand,
+	PublishBatchCommandInput,
+	PublishCommand,
+	PublishCommandInput,
+	SNSClient,
+	SNSClientConfig,
+} from '@aws-sdk/client-sns';
 
-import { ObjectType } from "@incloodsolutions/toolkit";
+import { ObjectType } from '@incloodsolutions/toolkit';
 
 /**
  * Initialize an Amazon SNS (Simple Notification Service) client wrapper
  * @param config SNS client configuration
  * @returns Object containing methods for SNS operations
  */
-export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
+export function initSnsClientWrapper({ config }: { config: SNSClientConfig }) {
 	const snsInstance = new SNSClient(config);
 
 	return {
@@ -18,14 +25,19 @@ export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
 		 * @param options Additional SNS publish options
 		 * @returns Promise resolving when message is sent
 		 */
-		sendSnsMessage: async <TMessage extends ObjectType = any>({ message, options }: {
+		sendSnsMessage: async <TMessage extends ObjectType = any>({
+			message,
+			options,
+		}: {
 			message: TMessage;
-			options?: Omit<PublishCommandInput, 'Message' | 'PhoneNumber'>
+			options?: Omit<PublishCommandInput, 'Message' | 'PhoneNumber'>;
 		}) => {
-			await snsInstance.send(new PublishCommand({
-				Message: JSON.stringify(message),
-				...options
-			}));
+			await snsInstance.send(
+				new PublishCommand({
+					Message: JSON.stringify(message),
+					...options,
+				}),
+			);
 		},
 
 		/**
@@ -34,11 +46,19 @@ export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
 		 * @param phoneNumber The recipient's phone number
 		 * @returns Promise resolving when SMS is sent
 		 */
-		sendSms: async ({ message, phoneNumber }: { message: string; phoneNumber: string; }) => {
-			await snsInstance.send(new PublishCommand({
-				Message: message,
-				PhoneNumber: phoneNumber
-			}));
+		sendSms: async ({
+			message,
+			phoneNumber,
+		}: {
+			message: string;
+			phoneNumber: string;
+		}) => {
+			await snsInstance.send(
+				new PublishCommand({
+					Message: message,
+					PhoneNumber: phoneNumber,
+				}),
+			);
 		},
 
 		/**
@@ -48,6 +68,6 @@ export function initSnsClientWrapper({ config }: { config: SNSClientConfig; }) {
 		 */
 		sendBatchMessage: async (command: PublishBatchCommandInput) => {
 			await snsInstance.send(new PublishBatchCommand(command));
-		}
+		},
 	};
 }

@@ -1,17 +1,34 @@
-import { Express } from "express";
-import serverlessExpress, { getCurrentInvoke } from '@codegenie/serverless-express';
-import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2, Callback, Context, EventBridgeEvent, SNSEvent, SQSEvent } from "aws-lambda";
-import Framework from "@codegenie/serverless-express/src/frameworks";
+import { Express } from 'express';
+import serverlessExpress, {
+	getCurrentInvoke,
+} from '@codegenie/serverless-express';
+import {
+	APIGatewayProxyEventV2,
+	APIGatewayProxyHandlerV2,
+	Callback,
+	Context,
+	EventBridgeEvent,
+	SNSEvent,
+	SQSEvent,
+} from 'aws-lambda';
+import Framework from '@codegenie/serverless-express/src/frameworks';
 
-import { ObjectType } from "@incloodsolutions/toolkit";
-import { INestAppInstance } from "../../interface";
-import { isNestApplication } from "../../utility";
-
+import { ObjectType } from '@incloodsolutions/toolkit';
+import { INestAppInstance } from '../../interface';
+import { isNestApplication } from '../../utility';
 
 let expressInstance: Express = null;
 let lambdaInstance: APIGatewayProxyHandlerV2;
 
-type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' | 'AWS_KINESIS_DATA_STREAM' | 'AWS_S3' | 'AWS_STEP_FUNCTIONS' | 'AWS_SELF_MANAGED_KAFKA';
+type EventSources =
+	| 'AWS_SNS'
+	| 'AWS_DYNAMODB'
+	| 'AWS_EVENTBRIDGE'
+	| 'AWS_SQS'
+	| 'AWS_KINESIS_DATA_STREAM'
+	| 'AWS_S3'
+	| 'AWS_STEP_FUNCTIONS'
+	| 'AWS_SELF_MANAGED_KAFKA';
 
 /**
  * Initializes and returns a serverless Lambda handler for an Express application
@@ -33,7 +50,18 @@ type EventSources = 'AWS_SNS' | 'AWS_DYNAMODB' | 'AWS_EVENTBRIDGE' | 'AWS_SQS' |
  *
  * @returns {Promise<any>} - The result of invoking the serverless Express handler
  */
-export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> = any, TCallback extends Callback<any> = any>({ app, event, context, callback, options }: {
+export async function initLambdaFunctionHandler<
+	TEvent extends
+		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> =
+		any,
+	TCallback extends Callback<any> = any,
+>({
+	app,
+	event,
+	context,
+	callback,
+	options,
+}: {
 	app: Express | INestAppInstance;
 	event: TEvent;
 	context: Context;
@@ -44,9 +72,9 @@ export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEv
 			// powertools?: ConstructorOptions;
 		};
 		eventOptions?: {
-			eventSource?: { getRequest?: any; getResponse?: any; };
+			eventSource?: { getRequest?: any; getResponse?: any };
 			eventSourceRoutes?: { [key in EventSources]?: string };
-			logSettings?: { level: string; };
+			logSettings?: { level: string };
 			log?: Logger;
 			framework?: Framework;
 			binarySettings?: {
@@ -69,7 +97,10 @@ export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEv
 				expressInstance = app;
 			}
 		}
-		lambdaInstance = serverlessExpress({ app: expressInstance, ...options?.eventOptions as any });
+		lambdaInstance = serverlessExpress({
+			app: expressInstance,
+			...(options?.eventOptions as any),
+		});
 	}
 	return lambdaInstance(event as any, context, callback);
 }
@@ -82,10 +113,12 @@ export async function initLambdaFunctionHandler<TEvent extends APIGatewayProxyEv
  */
 export function getCurrentLambdaInvocation(): {
 	context: Context;
-	event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+	event:
+		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 } {
 	return getCurrentInvoke() as {
 		context: Context;
-		event: APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+		event:
+			APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 	};
 }

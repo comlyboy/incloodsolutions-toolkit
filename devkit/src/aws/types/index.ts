@@ -6,15 +6,18 @@
  * from) {@link IBaseCdkConstructProps}.
  */
 
-import { AppEnvironmentType, IBaseEnableDebug, ObjectType } from "@incloodsolutions/toolkit";
-
+import {
+	AppEnvironmentType,
+	IBaseEnableDebug,
+	ObjectType,
+} from '@incloodsolutions/toolkit';
 
 /**
  * Marker interface for a construct that supports a debug flag.
  *
  * Equivalent to `{ enableDebug: boolean }` (from `@incloodsolutions/toolkit`).
  */
-export interface IBaseConstruct extends IBaseEnableDebug { }
+export interface IBaseConstruct extends IBaseEnableDebug {}
 
 /**
  * The common configuration shape accepted by every `Base*` CDK construct in this
@@ -26,7 +29,9 @@ export interface IBaseConstruct extends IBaseEnableDebug { }
  *
  * @typeParam TOptions - The service-specific options object, exposed as `options`.
  */
-export interface IBaseCdkConstructProps<TOptions extends ObjectType = any> extends Readonly<Partial<IBaseEnableDebug>> {
+export interface IBaseCdkConstructProps<
+	TOptions extends ObjectType = any,
+> extends Readonly<Partial<IBaseEnableDebug>> {
 	/**
 	 * Deployment stage/environment. Some constructs use it to pick defaults
 	 * (e.g. a longer Lambda timeout in `'production'`) and to set `NODE_ENV`.

@@ -25,9 +25,15 @@ Packages:
 
 ## @incloodsolutions/toolkit
 
-Framework-agnostic. Entry point: `src/index.ts` → `error`, `utility`, `validator`,
-`interface`. Runtime deps: `axios`, `handlebars`, `libphonenumber-js`, `nanoid`,
-`validator`, `xml2js`, `zod`.
+Framework-agnostic. Entry point: `src/index.ts` → `constant`, `error`, `utility`,
+`validator`, `interface`. Runtime deps: `axios`, `handlebars`, `libphonenumber-js`,
+`nanoid`, `validator`, `xml2js`, `zod`.
+
+### Constants — `src/constant/index.ts`
+
+| Symbol | Kind | Summary |
+| ------ | ---- | ------- |
+| `ResponseMessageEnum` | string enum | Standard user-facing response/error messages; **each member's value is the message string**, so it can be returned or thrown directly (`throw new CustomException(ResponseMessageEnum.USER_NOT_FOUND, 404)`). ~60 members grouped by concern: General, CRUD, Authentication, Authorization, User, Password, Email, Status, Files, Pagination / Search. Some values are deliberately duplicated (e.g. `WRONG_PASSWORD` / `INVALID_CREDENTIALS`). |
 
 ### Errors — `src/error/index.ts`
 
@@ -59,6 +65,7 @@ Framework-agnostic. Entry point: `src/index.ts` → `error`, `utility`, `validat
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Throws `CustomException` if a dotted key path repeats. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compile + render a Handlebars template. |
 | `printLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional colour/timestamp. |
+| `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint (`sendHttpRequest<string>` under the hood — the `text/csv` response is never JSON-parsed). No authentication — the sheet must be shared as "Anyone with the link can view"; `gid` selects a specific tab, otherwise the default sheet is exported. A private sheet returns an HTML sign-in page with status `200` rather than failing. |
 
 ### Validation schemas (Zod) — `src/validator/index.ts`
 

@@ -14,10 +14,20 @@
  *    `validator` type namespace as {@link ValidatorTypes}.
  */
 
-import validator from "validator";
-import type * as ValidatorTypes from "validator";
+import validator from 'validator';
+import type * as ValidatorTypes from 'validator';
 
-import { boolean, email, ipv4, ipv6, iso, number, string, url, uuid } from "zod";
+import {
+	boolean,
+	email,
+	ipv4,
+	ipv6,
+	iso,
+	number,
+	string,
+	url,
+	uuid,
+} from 'zod';
 
 /**
  * Zod schema instance that validates a UUID string (any version).
@@ -38,21 +48,13 @@ export const EmailValidationSchema = email();
  * @param min Minimum length. Default: 6.
  * @param max Maximum length. Default: 100.
  */
-export const PasswordValidationSchema = (
-	min = 6,
-	max = 100
-) =>
-	string()
-		.min(min)
-		.max(max);
+export const PasswordValidationSchema = (min = 6, max = 100) =>
+	string().min(min).max(max);
 
 /**
  * Creates a required string validation schema.
  */
-export const RequiredStringValidationSchema = () =>
-	string()
-		.trim()
-		.min(1);
+export const RequiredStringValidationSchema = () => string().trim().min(1);
 
 /**
  * Creates a name validation schema.
@@ -60,14 +62,8 @@ export const RequiredStringValidationSchema = () =>
  * @param min Minimum length. Default: 2.
  * @param max Maximum length. Default: 100.
  */
-export const NameValidationSchema = (
-	min = 2,
-	max = 100
-) =>
-	string()
-		.trim()
-		.min(min)
-		.max(max);
+export const NameValidationSchema = (min = 2, max = 100) =>
+	string().trim().min(min).max(max);
 
 /**
  * Creates a first name validation schema.
@@ -92,11 +88,7 @@ export const UsernameValidationSchema = () =>
 /**
  * Creates a phone number validation schema.
  */
-export const PhoneNumberValidationSchema = () =>
-	string()
-		.trim()
-		.min(7)
-		.max(20);
+export const PhoneNumberValidationSchema = () => string().trim().min(7).max(20);
 
 /**
  * Creates a URL validation schema.
@@ -115,39 +107,28 @@ export const SlugValidationSchema = () =>
  * Creates a hexadecimal colour validation schema.
  */
 export const HexColorValidationSchema = () =>
-	string()
-		.regex(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/);
+	string().regex(/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/);
 
 /**
  * Creates an OTP validation schema.
  *
  * @param length OTP length. Default: 6.
  */
-export const OtpValidationSchema = (
-	length = 6
-) =>
-	string()
-		.length(length)
-		.regex(/^\d+$/);
+export const OtpValidationSchema = (length = 6) =>
+	string().length(length).regex(/^\d+$/);
 
 /**
  * Creates a token validation schema.
  */
-export const TokenValidationSchema = () =>
-	string()
-		.min(1);
+export const TokenValidationSchema = () => string().min(1);
 
 /**
  * Creates a description validation schema.
  *
  * @param max Maximum length. Default: 1000.
  */
-export const DescriptionValidationSchema = (
-	max = 1000
-) =>
-	string()
-		.trim()
-		.max(max);
+export const DescriptionValidationSchema = (max = 1000) =>
+	string().trim().max(max);
 
 /**
  * Validates ISO datetime strings.
@@ -157,16 +138,12 @@ export const DateTimeValidationSchema = iso.datetime();
 /**
  * Creates a positive number validation schema.
  */
-export const PositiveNumberValidationSchema = () =>
-	number()
-		.positive();
+export const PositiveNumberValidationSchema = () => number().positive();
 
 /**
  * Creates a non-negative number validation schema.
  */
-export const NonNegativeNumberValidationSchema = () =>
-	number()
-		.nonnegative();
+export const NonNegativeNumberValidationSchema = () => number().nonnegative();
 
 /**
  * Validates boolean values.
@@ -176,56 +153,45 @@ export const BooleanValidationSchema = boolean();
 /**
  * Creates a page validation schema.
  */
-export const PageValidationSchema = () =>
-	number()
-		.int()
-		.min(1);
+export const PageValidationSchema = () => number().int().min(1);
 
 /**
  * Creates a page size validation schema.
  *
  * @param max Maximum page size. Default: `100`.
  */
-export const PageSizeValidationSchema = (
-	max = 100
-) =>
-	number()
-		.int()
-		.min(1)
-		.max(max);
+export const PageSizeValidationSchema = (max = 100) =>
+	number().int().min(1).max(max);
 
 /**
  * Creates a search query validation schema.
  *
  * @param max Maximum length. Default: `200`.
  */
-export const SearchQueryValidationSchema = (
-	max = 200
-) =>
-	string()
-		.trim()
-		.max(max);
-
+export const SearchQueryValidationSchema = (max = 200) =>
+	string().trim().max(max);
 
 /**
  * Creates a country code validation schema.
  *
  * Example: NG, US, CA
  */
-export const CountryCodeValidationSchema = () => string().length(2).toUpperCase();
+export const CountryCodeValidationSchema = () =>
+	string().length(2).toUpperCase();
 
 /**
  * Creates a currency code validation schema.
  *
  * Example: NGN, USD, CAD
  */
-export const CurrencyCodeValidationSchema = () => string().length(3).toUpperCase();
+export const CurrencyCodeValidationSchema = () =>
+	string().length(3).toUpperCase();
 
 /**
  * Creates a language code validation schema.
  *
  * Example: en, fr
-*/
+ */
 export const LanguageCodeValidationSchema = () => string().min(2).max(10);
 
 /**
@@ -233,9 +199,16 @@ export const LanguageCodeValidationSchema = () => string().min(2).max(10);
  *
  * Example: image/png
  */
-export const MimeTypeValidationSchema = () => string().regex(/^[a-z]+\/[a-z0-9.+-]+$/i);
+export const MimeTypeValidationSchema = () =>
+	string().regex(/^[a-z]+\/[a-z0-9.+-]+$/i);
 
-/** * Creates a file extension validation schema. * * Example: png, pdf */ export const FileExtensionValidationSchema = () => string().regex(/^[a-z0-9]+$/i);
+/**
+ * Creates a file extension validation schema.
+ *
+ * Example: png, pdf
+ */
+export const FileExtensionValidationSchema = () =>
+	string().regex(/^[a-z0-9]+$/i);
 
 /**
  * Creates an IPv4 or IPv6 validation schema.
@@ -371,7 +344,7 @@ export const {
 	isFreightContainerID,
 	isIPRange,
 	isIn,
-	isWhitelisted
+	isWhitelisted,
 } = validator;
 
 // re-export all types (DecimalLocale, MobilePhoneLocale, etc.)

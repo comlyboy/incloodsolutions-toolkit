@@ -13,17 +13,20 @@ import { IBaseCdkConstructProps } from '../../types';
  * - SNS topic creation
  * - Lambda subscriptions
  */
-interface ISnsConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** SNS topic configuration options */
-	readonly topicOptions: TopicProps;
+interface ISnsConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** SNS topic configuration options */
+		readonly topicOptions: TopicProps;
 
-	/**
-	 * Lambda functions to subscribe to the topic
-	 *
-	 * Each function will receive messages published to the topic
-	 */
-	readonly targetFunctions: Function[];
-}>, 'appName' | 'stage' | 'stackName'> { }
+		/**
+		 * Lambda functions to subscribe to the topic
+		 *
+		 * Each function will receive messages published to the topic
+		 */
+		readonly targetFunctions: Function[];
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {}
 
 /**
  * CDK construct for SNS topic with Lambda subscriptions
@@ -57,7 +60,7 @@ export class BaseSnsConstruct extends Construct {
 					/**
 					 * Lambda subscription target
 					 */
-					new LambdaSubscription(targetFunction)
+					new LambdaSubscription(targetFunction),
 				);
 			});
 		}

@@ -10,10 +10,13 @@ import { IBaseCdkConstructProps } from '../../types';
  * Provides configuration for creating an S3 bucket
  * with optional overrides for bucket properties.
  */
-interface IS3DeploymentConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Configuration options for the S3 bucket */
-	readonly bucketOptions?: BucketProps;
-}>, 'appName' | 'stackName'> { }
+interface IS3DeploymentConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Configuration options for the S3 bucket */
+		readonly bucketOptions?: BucketProps;
+	}>,
+	'appName' | 'stackName'
+> {}
 
 /**
  * CDK construct for S3 bucket
@@ -32,7 +35,11 @@ export class BaseS3Construct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for S3 bucket
 	 */
-	constructor(scope: Construct, id: string, props: IS3DeploymentConstructProps) {
+	constructor(
+		scope: Construct,
+		id: string,
+		props: IS3DeploymentConstructProps,
+	) {
 		super(scope, id);
 
 		this.bucket = new Bucket(this, id, {
@@ -43,15 +50,14 @@ export class BaseS3Construct extends Construct {
 			 * Defaults to DESTROY if not explicitly defined
 			 */
 			removalPolicy:
-				props.options?.bucketOptions?.removalPolicy
-				|| RemovalPolicy.DESTROY
+				props.options?.bucketOptions?.removalPolicy || RemovalPolicy.DESTROY,
 		});
 
 		/**
 		 * CloudFormation output exposing the S3 bucket ARN
 		 */
 		new CfnOutput(this, 'S3BucketArn', {
-			value: this.bucket.bucketArn
+			value: this.bucket.bucketArn,
 		});
 	}
 }

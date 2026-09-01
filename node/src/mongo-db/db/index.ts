@@ -11,7 +11,7 @@ let cachedConnection = (global as any).mongoose as {
 if (!cachedConnection) {
 	cachedConnection = (global as any).mongoose = {
 		customConnection: null,
-		connectionPromise: null
+		connectionPromise: null,
 	};
 }
 
@@ -63,14 +63,19 @@ export async function initMongooseConnection(params?: {
 		try {
 			await cachedConnection.customConnection.db.admin().ping();
 			if (cachedConnection.customConnection.readyState === 1) {
-				if (enableDebug) printLog('MongooseDbConnection', 'Reusing existing connection!');
+				if (enableDebug)
+					printLog('MongooseDbConnection', 'Reusing existing connection!');
 				return {
 					connection: cachedConnection.customConnection,
 					closeConnection,
 				};
 			}
 		} catch {
-			if (enableDebug) printLog('MongooseDbConnection', 'Detected stale connection, reconnecting...');
+			if (enableDebug)
+				printLog(
+					'MongooseDbConnection',
+					'Detected stale connection, reconnecting...',
+				);
 			await closeConnection();
 		}
 	}
@@ -79,7 +84,11 @@ export async function initMongooseConnection(params?: {
 	let attempts = 0;
 	while (attempts < maxRetries) {
 		try {
-			if (enableDebug) printLog('MongooseDbConnection', `Connecting to database (Attempt ${attempts + 1})`);
+			if (enableDebug)
+				printLog(
+					'MongooseDbConnection',
+					`Connecting to database (Attempt ${attempts + 1})`,
+				);
 			if (enableDebug) set('debug', true);
 
 			cachedConnection.connectionPromise = connect(
@@ -97,7 +106,8 @@ export async function initMongooseConnection(params?: {
 				},
 			) as unknown as Promise<Connection>;
 
-			cachedConnection.customConnection = await cachedConnection.connectionPromise;
+			cachedConnection.customConnection =
+				await cachedConnection.connectionPromise;
 
 			if (enableDebug) printLog('MongooseDbConnection', '✅ MongoDB connected');
 			break;
@@ -109,7 +119,10 @@ export async function initMongooseConnection(params?: {
 				throw new CustomException(error);
 			}
 			if (enableDebug)
-				printLog('MongooseDbConnection', `Retrying in ${retryDelay / 1000}s (${attempts}/${maxRetries})`);
+				printLog(
+					'MongooseDbConnection',
+					`Retrying in ${retryDelay / 1000}s (${attempts}/${maxRetries})`,
+				);
 			await delay(retryDelay);
 		}
 	}

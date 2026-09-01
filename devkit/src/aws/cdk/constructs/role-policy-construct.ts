@@ -1,6 +1,12 @@
 import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { ManagedPolicy, PolicyStatement, PolicyStatementProps, Role, RoleProps } from 'aws-cdk-lib/aws-iam';
+import {
+	ManagedPolicy,
+	PolicyStatement,
+	PolicyStatementProps,
+	Role,
+	RoleProps,
+} from 'aws-cdk-lib/aws-iam';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -11,10 +17,13 @@ import { IBaseCdkConstructProps } from '../../types';
  * - IAM role creation
  * - Inline policy statements
  */
-interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** IAM Role configuration options */
-	readonly roleOptions: RoleProps
-}>, 'appName' | 'stage' | 'stackName'> {
+interface IDynamoDBConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** IAM Role configuration options */
+		readonly roleOptions: RoleProps;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Additional inline policies to attach to the role
 	 *
@@ -51,14 +60,13 @@ export class BaseRolePolicyConstruct extends Construct {
 			 * Managed policies attached to the role
 			 * Defaults to AWSLambdaBasicExecutionRole if not provided
 			 */
-			managedPolicies:
-				props.options?.roleOptions?.managedPolicies
-					? props.options.roleOptions.managedPolicies
-					: [
+			managedPolicies: props.options?.roleOptions?.managedPolicies
+				? props.options.roleOptions.managedPolicies
+				: [
 						ManagedPolicy.fromAwsManagedPolicyName(
-							'service-role/AWSLambdaBasicExecutionRole'
-						)
-					]
+							'service-role/AWSLambdaBasicExecutionRole',
+						),
+					],
 		});
 
 		/**
@@ -70,7 +78,7 @@ export class BaseRolePolicyConstruct extends Construct {
 					/**
 					 * Inline policy statement
 					 */
-					new PolicyStatement(policy)
+					new PolicyStatement(policy),
 				);
 			});
 		}
@@ -84,7 +92,7 @@ export class BaseRolePolicyConstruct extends Construct {
 		 * CloudFormation output exposing the role ARN
 		 */
 		new CfnOutput(this, 'RolePolicyArn', {
-			value: this.role.roleArn
+			value: this.role.roleArn,
 		});
 	}
 }

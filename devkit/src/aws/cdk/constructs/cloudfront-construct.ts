@@ -1,6 +1,10 @@
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
-import { Distribution, DistributionProps, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import {
+	Distribution,
+	DistributionProps,
+	ViewerProtocolPolicy,
+} from 'aws-cdk-lib/aws-cloudfront';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -10,10 +14,13 @@ import { IBaseCdkConstructProps } from '../../types';
  * Provides configuration for creating a CloudFront distribution
  * with optional overrides for default behaviour and error handling.
  */
-interface ICloudfrontConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Partial configuration for the CloudFront distribution */
-	readonly cloudfrontOptions: Partial<DistributionProps>;
-}>, 'appName' | 'stage' | 'stackName'> { }
+interface ICloudfrontConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Partial configuration for the CloudFront distribution */
+		readonly cloudfrontOptions: Partial<DistributionProps>;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {}
 
 /**
  * CDK construct for CloudFront distribution
@@ -45,8 +52,8 @@ export class BaseCloudfrontConstruct extends Construct {
 			defaultBehavior: {
 				...props.options?.cloudfrontOptions?.defaultBehavior,
 				viewerProtocolPolicy:
-					props.options?.cloudfrontOptions?.defaultBehavior?.viewerProtocolPolicy
-					|| ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+					props.options?.cloudfrontOptions?.defaultBehavior
+						?.viewerProtocolPolicy || ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
 			},
 
 			/**
@@ -56,14 +63,14 @@ export class BaseCloudfrontConstruct extends Construct {
 			 * - 400, 403, 404 responses are redirected to index.html
 			 */
 			errorResponses: [
-				...props.options?.cloudfrontOptions?.errorResponses || [],
+				...(props.options?.cloudfrontOptions?.errorResponses || []),
 
 				/** Handle 400 errors */
 				{
 					httpStatus: 400,
 					responseHttpStatus: 200,
 					responsePagePath: '/index.html',
-					ttl: Duration.days(1)
+					ttl: Duration.days(1),
 				},
 
 				/** Handle 403 errors */
@@ -71,7 +78,7 @@ export class BaseCloudfrontConstruct extends Construct {
 					httpStatus: 403,
 					responseHttpStatus: 200,
 					responsePagePath: '/index.html',
-					ttl: Duration.days(1)
+					ttl: Duration.days(1),
 				},
 
 				/** Handle 404 errors */
@@ -79,7 +86,7 @@ export class BaseCloudfrontConstruct extends Construct {
 					httpStatus: 404,
 					responseHttpStatus: 200,
 					responsePagePath: '/index.html',
-					ttl: Duration.days(1)
+					ttl: Duration.days(1),
 				},
 			],
 		});

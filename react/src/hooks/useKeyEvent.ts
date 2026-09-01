@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo } from 'react';
 
 /**
  * A keyboard combination to listen for.
@@ -46,14 +46,14 @@ interface IEventProp {
  */
 export function useKeyEvent({
 	combinations,
-	eventType = "keyup",
+	eventType = 'keyup',
 	returnedAction,
 }: IEventProp) {
 	const pressedKeys = useMemo(() => new Set<string>(), []);
 
 	const keysLower = useMemo(
-		() => (combinations.keys || []).map(k => k.toLowerCase()),
-		[combinations.keys]
+		() => (combinations.keys || []).map((k) => k.toLowerCase()),
+		[combinations.keys],
 	);
 
 	const matchAll = combinations.matchAll ?? false;
@@ -62,13 +62,13 @@ export function useKeyEvent({
 		(event: KeyboardEvent) => {
 			const key = event.key.toLowerCase();
 
-			if (eventType === "keydown") pressedKeys.add(key);
-			if (eventType === "keyup") pressedKeys.delete(key);
+			if (eventType === 'keydown') pressedKeys.add(key);
+			if (eventType === 'keyup') pressedKeys.delete(key);
 
 			const match = matchAll
-				? keysLower.every(k =>
-					eventType === "keydown" ? pressedKeys.has(k) : k === key
-				)
+				? keysLower.every((k) =>
+						eventType === 'keydown' ? pressedKeys.has(k) : k === key,
+					)
 				: keysLower.includes(key);
 
 			if (match) {
@@ -76,13 +76,14 @@ export function useKeyEvent({
 				returnedAction();
 			}
 
-			if (matchAll && eventType === "keyup") pressedKeys.clear();
+			if (matchAll && eventType === 'keyup') pressedKeys.clear();
 		},
-		[eventType, keysLower, matchAll, returnedAction, pressedKeys]
+		[eventType, keysLower, matchAll, returnedAction, pressedKeys],
 	);
 
 	useEffect(() => {
 		document.addEventListener(eventType, handleListenedEvent as any);
-		return () => document.removeEventListener(eventType, handleListenedEvent as any);
+		return () =>
+			document.removeEventListener(eventType, handleListenedEvent as any);
 	}, [eventType, handleListenedEvent]);
 }

@@ -1,8 +1,19 @@
-import { IsBoolean, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import {
+	IsBoolean,
+	IsISO8601,
+	IsNotEmpty,
+	IsOptional,
+	IsString,
+} from 'class-validator';
 
-import { IBaseCreator, IBaseDelete, IBaseEditor } from "@incloodsolutions/toolkit";
-export class BaseSchemaEntity implements IBaseCreator, IBaseDelete, IBaseEditor {
-
+import {
+	IBaseCreator,
+	IBaseDelete,
+	IBaseEditor,
+} from '@incloodsolutions/toolkit';
+export class BaseSchemaEntity
+	implements IBaseCreator, IBaseDelete, IBaseEditor
+{
 	@IsString()
 	@IsISO8601()
 	@IsNotEmpty()
@@ -33,9 +44,7 @@ export class BaseSchemaEntity implements IBaseCreator, IBaseDelete, IBaseEditor 
 	@IsString()
 	@IsOptional()
 	lastModifiedByUserId?: string;
-
 }
-
 
 // import { IsBoolean, IsISO8601, IsNotEmpty, IsOptional, IsString } from "class-validator";
 

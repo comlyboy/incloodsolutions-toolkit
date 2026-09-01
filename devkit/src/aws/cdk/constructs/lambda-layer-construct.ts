@@ -1,6 +1,13 @@
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
-import { Architecture, Code, ILayerVersion, LayerVersion, LayerVersionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+	Architecture,
+	Code,
+	ILayerVersion,
+	LayerVersion,
+	LayerVersionProps,
+	Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -11,26 +18,31 @@ import { IBaseCdkConstructProps } from '../../types';
  * - Creating a new Lambda Layer
  * - Importing an existing layer by ARN or attributes
  */
-interface ILambdaLayerConstructProps extends Omit<IBaseCdkConstructProps<{
-	/**
-	 * Configuration for creating a new Lambda layer
-	 *
-	 * Note:
-	 * - `layerVersionName` is required
-	 * - `compatibleArchitectures` is managed internally
-	 */
-	readonly layerOptions?: Partial<Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>>
-	& Required<Pick<LayerVersionProps, 'layerVersionName'>>;
+interface ILambdaLayerConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/**
+		 * Configuration for creating a new Lambda layer
+		 *
+		 * Note:
+		 * - `layerVersionName` is required
+		 * - `compatibleArchitectures` is managed internally
+		 */
+		readonly layerOptions?: Partial<
+			Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>
+		> &
+			Required<Pick<LayerVersionProps, 'layerVersionName'>>;
 
-	/** Import an existing layer by ARN */
-	readonly fromExistingLayerArn?: string;
+		/** Import an existing layer by ARN */
+		readonly fromExistingLayerArn?: string;
 
-	/** Import an existing layer using attributes */
-	readonly fromExistingLayerAttribute?: {
-		readonly layerVersionArn: string;
-		readonly compatibleRuntimes?: Runtime[];
-	};
-}>, 'appName' | 'stage' | 'stackName'> { }
+		/** Import an existing layer using attributes */
+		readonly fromExistingLayerAttribute?: {
+			readonly layerVersionArn: string;
+			readonly compatibleRuntimes?: Runtime[];
+		};
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {}
 
 /**
  * CDK construct for Lambda Layer
@@ -52,7 +64,11 @@ export class BaseLambdaLayerConstruct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for layer creation or import
 	 */
-	constructor(scope: Construct, id: string, props?: ILambdaLayerConstructProps) {
+	constructor(
+		scope: Construct,
+		id: string,
+		props?: ILambdaLayerConstructProps,
+	) {
 		super(scope, id);
 
 		/**
@@ -62,7 +78,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 			this.existingLayer = LayerVersion.fromLayerVersionArn(
 				this,
 				`${id}-Arn`,
-				props?.options?.fromExistingLayerArn
+				props?.options?.fromExistingLayerArn,
 			);
 
 			/**
@@ -72,7 +88,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 			this.existingLayer = LayerVersion.fromLayerVersionAttributes(
 				this,
 				`${id}-Attribute`,
-				props?.options?.fromExistingLayerAttribute
+				props?.options?.fromExistingLayerAttribute,
 			);
 
 			/**
@@ -86,23 +102,19 @@ export class BaseLambdaLayerConstruct extends Construct {
 				 * Default layer code asset
 				 */
 				code:
-					props?.options?.layerOptions?.code
-					|| Code.fromAsset('./dist-layer'),
+					props?.options?.layerOptions?.code || Code.fromAsset('./dist-layer'),
 
 				/**
 				 * Layer description
 				 */
 				description:
-					props?.options?.layerOptions?.description
-					|| 'Lambda Layer written in NodeJS, NestJS, NodeJS-express, serverless-express',
+					props?.options?.layerOptions?.description ||
+					'Lambda Layer written in NodeJS, NestJS, NodeJS-express, serverless-express',
 
 				/**
 				 * Supported CPU architectures
 				 */
-				compatibleArchitectures: [
-					Architecture.ARM_64,
-					Architecture.X86_64
-				],
+				compatibleArchitectures: [Architecture.ARM_64, Architecture.X86_64],
 
 				/**
 				 * Supported runtimes
@@ -110,8 +122,8 @@ export class BaseLambdaLayerConstruct extends Construct {
 				compatibleRuntimes: [
 					Runtime.NODEJS_22_X,
 					Runtime.NODEJS_24_X,
-					Runtime.NODEJS_LATEST
-				]
+					Runtime.NODEJS_LATEST,
+				],
 			} as LayerVersionProps);
 		}
 
@@ -121,9 +133,10 @@ export class BaseLambdaLayerConstruct extends Construct {
 		 */
 		new CfnOutput(this, 'LambdaLayerArn', {
 			value:
-				(props.options?.fromExistingLayerArn || props.options?.fromExistingLayerAttribute)
+				props.options?.fromExistingLayerArn ||
+				props.options?.fromExistingLayerAttribute
 					? this.existingLayer.layerVersionArn
-					: this.layer.layerVersionArn
+					: this.layer.layerVersionArn,
 		});
 	}
 }

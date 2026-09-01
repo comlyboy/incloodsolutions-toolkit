@@ -50,8 +50,10 @@ does it live?".
 Framework-agnostic building blocks that every other package depends on:
 
 - `CustomException` — HTTP-status-aware error class.
+- `ResponseMessageEnum` — standard user-facing response/error message strings.
 - ~20 utility functions: text formatting, ID generation, deep clone, object sanitising,
-  phone-number parsing, XML/JSON conversion, Handlebars templating, HTTP requests, logging.
+  phone-number parsing, XML/JSON conversion, Handlebars templating, HTTP requests, logging,
+  fetching a public Google Sheet as CSV.
 - ~25 ready-made [Zod](https://zod.dev) validation schemas plus every predicate from
   [`validator`](https://github.com/validatorjs/validator.js).
 - ~20 shared base interfaces (`IBaseId`, `IBaseCreator`, `IBaseDelete`, ...), the
@@ -118,6 +120,20 @@ incloodsolutions-toolkit/
 
 Each package is a self-contained npm project with its own `package.json`, `tsconfig`, and
 build. There is no root workspace; run `npm install` inside the package you are working on.
+
+## Code style
+
+Every package uses [Prettier](https://prettier.io) with a shared configuration —
+tab indentation, single quotes, trailing commas (`useTabs: true`, `singleQuote: true`,
+`trailingComma: "all"`). `toolkit/`, `node/`, `react/`, and `devkit/` each carry a
+`.prettierrc`; `angular/` keeps the Prettier config that its CLI scaffold placed in
+`package.json`. Format a package with:
+
+```bash
+npm run format   # runs prettier --write over that package's sources
+```
+
+Run it before committing. (For `angular/`, run `npm install` first so Prettier is available.)
 
 ## Building and publishing
 

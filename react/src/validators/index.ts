@@ -1,13 +1,10 @@
+import { classValidatorResolver } from '@hookform/resolvers/class-validator';
+import { joiResolver } from '@hookform/resolvers/joi';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FieldValues, Resolver } from 'react-hook-form';
+import { object, string } from 'zod';
 
-
-import { classValidatorResolver } from "@hookform/resolvers/class-validator";
-import { joiResolver } from "@hookform/resolvers/joi";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FieldValues, Resolver } from "react-hook-form";
-import { object, string } from "zod";
-
-import { ObjectType } from "@incloodsolutions/toolkit";
-
+import { ObjectType } from '@incloodsolutions/toolkit';
 
 /**
  * Wraps a Zod schema as a `react-hook-form` resolver (`@hookform/resolvers/zod`).
@@ -17,8 +14,11 @@ import { ObjectType } from "@incloodsolutions/toolkit";
  * @param _ - Reserved options object; currently unused, pass `{}`.
  * @returns A resolver to hand to `useForm({ resolver })`.
  */
-export function zodCustomResolver<TSchema extends FieldValues = ObjectType>(schema: TSchema, { }: {}) {
-	return zodResolver(schema as any) as any
+export function zodCustomResolver<TSchema extends FieldValues = ObjectType>(
+	schema: TSchema,
+	{}: {},
+) {
+	return zodResolver(schema as any) as any;
 }
 
 /**
@@ -30,7 +30,9 @@ export function zodCustomResolver<TSchema extends FieldValues = ObjectType>(sche
  * @param _ - Reserved options object; currently unused, pass `{}`.
  * @returns A `Resolver<TSchema>`.
  */
-export function classValidatorCustomResolver<TSchema extends FieldValues = ObjectType>(schema: TSchema, { }: {}) {
+export function classValidatorCustomResolver<
+	TSchema extends FieldValues = ObjectType,
+>(schema: TSchema, {}: {}) {
 	return classValidatorResolver(schema) as Resolver<TSchema>;
 }
 
@@ -42,7 +44,10 @@ export function classValidatorCustomResolver<TSchema extends FieldValues = Objec
  * @param _ - Reserved options object; currently unused, pass `{}`.
  * @returns A `Resolver<TSchema>`.
  */
-export function joiCustomResolver<TSchema extends FieldValues = ObjectType>(schema: TSchema, { }: {}) {
+export function joiCustomResolver<TSchema extends FieldValues = ObjectType>(
+	schema: TSchema,
+	{}: {},
+) {
 	return joiResolver(schema as any) as Resolver<TSchema>;
 }
 
@@ -58,10 +63,11 @@ export function joiCustomResolver<TSchema extends FieldValues = ObjectType>(sche
  * `EmailValidationSchema` / `PasswordValidationSchema` from
  * `@incloodsolutions/toolkit`.
  */
-export const EmailLoginValidationSchema = () => object({
-	email: EmailValidationSchema,
-	password: PasswordValidationSchema()
-});
+export const EmailLoginValidationSchema = () =>
+	object({
+		email: EmailValidationSchema,
+		password: PasswordValidationSchema(),
+	});
 
 /**
  * Zod schema factory for a username + password login form. `username` is a
@@ -73,7 +79,8 @@ export const EmailLoginValidationSchema = () => object({
  * **Broken in the current release.** It references `PasswordValidationSchema`,
  * which is not imported in this module, so calling it throws a `ReferenceError`.
  */
-export const UsernameLoginValidationSchema = () => object({
-	username: string().min(2).max(100),
-	password: PasswordValidationSchema()
-});
+export const UsernameLoginValidationSchema = () =>
+	object({
+		username: string().min(2).max(100),
+		password: PasswordValidationSchema(),
+	});

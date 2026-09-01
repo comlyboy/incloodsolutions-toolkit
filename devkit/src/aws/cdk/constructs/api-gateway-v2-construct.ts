@@ -2,7 +2,12 @@ import { Construct } from 'constructs';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { AddRoutesOptions, CorsHttpMethod, HttpApi, HttpApiProps } from 'aws-cdk-lib/aws-apigatewayv2';
+import {
+	AddRoutesOptions,
+	CorsHttpMethod,
+	HttpApi,
+	HttpApiProps,
+} from 'aws-cdk-lib/aws-apigatewayv2';
 
 import { CustomException } from '@incloodsolutions/toolkit';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
@@ -15,13 +20,16 @@ import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
  * - Route definitions
  * - Lambda handlers
  */
-interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** HTTP API configuration options */
-	readonly gatewayOptions: HttpApiProps;
+interface IApiGatewayV2ConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** HTTP API configuration options */
+		readonly gatewayOptions: HttpApiProps;
 
-	/** Route definitions passed directly to `addRoutes` */
-	readonly routeOptions: Partial<AddRoutesOptions>[];
-}>, 'appName' | 'stage' | 'stackName'> {
+		/** Route definitions passed directly to `addRoutes` */
+		readonly routeOptions: Partial<AddRoutesOptions>[];
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Lambda functions used as route handlers
 	 *
@@ -30,7 +38,6 @@ interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
 	 */
 	readonly handlerFunctions: Function[];
 }
-
 
 /**
  * CDK construct for creating an API Gateway v2 (HTTP API)
@@ -45,7 +52,10 @@ interface IApiGatewayV2ConstructProps extends Omit<IBaseCdkConstructProps<{
  * - Each route is registered for every provided handler function
  * - Throws if no handler functions are supplied
  */
-export class BaseApiGatewayV2Construct extends Construct implements IBaseConstruct {
+export class BaseApiGatewayV2Construct
+	extends Construct
+	implements IBaseConstruct
+{
 	/** The created HTTP API instance */
 	readonly api: HttpApi;
 
@@ -57,7 +67,11 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 	 * @param id Unique construct identifier
 	 * @param props Configuration for API, routes, and handlers
 	 */
-	constructor(scope: Construct, id: string, props: IApiGatewayV2ConstructProps) {
+	constructor(
+		scope: Construct,
+		id: string,
+		props: IApiGatewayV2ConstructProps,
+	) {
 		super(scope, id);
 
 		this.enableDebug = props.enableDebug;
@@ -66,7 +80,9 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 			...props?.options?.gatewayOptions,
 
 			/** Default API description if not provided */
-			description: props?.options?.gatewayOptions?.description || 'This is an Http API using CDK',
+			description:
+				props?.options?.gatewayOptions?.description ||
+				'This is an Http API using CDK',
 
 			/**
 			 * CORS configuration
@@ -76,7 +92,9 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 				...props.options?.gatewayOptions?.corsPreflight,
 
 				/** Allow all HTTP methods by default */
-				allowMethods: props.options?.gatewayOptions?.corsPreflight?.allowMethods || Object.values(CorsHttpMethod),
+				allowMethods:
+					props.options?.gatewayOptions?.corsPreflight?.allowMethods ||
+					Object.values(CorsHttpMethod),
 
 				/** Merge default headers with user-defined headers */
 				allowHeaders: [
@@ -87,9 +105,9 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 					'X-Api-Key',
 					'X-Amz-Security-Token',
 					'X-Amz-User-Agent',
-					...props.options?.gatewayOptions?.corsPreflight?.allowHeaders || []
-				]
-			}
+					...(props.options?.gatewayOptions?.corsPreflight?.allowHeaders || []),
+				],
+			},
 		});
 
 		/**
@@ -103,15 +121,15 @@ export class BaseApiGatewayV2Construct extends Construct implements IBaseConstru
 		 * Register routes with Lambda integrations
 		 */
 		if (props?.options?.routeOptions?.length) {
-			props.handlerFunctions.forEach(handlerFunc => {
-				props?.options?.routeOptions.forEach(route => {
+			props.handlerFunctions.forEach((handlerFunc) => {
+				props?.options?.routeOptions.forEach((route) => {
 					this.api.addRoutes({
 						...route,
 
 						/**
 						 * Lambda integration for each route
 						 */
-						integration: new HttpLambdaIntegration('routes', handlerFunc)
+						integration: new HttpLambdaIntegration('routes', handlerFunc),
 					} as AddRoutesOptions);
 				});
 			});

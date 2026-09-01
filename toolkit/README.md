@@ -23,6 +23,7 @@ declarations.
 - [Quick start](#quick-start)
 - [Requirements and module formats](#requirements-and-module-formats)
 - [API reference](#api-reference)
+  - [Constants](#constants)
   - [Errors](#errors)
   - [Utilities](#utilities)
   - [Validation schemas (Zod)](#validation-schemas-zod)
@@ -98,6 +99,24 @@ const { generateNanoid } = require('@incloodsolutions/toolkit');
 Everything is exported from the package root. The sections below group exports by source
 module.
 
+### Constants
+
+#### `ResponseMessageEnum`
+
+A string enum of standard, user-facing response and error messages. **Each member's value
+is the message text itself**, so members can be returned to a client or thrown directly.
+Members are grouped by concern: General, CRUD, Authentication, Authorization, User,
+Password, Email, Status, Files, and Pagination / Search. Some values are intentionally
+duplicated (e.g. `WRONG_PASSWORD` and `INVALID_CREDENTIALS`) so call sites stay semantically
+specific while showing one message.
+
+```typescript
+import { CustomException, ResponseMessageEnum } from '@incloodsolutions/toolkit';
+
+throw new CustomException(ResponseMessageEnum.USER_NOT_FOUND, 404);
+return { message: ResponseMessageEnum.UPDATE_SUCCESS, data };
+```
+
 ### Errors
 
 #### `CustomException`
@@ -156,6 +175,7 @@ Constructor: `new CustomException(error, statusCode?, options?)` where `error` i
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Walks an object and throws a `CustomException` if the same dotted key path appears twice. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compiles and renders a Handlebars template. |
 | `printLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional ANSI colour and timestamp. |
+| `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint. No auth — the sheet must be shared as "Anyone with the link can view". |
 
 ```typescript
 import { sanitizeObject, transformText, generateRandomId } from '@incloodsolutions/toolkit';

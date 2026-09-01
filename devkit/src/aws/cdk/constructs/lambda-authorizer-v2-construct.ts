@@ -1,7 +1,11 @@
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import { Function } from 'aws-cdk-lib/aws-lambda';
-import { HttpLambdaAuthorizer, HttpLambdaAuthorizerProps, HttpLambdaResponseType } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import {
+	HttpLambdaAuthorizer,
+	HttpLambdaAuthorizerProps,
+	HttpLambdaResponseType,
+} from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -12,10 +16,13 @@ import { IBaseCdkConstructProps } from '../../types';
  * - HTTP API Lambda authorizer (API Gateway v2)
  * - Authorizer behaviour and identity sources
  */
-interface ILambdaAuthoriserV2ConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** HTTP Lambda authorizer configuration options */
-	readonly authorizerOptions: HttpLambdaAuthorizerProps
-}>, 'appName' | 'stage' | 'stackName'> {
+interface ILambdaAuthoriserV2ConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** HTTP Lambda authorizer configuration options */
+		readonly authorizerOptions: HttpLambdaAuthorizerProps;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Lambda function used as the authorizer handler
 	 *
@@ -42,7 +49,11 @@ export class BaseLambdaAuthoriserV2Construct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for authorizer and handler function
 	 */
-	constructor(scope: Construct, id: string, props: ILambdaAuthoriserV2ConstructProps) {
+	constructor(
+		scope: Construct,
+		id: string,
+		props: ILambdaAuthoriserV2ConstructProps,
+	) {
 		super(scope, id);
 
 		this.authoriser = new HttpLambdaAuthorizer(id, props.handlerFunction, {
@@ -55,23 +66,24 @@ export class BaseLambdaAuthoriserV2Construct extends Construct {
 			identitySource: [
 				'$request.header.Cookie',
 				'$request.header.Authorization',
-				...props?.options?.authorizerOptions?.identitySource
+				...props?.options?.authorizerOptions?.identitySource,
 			],
 
 			/**
 			 * Supported response types for the authorizer
 			 * Defaults to IAM and SIMPLE responses
 			 */
-			responseTypes:
-				props?.options?.authorizerOptions?.responseTypes
-				|| [HttpLambdaResponseType.IAM, HttpLambdaResponseType.SIMPLE]
+			responseTypes: props?.options?.authorizerOptions?.responseTypes || [
+				HttpLambdaResponseType.IAM,
+				HttpLambdaResponseType.SIMPLE,
+			],
 		});
 
 		/**
 		 * CloudFormation output exposing the authorizer ID
 		 */
 		new CfnOutput(this, 'LambdaAuthorizerV2_ID', {
-			value: this.authoriser.authorizerId
+			value: this.authoriser.authorizerId,
 		});
 	}
 }

@@ -6,20 +6,33 @@ import path from 'path';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { Express, Request, Response } from 'express';
-import { AES, enc, HmacSHA512, SHA512, } from 'crypto-js';
+import { AES, enc, HmacSHA512, SHA512 } from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
-import { isIP, isMongoId, validate, ValidationError, ValidatorOptions } from 'class-validator';
-import { ClassConstructor, ClassTransformOptions, plainToInstance } from 'class-transformer';
+import {
+	isIP,
+	isMongoId,
+	validate,
+	ValidationError,
+	ValidatorOptions,
+} from 'class-validator';
+import {
+	ClassConstructor,
+	ClassTransformOptions,
+	plainToInstance,
+} from 'class-transformer';
 
-import { CustomException, IBaseEnableDebug, ObjectType } from '@incloodsolutions/toolkit';
+import {
+	CustomException,
+	IBaseEnableDebug,
+	ObjectType,
+} from '@incloodsolutions/toolkit';
 
 import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult, INestAppInstance } from '../interface';
-
 
 /**
  * Recursively removes "empty" properties (`undefined`, `null`, `''`, or the
@@ -32,15 +45,26 @@ import { IBaseApiResult, INestAppInstance } from '../interface';
  * @param options.keysToRemove - Keys preserved even when empty. Defaults to `[]`.
  * @returns A new object with empty properties removed.
  */
-export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
+export function sanitizeObject<TData extends ObjectType = any>({
+	data,
+	keysToRemove = [],
+}: {
 	data: TData;
 	keysToRemove?: (keyof TData)[];
 }): TData {
-	const isInvalidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
+	const isInvalidObject =
+		!Object.keys(data).length ||
+		typeof data !== 'object' ||
+		Array.isArray(data);
 	if (isInvalidObject) return data;
-	return Object.fromEntries(Object.entries(data)
-		.filter(([key, value]) => ![undefined, null, '', 'undefined'].includes(value) || !keysToRemove.includes(key))
-		.map(([key, value]) => [key, sanitizeObject(value)])
+	return Object.fromEntries(
+		Object.entries(data)
+			.filter(
+				([key, value]) =>
+					![undefined, null, '', 'undefined'].includes(value) ||
+					!keysToRemove.includes(key),
+			)
+			.map(([key, value]) => [key, sanitizeObject(value)]),
 	) as TData;
 }
 
@@ -63,7 +87,12 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
  * @returns The cipher text (AES) or hex digest (SHA/HMAC).
  * @throws {CustomException} When a secret is required but missing.
  */
-export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug }: {
+export function encryptData<TData>({
+	data,
+	secret,
+	type = 'aes256',
+	enableDebug,
+}: {
 	data?: TData;
 	secret: string;
 	type?: 'hmacSha512' | 'aes256' | 'sha512' | 'sha256';
@@ -115,7 +144,12 @@ export function encryptData<TData>({ data, secret, type = 'aes256', enableDebug 
  * @returns The decrypted, parsed value typed as `TResponse`.
  * @throws {CustomException} When the secret is missing or decryption produces no output.
  */
-export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', enableDebug }: {
+export function decryptData<TResponse>({
+	hashedData,
+	secret,
+	type = 'aes256',
+	enableDebug,
+}: {
 	secret: string;
 	hashedData: string;
 	type?: 'aes256';
@@ -131,7 +165,11 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', en
 		}
 
 		if (enableDebug) {
-			printLog(decryptData.name, 'Decryption WordArray to Utf8 string', decryptedString);
+			printLog(
+				decryptData.name,
+				'Decryption WordArray to Utf8 string',
+				decryptedString,
+			);
 		}
 		const result = JSON.parse(decryptedString);
 		if (enableDebug) {
@@ -160,20 +198,24 @@ export function decryptData<TResponse>({ hashedData, secret, type = 'aes256', en
 export function getIpAddress(req: Request) {
 	const ipAddress = req?.ip;
 	const remoteAddress = req?.socket?.remoteAddress;
-	const xForwardedFor = req?.headers["x-forwarded-for"];
+	const xForwardedFor = req?.headers['x-forwarded-for'];
 
-	if (xForwardedFor && typeof xForwardedFor === "string") {
-		const ipCurrent = xForwardedFor.split(",")[0].trim();
+	if (xForwardedFor && typeof xForwardedFor === 'string') {
+		const ipCurrent = xForwardedFor.split(',')[0].trim();
 		if (isIP(ipCurrent)) {
 			return ipCurrent;
 		}
 	}
 
-	if (remoteAddress && typeof remoteAddress === "string" && isIP(remoteAddress)) {
+	if (
+		remoteAddress &&
+		typeof remoteAddress === 'string' &&
+		isIP(remoteAddress)
+	) {
 		return remoteAddress;
 	}
 
-	if (ipAddress && typeof ipAddress === "string" && isIP(ipAddress)) {
+	if (ipAddress && typeof ipAddress === 'string' && isIP(ipAddress)) {
 		return ipAddress;
 	}
 
@@ -189,9 +231,12 @@ export function getIpAddress(req: Request) {
  * @returns The bcrypt hash string.
  * @throws {CustomException} When `data` is null/undefined/empty.
  */
-export async function hashWithBcrypt(data: string, saltRounds?: number): Promise<string> {
+export async function hashWithBcrypt(
+	data: string,
+	saltRounds?: number,
+): Promise<string> {
 	if (!data) {
-		throw new CustomException('Cannot hash a null/undefined data!')
+		throw new CustomException('Cannot hash a null/undefined data!');
 	}
 	const salt = await genSalt(saltRounds);
 	return await hash(data, salt);
@@ -204,7 +249,10 @@ export async function hashWithBcrypt(data: string, saltRounds?: number): Promise
  * @param hashedData - The stored bcrypt hash.
  * @returns `true` when they match; `false` when they do not, or when either argument is missing.
  */
-export async function validateHashWithBcrypt(plainData: string, hashedData: string) {
+export async function validateHashWithBcrypt(
+	plainData: string,
+	hashedData: string,
+) {
 	if (!plainData || !hashedData) return false;
 	return await compare(plainData, hashedData);
 }
@@ -223,7 +271,10 @@ export async function validateHashWithBcrypt(plainData: string, hashedData: stri
  * @throws {CustomException} When `file` is missing, when not running in Lambda,
  *   or when no destination path can be determined.
  */
-export async function writeFileToLambda({ filePath, file }: {
+export async function writeFileToLambda({
+	filePath,
+	file,
+}: {
 	filePath?: string;
 	file: string | NodeJS.ArrayBufferView | File;
 }): Promise<string> {
@@ -238,7 +289,9 @@ export async function writeFileToLambda({ filePath, file }: {
 
 	if (filePath) {
 		// Ensure the path starts with /tmp for Lambda security
-		fullFilePath = filePath.startsWith('/tmp') ? filePath : path.join('/tmp', filePath);
+		fullFilePath = filePath.startsWith('/tmp')
+			? filePath
+			: path.join('/tmp', filePath);
 	} else if (file instanceof File && file.name) {
 		// Fallback to File.name if no filePath provided
 		fullFilePath = path.join('/tmp', file.name);
@@ -289,7 +342,9 @@ export async function readFileFromLambda(fileName: string) {
  *   environment variables are set.
  */
 export function isLambdaEnvironment() {
-	return Boolean(process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME);
+	return Boolean(
+		process.env?.LAMBDA_TASK_ROOT && process.env?.AWS_LAMBDA_FUNCTION_NAME,
+	);
 }
 
 /**
@@ -317,7 +372,11 @@ export function isValidUUID(uuid: string) {
  * generateCustomUUID({ version: 4, asUpperCase: true });
  * generateCustomUUID({ symbol: '' });                // dashes stripped
  */
-export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }: {
+export function generateCustomUUID({
+	asUpperCase = false,
+	symbol,
+	version = 7,
+}: {
 	asUpperCase?: boolean;
 	symbol?: string;
 	version?: 4 | 7;
@@ -337,7 +396,9 @@ export function generateCustomUUID({ asUpperCase = false, symbol, version = 7 }:
  * @param apiResponse - The {@link IBaseApiResult} to freeze.
  * @returns A `Readonly<IBaseApiResult>` copy.
  */
-export function apiResult<TBody extends ObjectType | ObjectType[]>(apiResponse: IBaseApiResult<TBody>) {
+export function apiResult<TBody extends ObjectType | ObjectType[]>(
+	apiResponse: IBaseApiResult<TBody>,
+) {
 	return { ...apiResponse } as Readonly<IBaseApiResult>;
 }
 
@@ -353,7 +414,11 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>(apiResponse: 
  * @param statusCode - HTTP status code. Defaults to `200`.
  * @returns The Express `Response` (result of `res.status().json()`).
  */
-export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: Response, data: IBaseApiResult<TBody>, statusCode = 200) {
+export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(
+	res: Response,
+	data: IBaseApiResult<TBody>,
+	statusCode = 200,
+) {
 	return res.status(statusCode).json({
 		success: statusCode < 400,
 		statusCode,
@@ -370,7 +435,9 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(res: 
  * @returns The percent-encoded string.
  */
 export function encodeUrlComponent<TData = any>(data: TData) {
-	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
+	return encodeURIComponent(
+		typeof data === 'string' ? data : JSON.stringify(data),
+	);
 }
 
 /**
@@ -381,7 +448,12 @@ export function encodeUrlComponent<TData = any>(data: TData) {
  */
 export function isValidMongoId(data: string | ObjectType | ObjectId): boolean {
 	if (typeof data === 'string') {
-		return Types.ObjectId.isValid(data) && data.length === 24 && isValidObjectId(data) && isMongoId(data);
+		return (
+			Types.ObjectId.isValid(data) &&
+			data.length === 24 &&
+			isValidObjectId(data) &&
+			isMongoId(data)
+		);
 	}
 	if ((data as any) instanceof Types.ObjectId) {
 		return true;
@@ -423,7 +495,7 @@ export function initCustomLogger(context?: string) {
 		log: (message: string) => logMessage('log', message),
 		info: (message: string) => logMessage('info', message),
 		debug: (message: string) => logMessage('debug', message),
-		error: (message: string) => logMessage('error', message)
+		error: (message: string) => logMessage('error', message),
 	};
 }
 
@@ -441,7 +513,12 @@ export function initCustomLogger(context?: string) {
  * @param options.primaryColor - Accent colour for the card's left border. Defaults to `'#4f46e5'`.
  * @returns A complete HTML document string.
  */
-export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', description }: {
+export function returnApiOverview({
+	name,
+	docsUrl,
+	primaryColor = '#4f46e5',
+	description,
+}: {
 	name: string;
 	docsUrl?: string;
 	primaryColor?: string;
@@ -515,7 +592,7 @@ export function returnApiOverview({ name, docsUrl, primaryColor = '#4f46e5', des
 				<div class="row"><span class="label">Timestamp:</span> ${new Date().toUTCString()}</div>
 			</div>
 		</body>
-	</html>`
+	</html>`;
 }
 
 /**
@@ -538,9 +615,9 @@ export function printLog(
 	options?: {
 		prettify?: boolean;
 		ignoreDate?: boolean;
-	}
+	},
 ) {
-	const yellowColor = "\x1b[33m";
+	const yellowColor = '\x1b[33m';
 	const resetColor = '\x1b[0m';
 	const greenColor = '\x1b[32m';
 
@@ -551,9 +628,14 @@ export function printLog(
 		: '';
 
 	const logLabel = options?.prettify ? `${greenColor}LOG${resetColor}` : 'LOG';
-	const logMessage = options?.prettify ? `${greenColor}${message}${resetColor}` : message;
+	const logMessage = options?.prettify
+		? `${greenColor}${message}${resetColor}`
+		: message;
 
-	console.log(`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`, data || '');
+	console.log(
+		`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`,
+		data || '',
+	);
 }
 
 /**
@@ -573,13 +655,27 @@ export function printLog(
  * @example
  * app.use(reqResLogger({ formats: ['user-agent', 'referrer'] }));
  */
-export function reqResLogger({ formats = [], options }: {
+export function reqResLogger({
+	formats = [],
+	options,
+}: {
 	formats?: string[];
 	options?: Options<any, any>;
 } = {}) {
 	let requestId = new Date().toUTCString();
-	formats = formats.map(format => format.startsWith(':') ? format : `:${format}`);
-	const defaultFormats = [':id', ...isLambdaEnvironment() ? [':invocationId'] : [], ':method', ':status', ':url', ...formats, ':total-time ms', ':res[content-length]'];
+	formats = formats.map((format) =>
+		format.startsWith(':') ? format : `:${format}`,
+	);
+	const defaultFormats = [
+		':id',
+		...(isLambdaEnvironment() ? [':invocationId'] : []),
+		':method',
+		':status',
+		':url',
+		...formats,
+		':total-time ms',
+		':res[content-length]',
+	];
 
 	if (isLambdaEnvironment()) {
 		const { context, event } = getCurrentLambdaInvocation() as {
@@ -611,18 +707,28 @@ export function reqResLogger({ formats = [], options }: {
  *
  * @returns {Promise<TSchema>} A promise that resolves with the validated and transformed instance of the schema.
  */
-export async function validateDataWithClassValidator<TData, TSchema extends ObjectType>(schema: ClassConstructor<TSchema>, data: TData, options: {
-	validatorOptions: ValidatorOptions;
-	transformOptions: ClassTransformOptions;
-}): Promise<TSchema> {
-
+export async function validateDataWithClassValidator<
+	TData,
+	TSchema extends ObjectType,
+>(
+	schema: ClassConstructor<TSchema>,
+	data: TData,
+	options: {
+		validatorOptions: ValidatorOptions;
+		transformOptions: ClassTransformOptions;
+	},
+): Promise<TSchema> {
 	function flattenValidationErrors(errors: ValidationError[]): string[] {
-		return errors.flatMap(error => {
-			const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
-				const [first, ...rest] = constraint.split(' ');
-				return `'${first}': ${rest.join(' ')}`;
-			}) : [];
-			const childConstraints = error.children?.length ? flattenValidationErrors(error.children) : [];
+		return errors.flatMap((error) => {
+			const currentConstraints = error.constraints
+				? Object.values(error.constraints).map((constraint) => {
+						const [first, ...rest] = constraint.split(' ');
+						return `'${first}': ${rest.join(' ')}`;
+					})
+				: [];
+			const childConstraints = error.children?.length
+				? flattenValidationErrors(error.children)
+				: [];
 			return [...currentConstraints, ...childConstraints];
 		});
 	}
@@ -648,8 +754,10 @@ export async function validateDataWithClassValidator<TData, TSchema extends Obje
  * @param {TData} data - The MongoDB document or plain object to normalise.
  * @returns {TData} The normalised object with MongoDB `ObjectId`s converted to strings.
  */
-export function normalizeMongooseData<TData extends ObjectType>(data: TData): TData {
-	if (!data || typeof data !== "object" || Array.isArray(data)) return data;
+export function normalizeMongooseData<TData extends ObjectType>(
+	data: TData,
+): TData {
+	if (!data || typeof data !== 'object' || Array.isArray(data)) return data;
 	data = typeof data?.toObject === 'function' ? data?.toObject() : data;
 
 	const normalised: ObjectType = {
@@ -659,8 +767,8 @@ export function normalizeMongooseData<TData extends ObjectType>(data: TData): TD
 				// 	return this.normalizeMongooseData(value);
 				// }
 				return [key, isValidMongoId(value) ? `${value}` : value];
-			})
-		)
+			}),
+		),
 	} as TData;
 
 	if (normalised?._id) {
@@ -669,7 +777,6 @@ export function normalizeMongooseData<TData extends ObjectType>(data: TData): TD
 
 	return normalised as TData;
 }
-
 
 /**
  * Normalizes Mongoose documents and plain JavaScript data structures
@@ -734,16 +841,17 @@ export function normalizeMongooseData_v2<T>(data: T): T {
 	if (data === null || data === undefined) return data;
 
 	if (Array.isArray(data)) {
-		return data.map(item => normalizeMongooseData(item)) as T;
+		return data.map((item) => normalizeMongooseData(item)) as T;
 	}
 
 	if (typeof data !== 'object') {
 		return data;
 	}
 
-	const plain = typeof (data as any).toObject === 'function'
-		? (data as any).toObject()
-		: data;
+	const plain =
+		typeof (data as any).toObject === 'function'
+			? (data as any).toObject()
+			: data;
 
 	const normalized: any = {};
 
@@ -762,7 +870,6 @@ export function normalizeMongooseData_v2<T>(data: T): T {
 	return normalized as T;
 }
 
-
 /**
  * Type guard that distinguishes a NestJS application instance from a bare
  * Express app, by checking for a `getHttpAdapter` method.
@@ -774,8 +881,9 @@ export function isNestApplication(
 	instance: Express | INestAppInstance,
 ): instance is INestAppInstance {
 	return (
-		typeof instance === "object" && instance &&
-		typeof (instance as INestAppInstance).getHttpAdapter === "function"
+		typeof instance === 'object' &&
+		instance &&
+		typeof (instance as INestAppInstance).getHttpAdapter === 'function'
 	);
 }
 
@@ -803,14 +911,16 @@ export function isNestApplication(
  * const barcode = await generateQrBarcode({ id: 123 }, { type: 'barcode' });
  * console.log(barcode); // data:image/png;base64,iVBORw0...
  */
-export async function generateQrBarcode<TData extends ObjectType | string>(qrData: TData, options?: {
-	type?: 'qrcode' | 'barcode';
-	renderOptions: RenderOptions;
-}): Promise<string> {
-
+export async function generateQrBarcode<TData extends ObjectType | string>(
+	qrData: TData,
+	options?: {
+		type?: 'qrcode' | 'barcode';
+		renderOptions: RenderOptions;
+	},
+): Promise<string> {
 	const renderOptions: RenderOptions = {
-		...options?.renderOptions || {},
-		bcid: options?.type === 'barcode' ? 'code128' : "qrcode",
+		...(options?.renderOptions || {}),
+		bcid: options?.type === 'barcode' ? 'code128' : 'qrcode',
 		text: typeof qrData === 'object' ? JSON.stringify(qrData) : qrData,
 		paddingwidth: options?.type === 'barcode' ? 3 : 5,
 		paddingheight: options?.type === 'barcode' ? 3 : 5,
@@ -820,7 +930,7 @@ export async function generateQrBarcode<TData extends ObjectType | string>(qrDat
 		barcolor: '121214',
 		textxalign: 'center',
 		backgroundcolor: 'ffffff',
-	}
+	};
 
 	if (options?.type === 'qrcode') {
 		renderOptions.width = 120;

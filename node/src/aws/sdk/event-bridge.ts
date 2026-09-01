@@ -4,6 +4,5 @@
  * @returns Object containing methods for EventBridge operations
  */
 export function initEventBridgeClientWrapper() {
-
 	return {};
 }

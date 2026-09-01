@@ -124,8 +124,10 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 ```bash
 npm install
-npm run build   # tsup
-npm test        # jest
+npm run build    # tsup (ESM)
+npm run format   # prettier --write over src/**/*.{ts,tsx} (tabs, single quotes)
+npm run lint     # eslint --fix
+npm test         # jest
 ```
 
 ## License

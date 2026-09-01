@@ -1,6 +1,14 @@
 import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
-import { BillingMode, GlobalSecondaryIndexProps, ITable, LocalSecondaryIndexProps, Table, TableAttributes, TableProps } from 'aws-cdk-lib/aws-dynamodb';
+import {
+	BillingMode,
+	GlobalSecondaryIndexProps,
+	ITable,
+	LocalSecondaryIndexProps,
+	Table,
+	TableAttributes,
+	TableProps,
+} from 'aws-cdk-lib/aws-dynamodb';
 
 import { printLog } from '@incloodsolutions/toolkit';
 
@@ -14,25 +22,28 @@ import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
  * - Importing an existing table (by name, ARN, or attributes)
  * - Defining Global Secondary Indexes (GSI) and Local Secondary Indexes (LSI)
  */
-interface IDynamoDBConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Configuration for creating a new table */
-	readonly tableOptions?: TableProps;
+interface IDynamoDBConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Configuration for creating a new table */
+		readonly tableOptions?: TableProps;
 
-	/** Import an existing table by ARN */
-	readonly fromExistingTableArn?: string;
+		/** Import an existing table by ARN */
+		readonly fromExistingTableArn?: string;
 
-	/** Import an existing table by name */
-	readonly fromExistingTableName?: string;
+		/** Import an existing table by name */
+		readonly fromExistingTableName?: string;
 
-	/** Import an existing table using attributes */
-	readonly fromExistingTableAttributes?: TableAttributes;
+		/** Import an existing table using attributes */
+		readonly fromExistingTableAttributes?: TableAttributes;
 
-	/** Global Secondary Index definitions */
-	readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
+		/** Global Secondary Index definitions */
+		readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 
-	/** Local Secondary Index definitions */
-	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
-}>, 'appName' | 'stackName'> { }
+		/** Local Secondary Index definitions */
+		readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
+	}>,
+	'appName' | 'stackName'
+> {}
 
 /**
  * CDK construct for DynamoDB table management
@@ -72,13 +83,13 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			this.existingTable = Table.fromTableName(
 				this,
 				`${id}-RefName`,
-				props.options.fromExistingTableName
+				props.options.fromExistingTableName,
 			);
 
 			if (this.enableDebug) {
 				printLog(
 					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`
+					`Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`,
 				);
 			}
 
@@ -91,13 +102,13 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			this.existingTable = Table.fromTableArn(
 				this,
 				`${id}-RefArn`,
-				props.options.fromExistingTableArn
+				props.options.fromExistingTableArn,
 			);
 
 			if (this.enableDebug) {
 				printLog(
 					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing using ARN`
+					`Created Dynamo-DB table from existing using ARN`,
 				);
 			}
 
@@ -110,13 +121,13 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			this.existingTable = Table.fromTableAttributes(
 				this,
 				`${id}-RefAttributes`,
-				props.options.fromExistingTableAttributes
+				props.options.fromExistingTableAttributes,
 			);
 
 			if (this.enableDebug) {
 				printLog(
 					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing attributes`
+					`Created Dynamo-DB table from existing attributes`,
 				);
 			}
 
@@ -133,8 +144,8 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 				 * Billing mode defaults to PAY_PER_REQUEST if not provided
 				 */
 				billingMode:
-					props.options?.tableOptions?.billingMode
-					|| BillingMode.PAY_PER_REQUEST,
+					props.options?.tableOptions?.billingMode ||
+					BillingMode.PAY_PER_REQUEST,
 
 				/**
 				 * Deletion protection:
@@ -142,8 +153,8 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 				 * - Defaults to true in production stage
 				 */
 				deletionProtection:
-					(props.options?.tableOptions?.deletionProtection === true ||
-						props.options?.tableOptions?.deletionProtection === false)
+					props.options?.tableOptions?.deletionProtection === true ||
+					props.options?.tableOptions?.deletionProtection === false
 						? props.options.tableOptions.deletionProtection
 						: props.stage === 'production',
 			});
@@ -152,13 +163,13 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			 * Attach Global Secondary Indexes (GSI)
 			 */
 			if (props.options?.globalSecondaryIndexes?.length) {
-				props.options.globalSecondaryIndexes.forEach(globalIndex => {
+				props.options.globalSecondaryIndexes.forEach((globalIndex) => {
 					this.table.addGlobalSecondaryIndex(globalIndex);
 
 					if (this.enableDebug) {
 						printLog(
 							BaseDynamoDBConstruct.name,
-							`Added GSI: ${globalIndex.indexName}`
+							`Added GSI: ${globalIndex.indexName}`,
 						);
 					}
 				});
@@ -168,13 +179,13 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			 * Attach Local Secondary Indexes (LSI)
 			 */
 			if (props.options?.localSecondaryIndexes?.length) {
-				props.options.localSecondaryIndexes.forEach(localIndex => {
+				props.options.localSecondaryIndexes.forEach((localIndex) => {
 					this.table.addLocalSecondaryIndex(localIndex);
 
 					if (this.enableDebug) {
 						printLog(
 							BaseDynamoDBConstruct.name,
-							`Added LSI: ${localIndex.indexName}`
+							`Added LSI: ${localIndex.indexName}`,
 						);
 					}
 				});
@@ -187,9 +198,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 		 */
 		new CfnOutput(this, 'DynamoDbArn', {
 			value:
-				(props.options?.fromExistingTableName || props.options?.fromExistingTableArn)
+				props.options?.fromExistingTableName ||
+				props.options?.fromExistingTableArn
 					? this.existingTable.tableArn
-					: this.table.tableArn
+					: this.table.tableArn,
 		});
 	}
 }

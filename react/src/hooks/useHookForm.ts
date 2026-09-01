@@ -1,6 +1,11 @@
-import { Resolver, useForm, UseFormProps, UseFormReturn } from "react-hook-form";
+import {
+	Resolver,
+	useForm,
+	UseFormProps,
+	UseFormReturn,
+} from 'react-hook-form';
 
-import { ObjectType } from "@incloodsolutions/toolkit";
+import { ObjectType } from '@incloodsolutions/toolkit';
 
 /**
  * Thin wrapper around `react-hook-form`'s `useForm` that wires a resolver and
@@ -17,10 +22,13 @@ import { ObjectType } from "@incloodsolutions/toolkit";
  * @remarks Currently not re-exported from the package entry point; import from
  *   this module directly if needed.
  */
-export function useCustomReactHookForm<TSchema extends ObjectType>(resolveSchema: TSchema, props?: Omit<UseFormProps<TSchema>, 'resolver'>) {
+export function useCustomReactHookForm<TSchema extends ObjectType>(
+	resolveSchema: TSchema,
+	props?: Omit<UseFormProps<TSchema>, 'resolver'>,
+) {
 	return useForm({
 		mode: props?.mode || 'all',
-		...props as UseFormProps,
+		...(props as UseFormProps),
 		resolver: resolveSchema as unknown as Resolver<ObjectType, any, TSchema>,
 	}) as unknown as UseFormReturn<TSchema, any, TSchema>;
 }

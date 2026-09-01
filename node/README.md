@@ -192,8 +192,10 @@ const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
 
 ```bash
 npm install
-npm run build   # tsup: ESM + CJS + d.ts
-npm test        # jest
+npm run build    # tsup: ESM + CJS + d.ts
+npm run format   # prettier --write (tabs, single quotes, trailing commas)
+npm run lint     # eslint --fix
+npm test         # jest
 ```
 
 ## License

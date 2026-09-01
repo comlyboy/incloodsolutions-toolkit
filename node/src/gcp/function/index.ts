@@ -1,8 +1,8 @@
-import { Express, Request, Response } from "express";
+import { Express, Request, Response } from 'express';
 
-import { CustomException } from "@incloodsolutions/toolkit";
-import { isNestApplication } from "../../utility";
-import { INestAppInstance } from "../../interface";
+import { CustomException } from '@incloodsolutions/toolkit';
+import { isNestApplication } from '../../utility';
+import { INestAppInstance } from '../../interface';
 
 /**
  * Cached Express instance, reused across warm function invocations so the app is
@@ -30,9 +30,14 @@ let expressApplication: Express = null;
  *
  * export const api = (request, response) => initGcpFunctionHandler({ app, request, response });
  */
-export async function initGcpFunctionHandler({ app, request, response }: {
+export async function initGcpFunctionHandler({
+	app,
+	request,
+	response,
+}: {
 	app: Express | INestAppInstance;
-	request: Request; response: Response;
+	request: Request;
+	response: Response;
 }) {
 	if (!app) {
 		throw new CustomException('App instance must be defined!');

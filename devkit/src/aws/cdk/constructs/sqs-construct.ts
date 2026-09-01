@@ -1,7 +1,11 @@
 import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
-import { EventSourceMapping, EventSourceMappingProps, Function } from 'aws-cdk-lib/aws-lambda';
+import {
+	EventSourceMapping,
+	EventSourceMappingProps,
+	Function,
+} from 'aws-cdk-lib/aws-lambda';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -12,18 +16,24 @@ import { IBaseCdkConstructProps } from '../../types';
  * - SQS queue creation
  * - Lambda event source mappings
  */
-interface ISqsConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Configuration options for the SQS queue */
-	readonly queueOptions?: QueueProps;
+interface ISqsConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Configuration options for the SQS queue */
+		readonly queueOptions?: QueueProps;
 
-	/**
-	 * Configuration for Lambda event source mapping
-	 *
-	 * Note:
-	 * `eventSourceArn` and `target` are managed internally
-	 */
-	readonly eventSourceMappingOptions?: Omit<EventSourceMappingProps, 'eventSourceArn' | 'target'>;
-}>, 'appName' | 'stage' | 'stackName'> {
+		/**
+		 * Configuration for Lambda event source mapping
+		 *
+		 * Note:
+		 * `eventSourceArn` and `target` are managed internally
+		 */
+		readonly eventSourceMappingOptions?: Omit<
+			EventSourceMappingProps,
+			'eventSourceArn' | 'target'
+		>;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Lambda functions to be triggered by SQS messages
 	 *
@@ -61,8 +71,7 @@ export class BaseSqsConstruct extends Construct {
 			 * Defaults to DESTROY if not explicitly defined
 			 */
 			removalPolicy:
-				props?.options?.queueOptions?.removalPolicy
-				|| RemovalPolicy.DESTROY
+				props?.options?.queueOptions?.removalPolicy || RemovalPolicy.DESTROY,
 		});
 
 		/**
@@ -84,8 +93,7 @@ export class BaseSqsConstruct extends Construct {
 					 * Defaults to 3 if not explicitly defined
 					 */
 					retryAttempts:
-						props?.options?.eventSourceMappingOptions?.retryAttempts
-						|| 3
+						props?.options?.eventSourceMappingOptions?.retryAttempts || 3,
 				});
 			});
 		}
@@ -94,7 +102,7 @@ export class BaseSqsConstruct extends Construct {
 		 * CloudFormation output exposing the SQS queue ARN
 		 */
 		new CfnOutput(this, 'SqsQueueArn', {
-			value: this.queue.queueArn
+			value: this.queue.queueArn,
 		});
 	}
 }

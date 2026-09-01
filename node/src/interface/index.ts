@@ -1,7 +1,11 @@
-import { Express } from "express";
-import { Document, ObjectId } from "mongoose";
+import { Express } from 'express';
+import { Document, ObjectId } from 'mongoose';
 
-import { AppEnvironmentType, IBaseErrorResponse, ObjectType } from "@incloodsolutions/toolkit";
+import {
+	AppEnvironmentType,
+	IBaseErrorResponse,
+	ObjectType,
+} from '@incloodsolutions/toolkit';
 
 /**
  * Interface representing the environment variables required by the application.
@@ -27,18 +31,16 @@ export interface IBaseEnvironmentVariable {
 	NODE_ENV: AppEnvironmentType;
 
 	/**
- * Logging level: e.g., 'debug', 'info', 'warn', 'error'.
- */
+	 * Logging level: e.g., 'debug', 'info', 'warn', 'error'.
+	 */
 	LOG_LEVEL?: 'debug' | 'info' | 'warn' | 'error';
 
 	/**
- * Port number on which the application runs (optional).
- * Example: 8080
- */
+	 * Port number on which the application runs (optional).
+	 * Example: 8080
+	 */
 	PORT?: number | string;
-
 }
-
 
 /**
  * Standard API response structure.
@@ -73,7 +75,9 @@ export type MongoIdType = ObjectId | string;
  *
  * Extends Mongoose's `Document<string>` to ensure typed access to `id`.
  */
-export interface IBaseMongoDocument<TType extends string | number | ObjectId = string> extends Document<TType> {
+export interface IBaseMongoDocument<
+	TType extends string | number | ObjectId = string,
+> extends Document<TType> {
 	/** The string representation of the MongoDB document ID */
 	id: TType;
 }
@@ -84,7 +88,6 @@ export interface IBaseMongoDocument<TType extends string | number | ObjectId = s
  * - `'descending'` means highest to lowest.
  */
 export type SortOrderType = 'descending' | 'ascending';
-
 
 export interface INestAppInstance extends ObjectType {
 	init: () => Promise<void>;

@@ -1,7 +1,12 @@
 import { compile, RuntimeOptions } from 'handlebars';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
-import { CountryCode, PhoneNumber, parsePhoneNumberFromString, parsePhoneNumberWithError } from 'libphonenumber-js';
+import {
+	CountryCode,
+	PhoneNumber,
+	parsePhoneNumberFromString,
+	parsePhoneNumberWithError,
+} from 'libphonenumber-js';
 
 import { ObjectType } from '../interface';
 import { CustomException } from '../error';
@@ -23,7 +28,9 @@ import { nanoid } from 'nanoid';
  * isIsoDate('12/04/2024');                    // false
  */
 export function isIsoDate(date: string): boolean {
-	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(date);
+	return /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[-+]\d{2}:\d{2})?)?$/.test(
+		date,
+	);
 }
 
 /**
@@ -61,7 +68,10 @@ export function generateISODate(date?: string | number | Date) {
  * generateRandomId({ length: 8, variant: 'alphabet' }); // e.g. "qmzkbwra"
  * generateRandomId({ length: 6, variant: 'alphanumeric' }); // e.g. "a1b2c3"
  */
-export function generateRandomId({ length = 6, variant = 'numeric' }: {
+export function generateRandomId({
+	length = 6,
+	variant = 'numeric',
+}: {
 	length?: number;
 	variant?: 'alphabet' | 'numeric' | 'alphanumeric';
 } = {}) {
@@ -108,7 +118,11 @@ export function generateRandomId({ length = 6, variant = 'numeric' }: {
  * transformText({ text: 'hello world', format: 'capitalize' }); // "Hello World"
  * transformText({ text: '  Scalable Systems  ', format: 'kebab', trim: true }); // "Scalable-Systems"
  */
-export function transformText({ text, format, trim = false }: {
+export function transformText({
+	text,
+	format,
+	trim = false,
+}: {
 	text: string;
 	trim?: boolean;
 	format?: 'uppercase' | 'lowercase' | 'titlecase' | 'capitalize' | 'kebab';
@@ -121,7 +135,9 @@ export function transformText({ text, format, trim = false }: {
 		text = text.toLowerCase();
 	}
 	if (format === 'capitalize') {
-		text = text.toLowerCase().replace(/\b\w/g, (match: string) => match.toUpperCase());
+		text = text
+			.toLowerCase()
+			.replace(/\b\w/g, (match: string) => match.toUpperCase());
 	}
 	if (format === 'titlecase') {
 		text = text.toLowerCase().replace(/^./, text[0].toUpperCase());
@@ -161,7 +177,7 @@ export function generateNanoid(size = 10) {
  */
 export function containsUUID(input: string): boolean {
 	const matches = input.match(
-		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi
+		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
 	);
 	return matches && matches.length > 0;
 }
@@ -183,13 +199,23 @@ export function containsUUID(input: string): boolean {
  * @example
  * const user = await sendHttpRequest<User>({ url: '/users/1' });
  */
-export async function sendHttpRequest<TResponse = any, TBody extends ObjectType = any>(options: AxiosRequestConfig<TBody>) {
+export async function sendHttpRequest<
+	TResponse = any,
+	TBody extends ObjectType = any,
+>(options: AxiosRequestConfig<TBody>) {
 	try {
-		const response = await axios({ headers: {}, ...options }) as unknown as AxiosResponse<TResponse, TBody>;
-		return await response.data as TResponse;
+		const response = (await axios({
+			headers: {},
+			...options,
+		})) as unknown as AxiosResponse<TResponse, TBody>;
+		return (await response.data) as TResponse;
 	} catch (error) {
 		const errorObject = error?.response?.data;
-		const message = errorObject?.message || errorObject || error?.message || 'Http call errored out!';
+		const message =
+			errorObject?.message ||
+			errorObject ||
+			error?.message ||
+			'Http call errored out!';
 		throw { ...errorObject, message };
 	}
 }
@@ -214,12 +240,15 @@ export async function sendHttpRequest<TResponse = any, TBody extends ObjectType 
  * parsePhonenumber('8031234567', { defaultCountry: 'NG' })?.number; // "+2348031234567"
  * parsePhonenumber('not a number'); // undefined
  */
-export function parsePhonenumber(phoneNumber: string, options?: {
-	throwUnfound?: boolean;
-	defaultCountry?: CountryCode;
-	defaultCallingCode?: string;
-	extract?: boolean;
-}): PhoneNumber | undefined {
+export function parsePhonenumber(
+	phoneNumber: string,
+	options?: {
+		throwUnfound?: boolean;
+		defaultCountry?: CountryCode;
+		defaultCallingCode?: string;
+		extract?: boolean;
+	},
+): PhoneNumber | undefined {
 	if (!phoneNumber.trim() || !phoneNumber) {
 		if (options?.throwUnfound) {
 			throw new CustomException('Invalid phoneNumber format!');
@@ -227,7 +256,9 @@ export function parsePhonenumber(phoneNumber: string, options?: {
 		return undefined;
 	}
 
-	const phonenumber = phoneNumber?.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+	const phonenumber = phoneNumber?.startsWith('+')
+		? phoneNumber
+		: `+${phoneNumber}`;
 
 	if (options?.throwUnfound) {
 		return parsePhoneNumberWithError(phonenumber, { ...options });
@@ -252,15 +283,26 @@ export function parsePhonenumber(phoneNumber: string, options?: {
  * sanitizeObject({ data: { name: 'Ada', middleName: '', age: null } });
  * // => { name: 'Ada' }
  */
-export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRemove = [] }: {
+export function sanitizeObject<TData extends ObjectType = any>({
+	data,
+	keysToRemove = [],
+}: {
 	data: TData;
 	keysToRemove?: (keyof TData)[];
 }): TData {
-	const isInvalidObject = !Object.keys(data).length || typeof data !== 'object' || Array.isArray(data);
+	const isInvalidObject =
+		!Object.keys(data).length ||
+		typeof data !== 'object' ||
+		Array.isArray(data);
 	if (isInvalidObject) return data;
-	return Object.fromEntries(Object.entries(data)
-		.filter(([key, value]) => ![undefined, null, '', 'undefined'].includes(value) || !keysToRemove.includes(key))
-		.map(([key, value]) => [key, sanitizeObject(value)])
+	return Object.fromEntries(
+		Object.entries(data)
+			.filter(
+				([key, value]) =>
+					![undefined, null, '', 'undefined'].includes(value) ||
+					!keysToRemove.includes(key),
+			)
+			.map(([key, value]) => [key, sanitizeObject(value)]),
 	) as TData;
 }
 
@@ -279,7 +321,10 @@ export function sanitizeObject<TData extends ObjectType = any>({ data, keysToRem
  * generateDateInNumber();                        // "20240412010255666"
  * generateDateInNumber({ withSeparation: true }); // "2024041201-0255666"
  */
-export function generateDateInNumber({ date, withSeparation }: {
+export function generateDateInNumber({
+	date,
+	withSeparation,
+}: {
 	date?: string | number | Date;
 	withSeparation?: boolean;
 } = {}): string {
@@ -332,11 +377,16 @@ export function cloneDeep<TData = ObjectType>(data: TData) {
  * @example
  * removeDuplicates([1, 1, 2, 3, 3]); // [1, 2, 3]
  */
-export function removeDuplicates<TData extends any[]>(dataList: TData, property?: string[]) {
-	if (!dataList || !dataList.length || !Array.isArray(dataList)) return dataList;
+export function removeDuplicates<TData extends any[]>(
+	dataList: TData,
+	property?: string[],
+) {
+	if (!dataList || !dataList.length || !Array.isArray(dataList))
+		return dataList;
 	const dataSet = new Set();
-	return dataList.filter(data => {
-		const condition = (property.length && typeof data === 'object') ? property.toString() : data;
+	return dataList.filter((data) => {
+		const condition =
+			property.length && typeof data === 'object' ? property.toString() : data;
 		if (dataSet.has(condition)) return false;
 		dataSet.add(condition);
 		return true;
@@ -356,7 +406,11 @@ export function removeDuplicates<TData extends any[]>(dataList: TData, property?
  * @example
  * await sendMessageToTelegram({ chatId: '12345', secret: process.env.TELEGRAM_BOT_TOKEN, message: '*Deploy done*' });
  */
-export async function sendMessageToTelegram({ chatId, secret, message }: {
+export async function sendMessageToTelegram({
+	chatId,
+	secret,
+	message,
+}: {
 	chatId: string;
 	secret: string;
 	message: string;
@@ -365,7 +419,7 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
 		return await sendHttpRequest({
 			url: `https://api.telegram.org/bot${secret}/sendMessage`,
 			method: 'post',
-			data: { chat_id: chatId, text: message, parse_mode: 'Markdown' }
+			data: { chat_id: chatId, text: message, parse_mode: 'Markdown' },
 		});
 	} catch (error) {
 		throw new CustomException(error.description, error.error_code);
@@ -386,7 +440,9 @@ export async function sendMessageToTelegram({ chatId, secret, message }: {
  * encodeUrlComponent({ q: 'a b', page: 2 }); // "%7B%22q%22%3A%22a%20b%22%2C%22page%22%3A2%7D"
  */
 export function encodeUrlComponent<TData = any>(data: TData) {
-	return encodeURIComponent(typeof data === 'string' ? data : JSON.stringify(data));
+	return encodeURIComponent(
+		typeof data === 'string' ? data : JSON.stringify(data),
+	);
 }
 
 /**
@@ -416,7 +472,10 @@ export function decodeUrlComponent<TType>(data: string) {
  * @example
  * const obj = await xmlToJson<{ note: unknown }>('<note><to>A</to></note>', { explicitArray: false });
  */
-export async function xmlToJson<TResponse>(xmlData: string, options: ParserOptions) {
+export async function xmlToJson<TResponse>(
+	xmlData: string,
+	options: ParserOptions,
+) {
 	return new Parser(options).parseStringPromise(xmlData) as TResponse;
 }
 
@@ -431,7 +490,10 @@ export async function xmlToJson<TResponse>(xmlData: string, options: ParserOptio
  * @example
  * const xml = await jsonToXml({ note: { to: 'A' } }, { headless: true });
  */
-export async function jsonToXml<TData>(dataObject: TData, options: BuilderOptions) {
+export async function jsonToXml<TData>(
+	dataObject: TData,
+	options: BuilderOptions,
+) {
 	return new Promise<string>((resolve, reject) => {
 		try {
 			const builder = new Builder(options);
@@ -458,7 +520,13 @@ export async function jsonToXml<TData>(dataObject: TData, options: BuilderOption
  * @example
  * detectDuplicateProperties({ data: { a: { b: 1 }, 'a.b': 2 } }); // throws
  */
-export function detectDuplicateProperties<TObject extends ObjectType = any>({ data, parentKey = '' }: { data: TObject; parentKey?: string; }): void {
+export function detectDuplicateProperties<TObject extends ObjectType = any>({
+	data,
+	parentKey = '',
+}: {
+	data: TObject;
+	parentKey?: string;
+}): void {
 	const seen = new Set<string>();
 	const duplicateKeys: string[] = [];
 
@@ -472,7 +540,11 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 				seen.add(fullKey);
 			}
 
-			if (typeof value === 'object' && !Array.isArray(value) && (value !== null || value !== undefined)) {
+			if (
+				typeof value === 'object' &&
+				!Array.isArray(value) &&
+				(value !== null || value !== undefined)
+			) {
 				traverse(value, fullKey);
 			}
 		});
@@ -481,7 +553,9 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
 	traverse(data, parentKey);
 
 	if (duplicateKeys.length > 0) {
-		throw new CustomException(`Duplicate properties detected: ${duplicateKeys.join(', ')}`);
+		throw new CustomException(
+			`Duplicate properties detected: ${duplicateKeys.join(', ')}`,
+		);
 	}
 }
 
@@ -500,11 +574,18 @@ export function detectDuplicateProperties<TObject extends ObjectType = any>({ da
  * @example
  * compileHtmlWithHandlebar({ data: { name: 'Ada' }, htmlString: 'Hi {{name}}' }); // "Hi Ada"
  */
-export function compileHtmlWithHandlebar<TData extends ObjectType>({ data, htmlString, runtimeOptions, compileOptions }: {
+export function compileHtmlWithHandlebar<TData extends ObjectType>({
+	data,
+	htmlString,
+	runtimeOptions,
+	compileOptions,
+}: {
 	data: TData;
 	htmlString: string;
 	compileOptions?: CompileOptions;
-	runtimeOptions?: Omit<RuntimeOptions, 'partials'> & { partials?: ObjectType<string> };
+	runtimeOptions?: Omit<RuntimeOptions, 'partials'> & {
+		partials?: ObjectType<string>;
+	};
 }) {
 	const templateDelegate = compile<TData>(htmlString, compileOptions);
 	return templateDelegate(data, runtimeOptions as unknown as RuntimeOptions);
@@ -534,9 +615,9 @@ export function printLog(
 	options?: {
 		prettify?: boolean;
 		ignoreDate?: boolean;
-	}
+	},
 ) {
-	const yellowColor = "\x1b[33m";
+	const yellowColor = '\x1b[33m';
 	const resetColor = '\x1b[0m';
 	const greenColor = '\x1b[32m';
 
@@ -547,7 +628,54 @@ export function printLog(
 		: '';
 
 	const logLabel = options?.prettify ? `${greenColor}LOG${resetColor}` : 'LOG';
-	const logMessage = options?.prettify ? `${greenColor}${message}${resetColor}` : message;
+	const logMessage = options?.prettify
+		? `${greenColor}${message}${resetColor}`
+		: message;
 
-	console.log(`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`, data || '');
+	console.log(
+		`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`,
+		data || '',
+	);
+}
+
+/**
+ * Fetches a public Google Sheet as CSV, via the sheet's built-in `/export` endpoint.
+ *
+ * No authentication is performed, so the spreadsheet must be shared as
+ * **"Anyone with the link can view"** (or published to the web). Internally
+ * delegates to {@link sendHttpRequest}, so the same error-normalisation applies;
+ * note that a private/inaccessible sheet does not fail loudly — Google responds
+ * with `200` and an HTML sign-in page instead of CSV, so validate the response
+ * shape before parsing it.
+ *
+ * @param options - Options.
+ * @param options.sheetId - The spreadsheet ID — the segment between `/d/` and
+ *   `/edit` in the sheet's URL, e.g.
+ *   `https://docs.google.com/spreadsheets/d/`**`1AbCsheetId`**`/edit`.
+ * @param options.gid - The `gid` of a specific tab (found in the URL as
+ *   `#gid=...` after opening that tab). When omitted, the spreadsheet's default
+ *   (first visible) sheet is exported.
+ * @returns A promise resolving to the sheet's contents as raw CSV text. Axios only
+ *   parses JSON responses, and this endpoint responds `text/csv`, so the body
+ *   always arrives as an unparsed `string` — split/parse it yourself (e.g. with
+ *   a CSV parser) to get rows and columns.
+ *
+ * @example
+ * const csv = await fetchGoogleSheet({ sheetId: '1AbCsheetId', gid: '123456789' });
+ */
+export async function fetchGoogleSheet({
+	sheetId,
+	gid,
+}: {
+	sheetId: string;
+	gid?: string;
+}): Promise<string> {
+	const url = new URL(
+		`https://docs.google.com/spreadsheets/d/${sheetId}/export`,
+	);
+	url.searchParams.set('format', 'csv');
+	if (gid) {
+		url.searchParams.set('gid', gid);
+	}
+	return sendHttpRequest<string>({ url: url.toString() });
 }

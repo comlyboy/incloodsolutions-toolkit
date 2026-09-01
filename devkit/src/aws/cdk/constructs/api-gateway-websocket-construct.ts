@@ -2,7 +2,13 @@ import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
-import { WebSocketApi, WebSocketApiProps, WebSocketRouteOptions, WebSocketStage, WebSocketStageProps } from 'aws-cdk-lib/aws-apigatewayv2';
+import {
+	WebSocketApi,
+	WebSocketApiProps,
+	WebSocketRouteOptions,
+	WebSocketStage,
+	WebSocketStageProps,
+} from 'aws-cdk-lib/aws-apigatewayv2';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -14,13 +20,16 @@ import { IBaseCdkConstructProps } from '../../types';
  * - WebSocket stage
  * - Route handlers for lifecycle events
  */
-interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** WebSocket API configuration options */
-	readonly webSocketApiOptions: WebSocketApiProps;
+interface IApiGatewayWebsocketConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** WebSocket API configuration options */
+		readonly webSocketApiOptions: WebSocketApiProps;
 
-	/** WebSocket stage configuration options */
-	readonly webSocketStageOptions: WebSocketStageProps;
-}>, 'appName' | 'stage' | 'stackName'> {
+		/** WebSocket stage configuration options */
+		readonly webSocketStageOptions: WebSocketStageProps;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Lambda handlers mapped to WebSocket lifecycle routes
 	 *
@@ -54,7 +63,7 @@ interface IApiGatewayWebsocketConstructProps extends Omit<IBaseCdkConstructProps
 			option: WebSocketRouteOptions;
 			function: Function;
 		};
-	}
+	};
 }
 
 /**
@@ -75,7 +84,11 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for API, stage, and route handlers
 	 */
-	constructor(scope: Construct, id: string, props: IApiGatewayWebsocketConstructProps) {
+	constructor(
+		scope: Construct,
+		id: string,
+		props: IApiGatewayWebsocketConstructProps,
+	) {
 		super(scope, id);
 
 		this.socketApi = new WebSocketApi(this, id, {
@@ -86,7 +99,10 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 			 */
 			connectRouteOptions: {
 				...props.handlers.connect?.option,
-				integration: new WebSocketLambdaIntegration('connectIntegration', props.handlers.connect.function),
+				integration: new WebSocketLambdaIntegration(
+					'connectIntegration',
+					props.handlers.connect.function,
+				),
 			},
 
 			/**
@@ -94,7 +110,10 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 			 */
 			disconnectRouteOptions: {
 				...props.handlers.disconnect?.option,
-				integration: new WebSocketLambdaIntegration('disconnectIntegration', props.handlers.disconnect.function)
+				integration: new WebSocketLambdaIntegration(
+					'disconnectIntegration',
+					props.handlers.disconnect.function,
+				),
 			},
 
 			/**
@@ -102,18 +121,24 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 			 */
 			defaultRouteOptions: {
 				...props.handlers.default?.option,
-				integration: new WebSocketLambdaIntegration('defaultIntegration', props.handlers.default.function)
+				integration: new WebSocketLambdaIntegration(
+					'defaultIntegration',
+					props.handlers.default.function,
+				),
 			},
 		});
 
 		/**
 		 * Custom message route (e.g. "notifications")
 		 */
-		this.socketApi.addRoute("notifications", {
+		this.socketApi.addRoute('notifications', {
 			...props.handlers.message?.option,
 
 			/** Lambda integration for message handling */
-			integration: new WebSocketLambdaIntegration('routes', props.handlers.message.function),
+			integration: new WebSocketLambdaIntegration(
+				'routes',
+				props.handlers.message.function,
+			),
 		});
 
 		/**
@@ -123,7 +148,7 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 		const webSocketStage = new WebSocketStage(this, `${id}_stage`, {
 			...props.options?.webSocketStageOptions,
 			webSocketApi: this.socketApi,
-			autoDeploy: true
+			autoDeploy: true,
 		});
 
 		/**

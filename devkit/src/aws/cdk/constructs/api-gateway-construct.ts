@@ -2,12 +2,17 @@ import { Construct } from 'constructs';
 import { Function } from 'aws-cdk-lib/aws-lambda';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
-import { Cors, IResource, LambdaIntegration, RestApi, RestApiProps } from 'aws-cdk-lib/aws-apigateway';
+import {
+	Cors,
+	IResource,
+	LambdaIntegration,
+	RestApi,
+	RestApiProps,
+} from 'aws-cdk-lib/aws-apigateway';
 
 import { printLog } from '@incloodsolutions/toolkit';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
-
 
 /**
  * Route definition for API Gateway resources
@@ -33,13 +38,16 @@ interface IRouteOption {
  * - Route definitions
  * - Lambda handler
  */
-interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** REST API configuration options */
-	readonly gatewayOptions: RestApiProps;
+interface IApiGatewayConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** REST API configuration options */
+		readonly gatewayOptions: RestApiProps;
 
-	/** Route definitions used to build API resources */
-	readonly routeOptions: IRouteOption[];
-}>, 'appName' | 'stage' | 'stackName'> {
+		/** Route definitions used to build API resources */
+		readonly routeOptions: IRouteOption[];
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {
 	/**
 	 * Lambda function handling all API routes
 	 *
@@ -58,7 +66,10 @@ interface IApiGatewayConstructProps extends Omit<IBaseCdkConstructProps<{
  * - Recursively builds API resources from route definitions
  * - Exposes API base URL as a CloudFormation output
  */
-export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct {
+export class BaseApiGatewayConstruct
+	extends Construct
+	implements IBaseConstruct
+{
 	/** The created REST API instance */
 	readonly api: RestApi;
 
@@ -79,7 +90,9 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 			...props?.options?.gatewayOptions,
 
 			/** Default API description if not provided */
-			description: props?.options?.gatewayOptions?.description || 'This is a REST API using CDK',
+			description:
+				props?.options?.gatewayOptions?.description ||
+				'This is a REST API using CDK',
 
 			/**
 			 * CORS configuration
@@ -89,26 +102,32 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 				...props?.options?.gatewayOptions?.defaultCorsPreflightOptions,
 
 				/** Allow all origins by default */
-				allowOrigins: props?.options?.gatewayOptions?.defaultCorsPreflightOptions?.allowOrigins || Cors.ALL_ORIGINS,
+				allowOrigins:
+					props?.options?.gatewayOptions?.defaultCorsPreflightOptions
+						?.allowOrigins || Cors.ALL_ORIGINS,
 
 				/** Allow all HTTP methods by default */
-				allowMethods: props?.options?.gatewayOptions?.defaultCorsPreflightOptions?.allowMethods || Cors.ALL_METHODS,
+				allowMethods:
+					props?.options?.gatewayOptions?.defaultCorsPreflightOptions
+						?.allowMethods || Cors.ALL_METHODS,
 
 				/** Merge default headers with user-defined headers */
 				allowHeaders: [
-					...props.options?.gatewayOptions?.defaultCorsPreflightOptions?.allowHeaders,
+					...props.options?.gatewayOptions?.defaultCorsPreflightOptions
+						?.allowHeaders,
 					'Content-Type',
 					'Accept',
 					'X-Amz-Date',
 					'Authorization',
 					'X-Api-Key',
 					'X-Amz-Security-Token',
-					'X-Amz-User-Agent'
-				]
+					'X-Amz-User-Agent',
+				],
 			},
 
 			/** Minimum payload size (in bytes) before compression is applied */
-			minCompressionSize: props?.options?.gatewayOptions?.minCompressionSize || Size.bytes(1),
+			minCompressionSize:
+				props?.options?.gatewayOptions?.minCompressionSize || Size.bytes(1),
 		});
 
 		/**
@@ -132,7 +151,7 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 		 * CloudFormation output exposing API base URL
 		 */
 		new CfnOutput(this, 'ApiGateway', {
-			value: this.api.url
+			value: this.api.url,
 		});
 	}
 
@@ -154,9 +173,9 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 		parent: IResource,
 		routes: IRouteOption[],
 		integration: LambdaIntegration,
-		previousPath?: string
+		previousPath?: string,
 	) {
-		routes.forEach(route => {
+		routes.forEach((route) => {
 			const currentPath = `${previousPath || ''}/${route.name}`;
 
 			const resource = parent.addResource(route.name);
@@ -171,7 +190,10 @@ export class BaseApiGatewayConstruct extends Construct implements IBaseConstruct
 
 			/** Optional debug logging */
 			if (this.enableDebug) {
-				printLog(BaseApiGatewayConstruct.name, `Route created: ${route.method} ${currentPath}`);
+				printLog(
+					BaseApiGatewayConstruct.name,
+					`Route created: ${route.method} ${currentPath}`,
+				);
 			}
 		});
 	}

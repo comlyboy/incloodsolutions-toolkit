@@ -1,8 +1,8 @@
-import { ChangeEvent, ReactNode } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { Primitive } from "@radix-ui/react-primitive";
+import { ChangeEvent, ReactNode } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { Primitive } from '@radix-ui/react-primitive';
 
-import { parseClassnames } from "../utilities";
+import { parseClassnames } from '../utilities';
 
 /**
  * Props for {@link FormLayoutComponent}.
@@ -33,9 +33,24 @@ interface Props {
  *   this is not currently reachable from the package entry point — import it from
  *   this module path directly, or change it to a named export.
  */
-export default function FormLayoutComponent({ onSubmit, onChange, formGroup, className, children, busy, }: Props) {
-
-	return <>
-		<Primitive.form onSubmit={(onSubmit && formGroup) && formGroup.handleSubmit(onSubmit)} onChange={onChange && onChange} aria-busy={busy} className={parseClassnames('space-y-6', className)}>{children}</Primitive.form>
-	</>
+export default function FormLayoutComponent({
+	onSubmit,
+	onChange,
+	formGroup,
+	className,
+	children,
+	busy,
+}: Props) {
+	return (
+		<>
+			<Primitive.form
+				onSubmit={onSubmit && formGroup && formGroup.handleSubmit(onSubmit)}
+				onChange={onChange && onChange}
+				aria-busy={busy}
+				className={parseClassnames('space-y-6', className)}
+			>
+				{children}
+			</Primitive.form>
+		</>
+	);
 }

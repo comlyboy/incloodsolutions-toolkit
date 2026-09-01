@@ -13,13 +13,16 @@ import { IBaseCdkConstructProps } from '../../types';
  * - EventBridge rule creation
  * - Target Lambda functions
  */
-interface IEventBridgeConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Lambda functions to be triggered by the rule */
-	readonly targetFunctions: Function[];
+interface IEventBridgeConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Lambda functions to be triggered by the rule */
+		readonly targetFunctions: Function[];
 
-	/** EventBridge rule configuration */
-	readonly eventBridgeOptions: RuleProps;
-}>, 'appName' | 'stage' | 'stackName'> { }
+		/** EventBridge rule configuration */
+		readonly eventBridgeOptions: RuleProps;
+	}>,
+	'appName' | 'stage' | 'stackName'
+> {}
 
 /**
  * CDK construct for EventBridge rule
@@ -47,8 +50,8 @@ export class BaseEventBridgeConstruct extends Construct {
 
 			/** Default description if not explicitly provided */
 			description:
-				props?.options?.eventBridgeOptions?.description
-				|| 'An Event-bridge rule'
+				props?.options?.eventBridgeOptions?.description ||
+				'An Event-bridge rule',
 		});
 
 		/**
@@ -60,7 +63,7 @@ export class BaseEventBridgeConstruct extends Construct {
 					/**
 					 * Lambda target integration
 					 */
-					new LambdaFunction(targetFunction)
+					new LambdaFunction(targetFunction),
 				);
 			});
 		}
@@ -74,7 +77,7 @@ export class BaseEventBridgeConstruct extends Construct {
 		 * CloudFormation output exposing the rule ARN
 		 */
 		new CfnOutput(this, 'EventBridgeArn', {
-			value: this.eventSchedule.ruleArn
+			value: this.eventSchedule.ruleArn,
 		});
 	}
 }

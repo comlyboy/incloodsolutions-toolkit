@@ -1,8 +1,17 @@
 import { Construct } from 'constructs';
 import { CfnOutput, Duration } from 'aws-cdk-lib';
-import { Architecture, Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+	Architecture,
+	Code,
+	Function,
+	FunctionProps,
+	Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 
-import { detectDuplicateProperties, AppEnvironmentEnum } from '@incloodsolutions/toolkit';
+import {
+	detectDuplicateProperties,
+	AppEnvironmentEnum,
+} from '@incloodsolutions/toolkit';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -12,10 +21,13 @@ import { IBaseCdkConstructProps } from '../../types';
  * Provides configuration for creating a Lambda function
  * with optional overrides for runtime, memory, timeout, and environment.
  */
-interface ILambdaConstructProps extends Omit<IBaseCdkConstructProps<{
-	/** Partial Lambda configuration options */
-	readonly lambdaOptions: Partial<FunctionProps>;
-}>, 'appName'> { }
+interface ILambdaConstructProps extends Omit<
+	IBaseCdkConstructProps<{
+		/** Partial Lambda configuration options */
+		readonly lambdaOptions: Partial<FunctionProps>;
+	}>,
+	'appName'
+> {}
 
 /**
  * CDK construct for AWS Lambda function
@@ -50,7 +62,7 @@ export class BaseLambdaConstruct extends Construct {
 			...props.options?.lambdaOptions?.environment,
 			NODE_ENV: props.stage,
 			NODE_OPTIONS: '--enable-source-maps',
-			AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+			AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
 		};
 
 		/**
@@ -65,29 +77,23 @@ export class BaseLambdaConstruct extends Construct {
 			 * Lambda function name
 			 * Defaults to "<stackName>-handler" if not provided
 			 */
-			functionName:
-				`${props?.options?.lambdaOptions?.functionName || props?.stackName}-handler`,
+			functionName: `${props?.options?.lambdaOptions?.functionName || props?.stackName}-handler`,
 
 			/**
 			 * Function description
 			 */
 			description:
-				props?.options?.lambdaOptions?.description
-				|| 'A lambda function',
+				props?.options?.lambdaOptions?.description || 'A lambda function',
 
 			/**
 			 * Entry handler for the Lambda function
 			 */
-			handler:
-				props?.options?.lambdaOptions?.handler
-				|| 'lambda.handler',
+			handler: props?.options?.lambdaOptions?.handler || 'lambda.handler',
 
 			/**
 			 * Runtime environment
 			 */
-			runtime:
-				props?.options?.lambdaOptions?.runtime
-				|| Runtime.NODEJS_24_X,
+			runtime: props?.options?.lambdaOptions?.runtime || Runtime.NODEJS_24_X,
 
 			/**
 			 * Execution timeout
@@ -95,43 +101,38 @@ export class BaseLambdaConstruct extends Construct {
 			 * - 15 seconds otherwise
 			 */
 			timeout:
-				props?.options?.lambdaOptions?.timeout
-				|| Duration.seconds(
-					props.stage === AppEnvironmentEnum.PRODUCTION ? 30 : 15
+				props?.options?.lambdaOptions?.timeout ||
+				Duration.seconds(
+					props.stage === AppEnvironmentEnum.PRODUCTION ? 30 : 15,
 				),
 
 			/**
 			 * Memory allocation (in MB)
 			 */
-			memorySize:
-				props?.options?.lambdaOptions?.memorySize
-				|| 1024,
+			memorySize: props?.options?.lambdaOptions?.memorySize || 1024,
 
 			/**
 			 * CPU architecture
 			 */
 			architecture:
-				props?.options?.lambdaOptions?.architecture
-				|| Architecture.ARM_64,
+				props?.options?.lambdaOptions?.architecture || Architecture.ARM_64,
 
 			/**
 			 * Lambda deployment package source
 			 */
-			code:
-				props?.options?.lambdaOptions?.code
-				|| Code.fromAsset('dist'),
+			code: props?.options?.lambdaOptions?.code || Code.fromAsset('dist'),
 
 			/**
 			 * Final merged environment variables
 			 */
-			environment
+			environment,
 		});
 
 		/**
 		 * CloudFormation output exposing the Lambda function ARN
 		 */
 		new CfnOutput(this, 'LambdaFunctionArn', {
-			value: this.function.functionArn
+			value: this.function.functionArn,
 		});
 	}
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
 	NavigateOptions,
 	useLoaderData,
@@ -7,7 +7,7 @@ import {
 	useNavigate,
 	useNavigationType,
 	useParams,
-} from "react-router-dom";
+} from 'react-router-dom';
 
 /**
  * The snapshot of routing state returned by {@link useCustomNavigation}.
@@ -20,7 +20,10 @@ interface ICurrentNavigationMetadata {
 	 * `options.queries` (arrays produce repeated keys, falsy values are skipped).
 	 * Remaining options are forwarded to React Router's `navigate`.
 	 */
-	navigate: (url: string, options?: NavigateOptions & { queries?: Record<string, any> }) => void;
+	navigate: (
+		url: string,
+		options?: NavigateOptions & { queries?: Record<string, any> },
+	) => void;
 	/** Parsed query-string parameters as a flat string map. */
 	readonly query: Record<string, string>;
 	/** Value from the route's loader (`useLoaderData`). */
@@ -47,7 +50,7 @@ interface ICurrentNavigationMetadata {
 
 function stripFunctions<T extends Record<string, any>>(obj: T) {
 	return Object.fromEntries(
-		Object.entries(obj).filter(([, v]) => typeof v !== 'function')
+		Object.entries(obj).filter(([, v]) => typeof v !== 'function'),
 	) as T;
 }
 
@@ -77,7 +80,7 @@ function debugLog(enableDebug: boolean | undefined, ...args: any[]) {
  */
 export function useCustomNavigation(
 	onRouteChange?: (info: ICurrentNavigationMetadata) => void,
-	enableDebug?: boolean
+	enableDebug?: boolean,
 ): ICurrentNavigationMetadata {
 	const navigateFn = useNavigate();
 	const location = useLocation();
@@ -94,7 +97,7 @@ export function useCustomNavigation(
 		Object.entries(params).forEach(([key, value]) => {
 			if (!value) return;
 			Array.isArray(value)
-				? value.forEach(val => query.append(key, String(val)))
+				? value.forEach((val) => query.append(key, String(val)))
 				: query.set(key, String(value));
 		});
 
@@ -102,20 +105,25 @@ export function useCustomNavigation(
 	}, []);
 
 	const query = useMemo(() => {
-		const q = Object.fromEntries(new URLSearchParams(location.search).entries());
+		const q = Object.fromEntries(
+			new URLSearchParams(location.search).entries(),
+		);
 		debugLog(enableDebug, 'Parsed query:', q);
 		return q;
 	}, [location.search, enableDebug]);
 
 	const navigate = useCallback(
-		(url: string, options?: NavigateOptions & { queries?: Record<string, any>; }) => {
+		(
+			url: string,
+			options?: NavigateOptions & { queries?: Record<string, any> },
+		) => {
 			const { queries = {}, ...rest } = options || {};
 			const finalUrl = `${url}${buildQueryString(queries)}`;
 
 			debugLog(enableDebug, 'navigate() called →', finalUrl);
 			navigateFn(finalUrl, rest);
 		},
-		[navigateFn, buildQueryString, enableDebug]
+		[navigateFn, buildQueryString, enableDebug],
 	);
 
 	/* ---------- metadata ---------- */
@@ -148,7 +156,7 @@ export function useCustomNavigation(
 		location.hash,
 		navigationType,
 		query,
-		enableDebug
+		enableDebug,
 	]);
 
 	/* ---------- route-change detection ---------- */

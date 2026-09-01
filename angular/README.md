@@ -31,13 +31,19 @@ Peer dependencies: `@angular/common` and `@angular/core` `^21`.
 | ------ | ---- | ----- |
 | `StorageService` | `@Injectable({ providedIn: 'root' })` | No members yet. |
 
-## Building
+## Building and formatting
 
 ```bash
 cd angular
 npm install
-npm run build   # ng build  ->  dist/toolkit
+npm run build    # ng build  ->  dist/toolkit
+npm run format   # prettier --write over projects/**/*.{ts,html}
 ```
+
+Prettier config for this workspace lives in the `"prettier"` key of `package.json` (the
+Angular CLI scaffold's defaults: 100-char width, single quotes, spaces, plus an `angular`
+parser override for `.html`). This differs from the tab-based `.prettierrc` used by the
+other packages, and that is intentional — this is a standard Angular workspace.
 
 ## Roadmap
 

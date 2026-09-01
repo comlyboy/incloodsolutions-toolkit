@@ -1,4 +1,3 @@
-
 // // import { defineConfig, UserConfig } from 'vite';
 // // import react from '@vitejs/plugin-react-swc';
 // // import { ManifestOptions, VitePWA, VitePWAOptions } from 'vite-plugin-pwa';

@@ -1,12 +1,36 @@
-import { DynamoDBClient, DynamoDBClientConfig, ReturnConsumedCapacity } from "@aws-sdk/client-dynamodb";
-import { BatchGetCommand, BatchGetCommandInput, BatchGetCommandOutput, DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, QueryCommandInput, QueryCommandOutput, TranslateConfig, UpdateCommand, UpdateCommandInput } from "@aws-sdk/lib-dynamodb";
-import { plainToInstance } from "class-transformer";
-import { ZodObject } from "zod";
-import { validate, ValidationError, ValidatorOptions } from "class-validator";
+import {
+	DynamoDBClient,
+	DynamoDBClientConfig,
+	ReturnConsumedCapacity,
+} from '@aws-sdk/client-dynamodb';
+import {
+	BatchGetCommand,
+	BatchGetCommandInput,
+	BatchGetCommandOutput,
+	DeleteCommand,
+	DynamoDBDocumentClient,
+	GetCommand,
+	PutCommand,
+	QueryCommand,
+	QueryCommandInput,
+	QueryCommandOutput,
+	TranslateConfig,
+	UpdateCommand,
+	UpdateCommandInput,
+} from '@aws-sdk/lib-dynamodb';
+import { plainToInstance } from 'class-transformer';
+import { ZodObject } from 'zod';
+import { validate, ValidationError, ValidatorOptions } from 'class-validator';
 
-import { ObjectType, IBaseEnableDebug, CustomException, generateISODate, generateDateInNumber } from "@incloodsolutions/toolkit";
+import {
+	ObjectType,
+	IBaseEnableDebug,
+	CustomException,
+	generateISODate,
+	generateDateInNumber,
+} from '@incloodsolutions/toolkit';
 
-import { generateCustomUUID, printLog } from "../../utility";
+import { generateCustomUUID, printLog } from '../../utility';
 
 /**
  * Validates data using either Zod or class-validator.
@@ -25,7 +49,14 @@ import { generateCustomUUID, printLog } from "../../utility";
  *
  * @returns Validated and transformed data.
  */
-export async function validateSchema<TData>({ schema, data, enableDebug = false, platform, skipMissingProperties = false, validationOptions }: {
+export async function validateSchema<TData>({
+	schema,
+	data,
+	enableDebug = false,
+	platform,
+	skipMissingProperties = false,
+	validationOptions,
+}: {
 	data: TData;
 	enableDebug?: boolean;
 	// options?: {
@@ -36,15 +67,19 @@ export async function validateSchema<TData>({ schema, data, enableDebug = false,
 	validationOptions?: ValidatorOptions & ObjectType;
 	schema: new () => ObjectType | ZodObject;
 }) {
-
 	if (platform === 'zod') {
-		const schemaa: ZodObject = skipMissingProperties ? (schema as any).partial()
+		const schemaa: ZodObject = skipMissingProperties
+			? (schema as any).partial()
 			: schema;
 
-		const { data: parsedData, success, error } = await schemaa.safeParseAsync(data);
+		const {
+			data: parsedData,
+			success,
+			error,
+		} = await schemaa.safeParseAsync(data);
 
 		if (!success) {
-			const errorMessages = error.issues.map(issue => {
+			const errorMessages = error.issues.map((issue) => {
 				const path = issue.path.join('.');
 				return `${path ? `${path}: ` : ''}${issue.message}`;
 			});
@@ -53,19 +88,22 @@ export async function validateSchema<TData>({ schema, data, enableDebug = false,
 
 		return parsedData;
 	} else {
-
 		/**
-	 * Flattens validation errors into an array of error messages
-	 * @param errors The validation errors to flatten
-	 * @returns Array of error messages
-	 */
+		 * Flattens validation errors into an array of error messages
+		 * @param errors The validation errors to flatten
+		 * @returns Array of error messages
+		 */
 		function flattenValidationErrors(errors: ValidationError[]): string[] {
-			return errors.flatMap(error => {
-				const currentConstraints = error.constraints ? Object.values(error.constraints).map(constraint => {
-					const [first, ...rest] = constraint.split(' ');
-					return `'${first}': ${rest.join(' ')}`;
-				}) : [];
-				const childConstraints = error.children?.length ? flattenValidationErrors(error.children) : [];
+			return errors.flatMap((error) => {
+				const currentConstraints = error.constraints
+					? Object.values(error.constraints).map((constraint) => {
+							const [first, ...rest] = constraint.split(' ');
+							return `'${first}': ${rest.join(' ')}`;
+						})
+					: [];
+				const childConstraints = error.children?.length
+					? flattenValidationErrors(error.children)
+					: [];
 				return [...currentConstraints, ...childConstraints];
 			});
 		}
@@ -76,23 +114,32 @@ export async function validateSchema<TData>({ schema, data, enableDebug = false,
 		}
 		const errors = await validate(instance, {
 			...validationOptions,
-			enableDebugMessages: validationOptions?.enableDebugMessages || validationOptions?.options?.enableDebug,
-			whitelist: validationOptions?.whitelist === false ? validationOptions.validationOptions?.whitelist : true,
+			enableDebugMessages:
+				validationOptions?.enableDebugMessages ||
+				validationOptions?.options?.enableDebug,
+			whitelist:
+				validationOptions?.whitelist === false
+					? validationOptions.validationOptions?.whitelist
+					: true,
 			// forbidNonWhitelisted: validationOptions?.forbidNonWhitelisted === false ? validationOptions.forbidNonWhitelisted : true,
 			forbidNonWhitelisted: true,
-			forbidUnknownValues: validationOptions?.forbidUnknownValues === false ? validationOptions?.forbidUnknownValues : true,
-			skipMissingProperties
+			forbidUnknownValues:
+				validationOptions?.forbidUnknownValues === false
+					? validationOptions?.forbidUnknownValues
+					: true,
+			skipMissingProperties,
 		});
 		if (errors.length > 0) {
 			throw new CustomException(flattenValidationErrors(errors));
 		}
 		return instance;
 	}
-
 }
 
-
-export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTableIndexType = string>(options: {
+export function initDynamoDbClientWrapper<
+	TType extends ObjectType = any,
+	TTableIndexType = string,
+>(options: {
 	/** Dynamo-db table name */
 	readonly tableName: string;
 	/** Class with class-validator and class-transformer decorators @ */
@@ -110,7 +157,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		readonly primaryKeyIdType?: 'uuid' | 'timestampUuid' | 'epochTimestamp';
 		/** To ignore auto-generation of Primary key or not @default false */
 		readonly ignoreAutoGeneratingPrimaryKeyId?: boolean;
-	}
+	};
 	/** Dynamo-db client configuration */
 	readonly config?: DynamoDBClientConfig;
 	/** Validation options. */
@@ -120,7 +167,7 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		readonly classValidator?: ValidatorOptions;
 		/** Zod validator options */
 		readonly zod?: ObjectType;
-	}
+	};
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
 	readonly options?: {
@@ -129,10 +176,20 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		readonly debugContext?: string;
 	} & Readonly<Partial<IBaseEnableDebug>>;
 }) {
-	const AWS_DYNAMODB_RESERVED_WORDS = ['status', 'name', 'names', 'type', 'types'];
-	const primaryKeyName = options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
+	const AWS_DYNAMODB_RESERVED_WORDS = [
+		'status',
+		'name',
+		'names',
+		'type',
+		'types',
+	];
+	const primaryKeyName =
+		options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
 	const debugContext = `${options?.options?.debugContext || ''} | DynamoDb Wrapper`;
-	const dynamoDbClientInstance = DynamoDBDocumentClient.from(new DynamoDBClient(options?.config), options?.translationConfig);
+	const dynamoDbClientInstance = DynamoDBDocumentClient.from(
+		new DynamoDBClient(options?.config),
+		options?.translationConfig,
+	);
 
 	/**
 	 * Validates the data against the provided schema using class-validator
@@ -141,9 +198,10 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	 * @throws {CustomException} If validation fails
 	 * @returns The validated and transformed instance
 	 */
-	async function validateSchemaWithClassValidator<TData>(data: TData, skipMissingProperties = false) {
-
-	}
+	async function validateSchemaWithClassValidator<TData>(
+		data: TData,
+		skipMissingProperties = false,
+	) {}
 
 	/**
 	 * Adds or updates the createdAtDate field in the data object
@@ -161,10 +219,19 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	 * @returns The modified data object with primary key
 	 */
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
-		if (options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId === true) return data;
-		if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'timestampUuid') {
-			(data as any)[primaryKeyName] = `${generateDateInNumber()}-${generateCustomUUID()}`;
-		} else if (options.compositePrimaryKeyOptions?.primaryKeyIdType === 'epochTimestamp') {
+		if (
+			options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId ===
+			true
+		)
+			return data;
+		if (
+			options.compositePrimaryKeyOptions?.primaryKeyIdType === 'timestampUuid'
+		) {
+			(data as any)[primaryKeyName] =
+				`${generateDateInNumber()}-${generateCustomUUID()}`;
+		} else if (
+			options.compositePrimaryKeyOptions?.primaryKeyIdType === 'epochTimestamp'
+		) {
 			(data as any)[primaryKeyName] = `${Date.now()}`;
 		} else {
 			(data as any)[primaryKeyName] = generateCustomUUID();
@@ -173,27 +240,30 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 	}
 
 	return {
-
 		/** Put command */
 		/**
 		 * Creates a new item in the DynamoDB table
 		 * @param data The data to insert into the table
 		 * @returns The inserted item data
 		 */
-		put: async ({ data }: { data: Partial<TType>; }) => {
+		put: async ({ data }: { data: Partial<TType> }) => {
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
 			await validateSchemaWithClassValidator(data);
 
-			const { ConsumedCapacity } = await dynamoDbClientInstance.send(new PutCommand({
-				Item: { ...data },
-				TableName: options.tableName,
-				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
-			}));
+			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
+				new PutCommand({
+					Item: { ...data },
+					TableName: options.tableName,
+					ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+				}),
+			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} PutCommand`, 'successful', { consumedCapacity: ConsumedCapacity?.CapacityUnits });
+				printLog(`${debugContext} PutCommand`, 'successful', {
+					consumedCapacity: ConsumedCapacity?.CapacityUnits,
+				});
 			}
 
 			return data as TType;
@@ -211,7 +281,16 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		 * @param select Properties to include in the result
 		 * @returns Object containing matched items and pagination token
 		 */
-		query: async ({ filter, conditions, indexName, limit, returnAll = false, paginationData, searchTerms, select = [] }: {
+		query: async ({
+			filter,
+			conditions,
+			indexName,
+			limit,
+			returnAll = false,
+			paginationData,
+			searchTerms,
+			select = [],
+		}: {
 			conditions: Partial<TType>;
 			filter: Partial<TType>;
 			limit?: number;
@@ -219,7 +298,10 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			returnAll?: boolean;
 			paginationData?: Partial<TType>;
 			select?: (keyof TType)[];
-			searchTerms?: { properties: (keyof TType)[]; value: string | number | boolean; };
+			searchTerms?: {
+				properties: (keyof TType)[];
+				value: string | number | boolean;
+			};
 		}) => {
 			let exclusiveStartKey: TType;
 			let queryResponse: QueryCommandOutput;
@@ -228,8 +310,8 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 			const queryParam: QueryCommandInput = {
 				TableName: options.tableName,
-				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
-			}
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+			};
 
 			if (conditions && Object.keys(conditions).length) {
 				Object.entries(conditions).map(([key, value]) => {
@@ -240,21 +322,26 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						key = `#${String(key)}`;
 						queryParam.ExpressionAttributeNames = {
 							...queryParam.ExpressionAttributeNames,
-							[key]: rawKey
+							[key]: rawKey,
 						};
 					}
 
-					queryParam.KeyConditionExpression = queryParam?.KeyConditionExpression ? queryParam.KeyConditionExpression += ` AND ${key} = ${modifiedRawKey}` : `${key} = ${modifiedRawKey}`;
+					queryParam.KeyConditionExpression = queryParam?.KeyConditionExpression
+						? (queryParam.KeyConditionExpression += ` AND ${key} = ${modifiedRawKey}`)
+						: `${key} = ${modifiedRawKey}`;
 
 					queryParam.ExpressionAttributeValues = {
 						...queryParam.ExpressionAttributeValues,
-						[modifiedRawKey]: value
+						[modifiedRawKey]: value,
 					};
 				});
 				if (options?.options?.enableDebug) {
-					printLog(`${debugContext} QueryCommand`, 'KeyConditions applied', queryParam);
+					printLog(
+						`${debugContext} QueryCommand`,
+						'KeyConditions applied',
+						queryParam,
+					);
 				}
-
 			}
 
 			if (indexName) {
@@ -266,7 +353,9 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			}
 
 			if (select.length) {
-				queryParam.ProjectionExpression = select.length ? [...new Set(select)].toString() : undefined;
+				queryParam.ProjectionExpression = select.length
+					? [...new Set(select)].toString()
+					: undefined;
 			}
 
 			if (paginationData && Object.keys(paginationData).length) {
@@ -275,7 +364,13 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 
 			// uses only contain operator cus is search
 			if (searchTerms?.properties.length && searchTerms?.value) {
-				const properties = [...new Set(searchTerms.properties.filter(property => property !== 'password'))];
+				const properties = [
+					...new Set(
+						searchTerms.properties.filter(
+							(property) => property !== 'password',
+						),
+					),
+				];
 
 				properties.map((property, index) => {
 					const rawProperty = property;
@@ -284,17 +379,24 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						property = `#${String(property)}_`;
 						queryParam.ExpressionAttributeNames = {
 							...queryParam.ExpressionAttributeNames,
-							[property]: rawProperty as string
+							[property]: rawProperty as string,
 						};
 					}
-					queryParam.FilterExpression = index === 0 ? `contains(${String(property)}, :searchKeyword)` : queryParam.FilterExpression += ` OR contains(${String(property)}, :searchKeyword)`;
+					queryParam.FilterExpression =
+						index === 0
+							? `contains(${String(property)}, :searchKeyword)`
+							: (queryParam.FilterExpression += ` OR contains(${String(property)}, :searchKeyword)`);
 					queryParam.ExpressionAttributeValues = {
 						...queryParam.ExpressionAttributeValues,
-						':searchKeyword': searchTerms.value
+						':searchKeyword': searchTerms.value,
 					};
 				});
 				if (options?.options?.enableDebug) {
-					printLog(`${debugContext} QueryCommand`, 'Applied search/filter', queryParam);
+					printLog(
+						`${debugContext} QueryCommand`,
+						'Applied search/filter',
+						queryParam,
+					);
 				}
 			}
 
@@ -307,21 +409,27 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 						key = `#${String(key)}`;
 						queryParam.ExpressionAttributeNames = {
 							...queryParam.ExpressionAttributeNames,
-							[key]: rawKey
+							[key]: rawKey,
 						};
 					}
 
 					const filterExpressionValue = `${key} = ${modifiedRawKey}`;
 
-					queryParam.FilterExpression ? queryParam.FilterExpression += ` AND ${filterExpressionValue}` : queryParam.FilterExpression = filterExpressionValue
+					queryParam.FilterExpression
+						? (queryParam.FilterExpression += ` AND ${filterExpressionValue}`)
+						: (queryParam.FilterExpression = filterExpressionValue);
 					queryParam.ExpressionAttributeValues = {
 						...queryParam.ExpressionAttributeValues,
-						[modifiedRawKey]: value
-					}
+						[modifiedRawKey]: value,
+					};
 				});
 
 				if (options?.options?.enableDebug) {
-					printLog(`${debugContext} QueryCommand`, 'Applied FilterExpression', queryParam);
+					printLog(
+						`${debugContext} QueryCommand`,
+						'Applied FilterExpression',
+						queryParam,
+					);
 				}
 			}
 
@@ -330,20 +438,29 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			}
 
 			do {
-				queryResponse = await dynamoDbClientInstance.send(new QueryCommand(queryParam));
-				responseData = [...responseData, ...queryResponse.Items as TType[]];
+				queryResponse = await dynamoDbClientInstance.send(
+					new QueryCommand(queryParam),
+				);
+				responseData = [...responseData, ...(queryResponse.Items as TType[])];
 				exclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
 				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey as TType;
-				consumedCapacity = consumedCapacity + queryResponse.ConsumedCapacity?.CapacityUnits
-			} while ((queryResponse.LastEvaluatedKey && Object.keys(queryResponse.LastEvaluatedKey).length) && returnAll);
+				consumedCapacity =
+					consumedCapacity + queryResponse.ConsumedCapacity?.CapacityUnits;
+			} while (
+				queryResponse.LastEvaluatedKey &&
+				Object.keys(queryResponse.LastEvaluatedKey).length &&
+				returnAll
+			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} QueryCommand`, 'successful', { consumedCapacity });
+				printLog(`${debugContext} QueryCommand`, 'successful', {
+					consumedCapacity,
+				});
 			}
 
 			return {
 				data: responseData,
-				nextPageToken: exclusiveStartKey
+				nextPageToken: exclusiveStartKey,
 			};
 		},
 
@@ -353,24 +470,32 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		 * @param select Properties to include in the result
 		 * @returns The retrieved item or undefined if not found
 		 */
-		getOne: async ({ key, select = [] }: {
+		getOne: async ({
+			key,
+			select = [],
+		}: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
 			select?: (keyof TType)[];
 		}) => {
-
 			if (options?.options?.enableDebug) {
 				printLog(`${debugContext} GetCommand`, 'Calling with', key);
 			}
 
-			const response = await dynamoDbClientInstance.send(new GetCommand({
-				Key: key,
-				ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined,
-				TableName: options.tableName,
-				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
-			}));
+			const response = await dynamoDbClientInstance.send(
+				new GetCommand({
+					Key: key,
+					ProjectionExpression: select.length
+						? [...new Set(select)].toString()
+						: undefined,
+					TableName: options.tableName,
+					ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+				}),
+			);
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} GetCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
+				printLog(`${debugContext} GetCommand`, 'successful', {
+					consumedCapacity: response.ConsumedCapacity?.CapacityUnits,
+				});
 			}
 			return response.Item as TType;
 		},
@@ -382,7 +507,10 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		 * @param select Properties to include in the results
 		 * @returns Object containing retrieved items and any unprocessed keys
 		 */
-		getMany: async ({ keys, select = [] }: {
+		getMany: async ({
+			keys,
+			select = [],
+		}: {
 			/** Array of primaryKey and sortKey only */
 			keys: Partial<TType>[];
 			select?: (keyof TType)[];
@@ -395,39 +523,58 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 			if (!keys || !keys.length) {
 				return {
 					data: [] as TType[],
-					nextPageData: undefined
-				}
-			};
+					nextPageData: undefined,
+				};
+			}
 
 			const batchGetInput: BatchGetCommandInput = {
 				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 				RequestItems: {
 					[options.tableName]: {
 						Keys: keys,
-						ProjectionExpression: select.length ? [...new Set(select)].toString() : undefined
-					}
-				}
-			}
+						ProjectionExpression: select.length
+							? [...new Set(select)].toString()
+							: undefined,
+					},
+				},
+			};
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} BatchGetCommand`, 'Calling with', batchGetInput);
+				printLog(
+					`${debugContext} BatchGetCommand`,
+					'Calling with',
+					batchGetInput,
+				);
 			}
 
 			do {
-				queryResponse = await dynamoDbClientInstance.send(new BatchGetCommand(batchGetInput));
-				responseData = [...responseData, ...queryResponse.Responses[options?.tableName] as TType[]];
+				queryResponse = await dynamoDbClientInstance.send(
+					new BatchGetCommand(batchGetInput),
+				);
+				responseData = [
+					...responseData,
+					...(queryResponse.Responses[options?.tableName] as TType[]),
+				];
 				batchGetInput.RequestItems = queryResponse.UnprocessedKeys;
-				consumedCapacity = queryResponse.ConsumedCapacity.reduce((total, capacity) => total + capacity.CapacityUnits, 0);
-			} while (queryResponse.UnprocessedKeys && Object.keys(queryResponse.UnprocessedKeys).length);
+				consumedCapacity = queryResponse.ConsumedCapacity.reduce(
+					(total, capacity) => total + capacity.CapacityUnits,
+					0,
+				);
+			} while (
+				queryResponse.UnprocessedKeys &&
+				Object.keys(queryResponse.UnprocessedKeys).length
+			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} BatchGetCommand`, 'successful', { consumedCapacity });
+				printLog(`${debugContext} BatchGetCommand`, 'successful', {
+					consumedCapacity,
+				});
 			}
 
 			return {
 				data: responseData,
-				nextPageData: queryResponse.UnprocessedKeys
-			}
+				nextPageData: queryResponse.UnprocessedKeys,
+			};
 		},
 
 		/**
@@ -436,23 +583,29 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		 * @param data The new data to update the item with
 		 * @returns The updated item
 		 */
-		updateOne: async ({ key, data }: {
+		updateOne: async ({
+			key,
+			data,
+		}: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
 			data: Partial<TType>;
 		}) => {
-
 			if (options?.options?.enableDebug) {
 				printLog(`${debugContext} UpdateCommand`, 'Validating data:', data);
 			}
 
-			await validateSchema({ schema: options.schema, data, platform: options.validationOptions?.platform });
+			await validateSchema({
+				schema: options.schema,
+				data,
+				platform: options.validationOptions?.platform,
+			});
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
 				ReturnValues: 'ALL_NEW',
 				TableName: options.tableName,
-				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 			};
 
 			Object.entries(data).map(([propertyKey, value]) => {
@@ -461,25 +614,31 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 					propertyKey = `#${propertyKey}_`;
 					updateParam.ExpressionAttributeNames = {
 						...updateParam.ExpressionAttributeNames,
-						[propertyKey]: rawKey
+						[propertyKey]: rawKey,
 					};
 				}
 				const filterValue = `${propertyKey} = :${propertyKey}`;
-				updateParam.UpdateExpression ? updateParam.UpdateExpression += `, ${filterValue}` : updateParam.UpdateExpression = `SET ${filterValue}`;
+				updateParam.UpdateExpression
+					? (updateParam.UpdateExpression += `, ${filterValue}`)
+					: (updateParam.UpdateExpression = `SET ${filterValue}`);
 				updateParam.ExpressionAttributeValues = {
 					...updateParam.ExpressionAttributeValues,
-					[`:${propertyKey}`]: value
-				}
+					[`:${propertyKey}`]: value,
+				};
 			});
 
 			if (options?.options?.enableDebug) {
 				printLog(`${debugContext} UpdateCommand`, 'Calling with', updateParam);
 			}
 
-			const response = await dynamoDbClientInstance.send(new UpdateCommand(updateParam));
+			const response = await dynamoDbClientInstance.send(
+				new UpdateCommand(updateParam),
+			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} UpdateCommand`, 'successful', { consumedCapacity: response.ConsumedCapacity?.CapacityUnits });
+				printLog(`${debugContext} UpdateCommand`, 'successful', {
+					consumedCapacity: response.ConsumedCapacity?.CapacityUnits,
+				});
 			}
 
 			return response.Attributes as TType;
@@ -490,16 +649,19 @@ export function initDynamoDbClientWrapper<TType extends ObjectType = any, TTable
 		 * @param key The primary key (and sort key if applicable) of the item to delete
 		 * @returns true if the deletion was successful
 		 */
-		delete: async ({ key }: {
+		delete: async ({
+			key,
+		}: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
 		}) => {
-			await dynamoDbClientInstance.send(new DeleteCommand({
-				Key: key,
-				TableName: options?.tableName
-			}));
+			await dynamoDbClientInstance.send(
+				new DeleteCommand({
+					Key: key,
+					TableName: options?.tableName,
+				}),
+			);
 			return true;
-		}
+		},
 	};
-
 }
