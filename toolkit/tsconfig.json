@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
 		"module": "CommonJS",
+		"moduleResolution": "bundler",
+		"customConditions": ["node"],
 		"target": "ES2022",
 		"lib": [
 			"esnext"
@@ -13,7 +15,6 @@
 		"rootDir": "./src",
 		"outDir": "dist",
 		"declarationDir": "./dist",
-		"ignoreDeprecations": "6.0",
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"importHelpers": true,

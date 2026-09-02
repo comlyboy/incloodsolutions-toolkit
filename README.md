@@ -137,11 +137,15 @@ Run it before committing. (For `angular/`, run `npm install` first so Prettier i
 
 ## Building and publishing
 
-`toolkit/`, `node/`, and `devkit/` build with [`tsup`](https://tsup.egg.js.org) to dual
-ESM + CommonJS output, then run `tsc --emitDeclarationOnly` for the `.d.ts` files (these
-packages are on **TypeScript 7**, which tsup's bundled `rollup-plugin-dts` cannot handle,
-so `dts` is turned off in [`shared/tsup-base.config.ts`](./shared/tsup-base.config.ts)).
-`react/` is still on TypeScript 6 and lets tsup generate its declarations. `angular/`
+`toolkit/`, `node/`, and `devkit/` share one build shape: `"type": "module"` packages that
+tsup compiles to dual output — `dist/index.js` (ESM) and `dist/index.cjs` (CommonJS), both
+wired into `exports` — followed by `tsc --emitDeclarationOnly` for `dist/index.d.ts`. These
+three are on **TypeScript 7**, which tsup's bundled `rollup-plugin-dts` cannot handle, so
+`dts` is turned off in [`shared/tsup-base.config.ts`](./shared/tsup-base.config.ts) and
+their `tsconfig.json` uses `module: "CommonJS"` + `moduleResolution: "bundler"` +
+`customConditions: ["node"]` (which keeps extensionless relative imports valid while still
+resolving `exports` maps and `node`-only type entrypoints). `react/` is still on
+TypeScript 6, is ESM-only by design, and lets tsup generate its declarations. `angular/`
 builds with `ng-packagr`.
 
 `npm run package` in any package runs its build and then `npm pack` to produce a

@@ -21,10 +21,14 @@ utilities.
 npm install @incloodsolutions/node-toolkit
 ```
 
-Requires Node.js 18+. `express` and `mongoose` are expected to be present in the host
+Requires Node.js 22+. `express` and `mongoose` are expected to be present in the host
 application (they are used by the serverless and MongoDB helpers). AWS SDK v3 clients,
 `bcryptjs`, `crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and
 `uuid` are installed as dependencies.
+
+Ships both formats (like the other toolkits): `import` resolves to ESM
+(`dist/index.js`), `require` resolves to CommonJS (`dist/index.cjs`), with `dist/index.d.ts`
+for types.
 
 ## What's inside
 
@@ -201,8 +205,12 @@ npm run package  # build, then npm pack a tarball
 
 > This package is on **TypeScript 7**. Declarations are emitted by `tsc`, not tsup
 > (tsup's bundled `rollup-plugin-dts` does not support TS 7). `tsconfig.json` uses
-> `module`/`moduleResolution: "NodeNext"` so packages that expose their types only through
-> a `node` export condition (e.g. `bwip-js`) resolve.
+> `moduleResolution: "bundler"` with `customConditions: ["node"]` so packages that expose
+> their types only through a `node` export condition (e.g. `bwip-js`) resolve.
+>
+> The published package is ESM-first, matching `@incloodsolutions/toolkit` and
+> `@incloodsolutions/devkit`: `"type": "module"`, `dist/index.js` is ESM, `dist/index.cjs`
+> is CommonJS, and both `import` and `require` are wired up in `exports`.
 
 ## License
 

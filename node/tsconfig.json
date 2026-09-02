@@ -1,8 +1,9 @@
 {
 	"compilerOptions": {
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"target": "ES2022",
+		"module": "CommonJS",
+		"moduleResolution": "bundler",
+		"customConditions": ["node"],
+		"target": "ES2024",
 		"lib": [
 			"esnext"
 		],

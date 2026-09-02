@@ -2,14 +2,17 @@
 	"name": "@incloodsolutions/node-toolkit",
 	"version": "0.0.11",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
-	"main": "./dist/index.js",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"sideEffects": false,
 	"homepage": "https://www.npmjs.com/package/@incloodsolutions/node-toolkit",
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
-			"require": "./dist/index.js"
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
 		}
 	},
 	"engines": {

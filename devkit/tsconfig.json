@@ -1,6 +1,8 @@
 {
 	"compilerOptions": {
 		"module": "CommonJS",
+		"moduleResolution": "bundler",
+		"customConditions": ["node"],
 		"target": "ES2022",
 		"lib": [
 			"esnext"
