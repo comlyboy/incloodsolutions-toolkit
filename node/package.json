@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.11",
+	"version": "0.0.12",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -49,13 +49,13 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.1123.0",
-		"@aws-sdk/client-ses": "^3.1123.0",
-		"@aws-sdk/client-sns": "^3.1123.0",
-		"@aws-sdk/lib-dynamodb": "^3.1123.0",
-		"@aws-sdk/s3-request-presigner": "^3.1123.0",
+		"@aws-sdk/client-s3": "^3.1124.0",
+		"@aws-sdk/client-ses": "^3.1124.0",
+		"@aws-sdk/client-sns": "^3.1124.0",
+		"@aws-sdk/lib-dynamodb": "^3.1124.0",
+		"@aws-sdk/s3-request-presigner": "^3.1124.0",
 		"@codegenie/serverless-express": "^5.0.0",
-		"@incloodsolutions/toolkit": "^0.1.7",
+		"@incloodsolutions/toolkit": "^0.1.8",
 		"bcryptjs": "^3.0.3",
 		"bwip-js": "^4.11.4",
 		"class-transformer": "^0.5.1",
@@ -68,12 +68,12 @@
 		"zod": "^4.5.4"
 	},
 	"devDependencies": {
-		"@types/aws-lambda": "^8.10.162",
+		"@types/aws-lambda": "^8.10.163",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/crypto-js": "^4.2.2",
 		"@types/express": "^5.0.6",
 		"@types/morgan": "^1.9.10",
-		"@types/node": "^26.4.0",
+		"@types/node": "^26.4.1",
 		"express": "^5.2.1",
 		"jest": "^30.5.1",
 		"mongoose": "^9.9.4",
