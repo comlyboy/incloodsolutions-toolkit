@@ -6,7 +6,9 @@ import path from 'path';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { Express, Request, Response } from 'express';
-import { AES, enc, HmacSHA512, SHA512 } from 'crypto-js';
+// `crypto-js` is CJS-only with no named ESM exports — default-import it so the
+// built ESM bundle loads in a real ESM runtime (Node ESM, NestJS 12, Vite).
+import cryptoJs from 'crypto-js';
 import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
@@ -33,6 +35,8 @@ import {
 
 import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult, INestAppInstance } from '../interface';
+
+const { AES, enc, HmacSHA512, SHA512 } = cryptoJs;
 
 /**
  * Recursively removes "empty" properties (`undefined`, `null`, `''`, or the

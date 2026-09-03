@@ -21,14 +21,19 @@ utilities.
 npm install @incloodsolutions/node-toolkit
 ```
 
-Requires Node.js 22+. `express` and `mongoose` are expected to be present in the host
-application (they are used by the serverless and MongoDB helpers). AWS SDK v3 clients,
-`bcryptjs`, `crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and
-`uuid` are installed as dependencies.
+Requires Node.js 22+. AWS SDK v3 clients, `@codegenie/serverless-express`, `bcryptjs`,
+`crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and `uuid` are
+installed as dependencies.
+
+**`express` and `mongoose` are optional peer dependencies** — install them yourself if you
+use the serverless adapters (`express`) or the Mongoose helpers (`mongoose`). They are kept
+external so they are never bundled into this package (bundling `mongoose` pulls the MongoDB
+driver's dynamic `require()` calls into the ESM build and breaks ESM consumers).
 
 Ships both formats (like the other toolkits): `import` resolves to ESM
 (`dist/index.js`), `require` resolves to CommonJS (`dist/index.cjs`), with `dist/index.d.ts`
-for types.
+for types. The ESM bundle is verified to load in a real ESM runtime by
+[`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts).
 
 ## What's inside
 
@@ -196,12 +201,19 @@ const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
 
 ```bash
 npm install
-npm run build    # tsup: bundles ESM + CJS and a single dist/index.d.ts
-npm run format   # prettier --write (tabs, single quotes, trailing commas)
-npm run lint     # eslint --fix
-npm test         # jest
-npm run package  # build, then npm pack a tarball
+npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
+npm run format     # prettier --write (tabs, single quotes, trailing commas)
+npm run lint       # eslint --fix
+npm test           # vitest run — behaviour tests for every export
+npm run test:watch # vitest in watch mode
+npm run package    # build, then npm pack a tarball
 ```
+
+Tests live in [`test/`](./test) (`utility` / `aws` / `lambda` / `platform`). AWS SDK
+clients are stubbed with `aws-sdk-client-mock`, `@codegenie/serverless-express` and
+`mongoose.connect` are mocked, `bwip-js` and `fs` are mocked for the Lambda helpers —
+nothing touches the network or a database. Each file's header comment lists the utilities
+that are currently buggy.
 
 > The whole build is `tsup` (`dts: true`), pinned to `typescript@^6`. `tsconfig.json` uses
 > `moduleResolution: "bundler"` with `customConditions: ["node"]` so packages that expose

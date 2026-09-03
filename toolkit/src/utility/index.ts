@@ -1,4 +1,8 @@
-import { compile, RuntimeOptions } from 'handlebars';
+// `handlebars` is CJS-only and does not expose named ESM exports, so it must be
+// default-imported for the built ESM bundle to load in a real ESM runtime
+// (Node ESM, NestJS 12, Vite, ...). `RuntimeOptions` / `CompileOptions` are
+// ambient global types from `@types/handlebars`.
+import Handlebars from 'handlebars';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
 import {
@@ -587,7 +591,10 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({
 		partials?: ObjectType<string>;
 	};
 }) {
-	const templateDelegate = compile<TData>(htmlString, compileOptions);
+	const templateDelegate = Handlebars.compile<TData>(
+		htmlString,
+		compileOptions,
+	);
 	return templateDelegate(data, runtimeOptions as unknown as RuntimeOptions);
 }
 

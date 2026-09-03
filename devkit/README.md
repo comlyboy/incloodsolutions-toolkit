@@ -121,11 +121,18 @@ export class ApiStack extends Stack {
 
 ```bash
 npm install
-npm run build    # tsup: bundles ESM + CJS and a single dist/index.d.ts
-npm run format   # prettier --write (tabs, single quotes, trailing commas)
-npm run lint     # eslint --fix
-npm run package  # build, then npm pack a tarball
+npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
+npm run format     # prettier --write (tabs, single quotes, trailing commas)
+npm run lint       # eslint --fix
+npm test           # vitest run — synthesises every construct and asserts its CloudFormation
+npm run test:watch # vitest in watch mode
+npm run package    # build, then npm pack a tarball
 ```
+
+[`test/constructs.spec.ts`](./test/constructs.spec.ts) instantiates each `Base*` construct
+in a throwaway `Stack` and checks the output with `aws-cdk-lib/assertions` (`Template`).
+Nothing is deployed and no AWS credentials are used. Its header comment records the
+constructs that need extra props or currently throw.
 
 > The whole build is `tsup` (`dts: true`), pinned to `typescript@^6`. Only the package root
 > is exported — there are no `./*` subpath entrypoints.

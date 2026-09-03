@@ -11,7 +11,9 @@ import {
 	SNSEvent,
 	SQSEvent,
 } from 'aws-lambda';
-import Framework from '@codegenie/serverless-express/src/frameworks';
+// type-only: importing this as a value pulls the framework adapters (express,
+// fastify, koa, hapi) — and their `require('fs')` calls — into the ESM bundle.
+import type Framework from '@codegenie/serverless-express/src/frameworks';
 
 import { ObjectType } from '@incloodsolutions/toolkit';
 import { INestAppInstance } from '../../interface';
@@ -75,7 +77,7 @@ export async function initLambdaFunctionHandler<
 			eventSource?: { getRequest?: any; getResponse?: any };
 			eventSourceRoutes?: { [key in EventSources]?: string };
 			logSettings?: { level: string };
-			log?: Logger;
+			log?: any;
 			framework?: Framework;
 			binarySettings?: {
 				isBinary?: boolean | Function;
