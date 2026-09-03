@@ -304,9 +304,16 @@ npm install        # install dependencies
 npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
 npm run lint       # eslint --fix
 npm run format     # prettier --write
-npm test           # jest
+npm test           # vitest run — behaviour tests for every export (test/toolkit.spec.ts)
+npm run test:watch # vitest in watch mode
 npm run package    # build, then npm pack a tarball
 ```
+
+[`test/toolkit.spec.ts`](./test/toolkit.spec.ts) exercises the whole public surface. Only
+`axios` is mocked (so `sendHttpRequest`, `sendMessageToTelegram`, and `fetchGoogleSheet`
+never hit the network); everything else runs for real. Its header comment lists the
+utilities that are currently buggy — the tests pin the current behaviour so a fix will make
+the "known bug" cases fail on purpose.
 
 > The whole build is `tsup` (`dts: true` in
 > [`../shared/tsup-base.config.ts`](../shared/tsup-base.config.ts)). It emits `dist/index.js`
