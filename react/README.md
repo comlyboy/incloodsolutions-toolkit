@@ -108,9 +108,6 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 ## Known limitations in the current release
 
-- **`FormLayoutComponent` is not reachable from the package root.** It is a `default`
-  export and the barrel file uses `export *`, which does not forward defaults. Import it
-  from its source path, or wait for it to be changed to a named export.
 - **`useCustomReactHookForm` is not exported** — it exists in `src/hooks/useHookForm.ts`
   but is not re-exported by `src/hooks/index.ts`.
 - `getViteConfiguration` (in `src/config`) and the emoji dataset (in `src/constant`) are
@@ -120,11 +117,16 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 ```bash
 npm install
-npm run build    # tsup (ESM)
+npm run build    # tsup: bundles ESM + a single dist/index.d.ts
 npm run format   # prettier --write over src/**/*.{ts,tsx} (tabs, single quotes)
 npm run lint     # eslint --fix
 npm test         # jest
+npm run package  # build, then npm pack a tarball
 ```
+
+The build has a single `src/index.ts` entry: `dist/` contains just `index.js` (ESM) and a
+bundled `index.d.ts`, matching the other packages. Deep imports (`.../dist/hooks/...`) are
+no longer emitted — everything is reachable from the package root.
 
 ## License
 

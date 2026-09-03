@@ -1,31 +1,11 @@
 import { defineConfig } from "tsup";
 
-// export default defineConfig({
-// 	entry: ["src/index.ts"],
-// 	format: ['esm'],
-// 	dts: true,
-// 	sourcemap: true,
-// 	clean: true,
-// 	minify: false,
-// 	treeshake: true,
-// 	splitting: false,
-// 	target: "es2020",
-// 	esbuildOptions: (options) => {
-// 		// options.sourcemap = "inline";
-// 		options.keepNames = true;
-// 	},
-// 	skipNodeModulesBundle: true,
-// 	platform: "browser",
-// 	external: ["react", "react-dom", "react-router-dom"] // Don't bundle peer deps
-// });
-
-// import { defineConfig } from "tsup";
-
 export default defineConfig([
 	{
-		entry: ['src/**/*.{ts,tsx}'],
+		entry: ['src/index.ts'],
 		format: ['esm'],
 		target: 'es2022',
+		// Bundle the whole public type surface into a single `dist/index.d.ts`.
 		dts: true,
 		sourcemap: true,
 		clean: true,

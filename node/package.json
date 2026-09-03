@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.12",
+	"version": "0.0.13",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -41,7 +41,7 @@
 		"prebuild": "rimraf dist",
 		"build:cdk": "rimraf dist && mkdir -p dist/nodejs && cp package*.json dist/nodejs && npm i --omit=dev --prefix dist/nodejs && du -sh dist/nodejs/node_modules",
 		"buildd": "tsc",
-		"build": "tsup && tsc -p tsconfig.json --emitDeclarationOnly",
+		"build": "tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"format": "prettier --write --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -49,11 +49,11 @@
 		"test": "jest"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.1124.0",
-		"@aws-sdk/client-ses": "^3.1124.0",
-		"@aws-sdk/client-sns": "^3.1124.0",
-		"@aws-sdk/lib-dynamodb": "^3.1124.0",
-		"@aws-sdk/s3-request-presigner": "^3.1124.0",
+		"@aws-sdk/client-s3": "^3.1126.0",
+		"@aws-sdk/client-ses": "^3.1126.0",
+		"@aws-sdk/client-sns": "^3.1126.0",
+		"@aws-sdk/lib-dynamodb": "^3.1126.0",
+		"@aws-sdk/s3-request-presigner": "^3.1126.0",
 		"@codegenie/serverless-express": "^5.0.0",
 		"@incloodsolutions/toolkit": "^0.1.8",
 		"bcryptjs": "^3.0.3",
@@ -83,7 +83,7 @@
 		"ts-node": "^10.9.2",
 		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.5.1",
-		"typescript": "^7.0.2"
+		"typescript": "^6.0.3"
 	},
 	"peerDependenciesMeta": {
 		"express": {

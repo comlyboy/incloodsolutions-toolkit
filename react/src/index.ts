@@ -11,8 +11,7 @@
  * - `utilities` — {@link parseClassnames} (clsx + tailwind-merge), {@link getScreenSize}.
  * - `validators`— `react-hook-form` resolver wrappers for Zod / Joi / class-validator.
  * - `types`     — {@link ViteModeType}.
- * - `components`— {@link FormLayoutComponent} (default export; see its note about
- *                 not being reachable from this entry point).
+ * - `components`— {@link FormLayoutComponent}, a `react-hook-form`-bound `<form>` wrapper.
  *
  * See `README.md` and `../docs/AI-INDEX.md` for the full catalogue and known gaps.
  */

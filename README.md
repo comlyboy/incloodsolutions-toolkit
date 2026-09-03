@@ -137,16 +137,18 @@ Run it before committing. (For `angular/`, run `npm install` first so Prettier i
 
 ## Building and publishing
 
-`toolkit/`, `node/`, and `devkit/` share one build shape: `"type": "module"` packages that
-tsup compiles to dual output — `dist/index.js` (ESM) and `dist/index.cjs` (CommonJS), both
-wired into `exports` — followed by `tsc --emitDeclarationOnly` for `dist/index.d.ts`. These
-three are on **TypeScript 7**, which tsup's bundled `rollup-plugin-dts` cannot handle, so
-`dts` is turned off in [`shared/tsup-base.config.ts`](./shared/tsup-base.config.ts) and
-their `tsconfig.json` uses `module: "CommonJS"` + `moduleResolution: "bundler"` +
-`customConditions: ["node"]` (which keeps extensionless relative imports valid while still
-resolving `exports` maps and `node`-only type entrypoints). `react/` is still on
-TypeScript 6, is ESM-only by design, and lets tsup generate its declarations. `angular/`
-builds with `ng-packagr`.
+`toolkit/`, `node/`, `devkit/`, and `react/` share one build shape: a single `src/index.ts`
+entry and `npm run build` = **`tsup`**. tsup bundles the JavaScript — `dist/index.js` (ESM)
+and, for the three non-React packages, `dist/index.cjs` (CommonJS) — and rolls the whole
+public type surface into a single bundled `dist/index.d.ts` (`dts: true`). `dist/` holds
+just those files plus source maps: no per-folder declaration tree, and the single
+`index.d.ts` has no relative re-exports to trip up strict-ESM consumers.
+
+All four are on **TypeScript 6** (`typescript@^6.0.3`) — this is the version tsup's bundled
+declaration bundler supports, so nothing extra is needed on top of tsup. Their `tsconfig.json`
+uses `moduleResolution: "bundler"` + `customConditions: ["node"]` (so `exports` maps and
+`node`-only type entrypoints such as `bwip-js` resolve) and `ignoreDeprecations: "6.0"`.
+`react/` is ESM-only by design. `angular/` builds with `ng-packagr`.
 
 `npm run package` in any package runs its build and then `npm pack` to produce a
 publishable tarball — use it to verify a package before release.

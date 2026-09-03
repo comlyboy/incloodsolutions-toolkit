@@ -196,15 +196,14 @@ const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
 
 ```bash
 npm install
-npm run build    # tsup (ESM + CJS), then `tsc --emitDeclarationOnly` for .d.ts
+npm run build    # tsup: bundles ESM + CJS and a single dist/index.d.ts
 npm run format   # prettier --write (tabs, single quotes, trailing commas)
 npm run lint     # eslint --fix
 npm test         # jest
 npm run package  # build, then npm pack a tarball
 ```
 
-> This package is on **TypeScript 7**. Declarations are emitted by `tsc`, not tsup
-> (tsup's bundled `rollup-plugin-dts` does not support TS 7). `tsconfig.json` uses
+> The whole build is `tsup` (`dts: true`), pinned to `typescript@^6`. `tsconfig.json` uses
 > `moduleResolution: "bundler"` with `customConditions: ["node"]` so packages that expose
 > their types only through a `node` export condition (e.g. `bwip-js`) resolve.
 >

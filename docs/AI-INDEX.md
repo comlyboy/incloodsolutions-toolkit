@@ -278,7 +278,7 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 
 | Symbol | Summary |
 | ------ | ------- |
-| `FormLayoutComponent` | A `<form>` (radix `Primitive.form`) wired to a `react-hook-form` `formGroup`, with `space-y-6` styling, `aria-busy`, `onSubmit`, `onChange`. **not-exported** — it is a `default` export and `components/index.ts` uses `export * from './FormLayoutComponent'`, which does not forward defaults. Import it from the deep path or change it to a named export to use it. |
+| `FormLayoutComponent` | `({ formGroup: UseFormReturn; onSubmit?; onChange?; busy?; className?; children }) => JSX.Element` — a `<form>` (radix `Primitive.form`) wired to a `react-hook-form` `formGroup`, with `space-y-6` styling, `aria-busy`, and `onSubmit` run through `formGroup.handleSubmit`. Named export, reachable from the package root. |
 
 ### Types — `src/types/index.ts`
 

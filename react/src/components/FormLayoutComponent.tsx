@@ -29,11 +29,12 @@ interface Props {
  * @param props - See {@link Props}.
  * @returns The rendered `<form>` element.
  *
- * @remarks Exported as a **default**. Because the barrel file uses `export *`,
- *   this is not currently reachable from the package entry point — import it from
- *   this module path directly, or change it to a named export.
+ * @example
+ * <FormLayoutComponent formGroup={form} onSubmit={onSubmit} busy={isSubmitting}>
+ *   {fields}
+ * </FormLayoutComponent>
  */
-export default function FormLayoutComponent({
+export function FormLayoutComponent({
 	onSubmit,
 	onChange,
 	formGroup,
