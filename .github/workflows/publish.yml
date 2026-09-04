@@ -35,12 +35,12 @@ jobs:
         run: |
           echo "WORKING_DIRECTORY=${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
 
-      - name: Install dependencies
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          echo "** Installing dependencies... **"
-          pwd
-          npm i
+      # - name: Install dependencies
+      #   working-directory: ${{ env.WORKING_DIRECTORY }}
+      #   run: |
+      #     echo "** Installing dependencies... **"
+      #     pwd
+      #     npm i
 
       - name: Resolve package info
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -72,9 +72,9 @@ jobs:
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "** Installing dependencies... **"
+          echo "** Installing dependencies for /${{ inputs.working_directory }} folder **"
           pwd
-          npm i
+          npm ci --no-audit --no-fund --quiet
 
       - name: Build
         working-directory: ${{ env.WORKING_DIRECTORY }}
