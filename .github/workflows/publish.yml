@@ -13,6 +13,10 @@ jobs:
   publish-library:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      id-token: write  # required for npm provenance
+
     env:
       PACKAGE_NAME: ""
       LOCAL_VERSION: ""
@@ -21,10 +25,10 @@ jobs:
 
     steps:
       - name: Checkout code (make repo branch code available in this pipeline)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js v24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24.x'
           registry-url: https://registry.npmjs.org
@@ -72,7 +76,7 @@ jobs:
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "** Installing dependencies for /${{ inputs.working_directory }} folder **"
+          echo "** Installing dependencies for /${{ env.WORKING_DIRECTORY }} folder **"
           pwd
           npm ci --no-audit --no-fund --quiet
 
@@ -82,4 +86,4 @@ jobs:
 
       - name: Publish to npm
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm publish --access=public
+        run: npm publish --access=public --provenance
