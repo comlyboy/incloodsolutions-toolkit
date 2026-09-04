@@ -21,14 +21,15 @@ utilities.
 npm install @incloodsolutions/node-toolkit
 ```
 
-Requires Node.js 22+. AWS SDK v3 clients, `@codegenie/serverless-express`, `bcryptjs`,
-`crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and `uuid` are
-installed as dependencies.
+Requires Node.js 22+. AWS SDK v3 clients, `@codegenie/serverless-express`, `mongoose`,
+`bcryptjs`, `crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and
+`uuid` are installed as dependencies. Every dependency is kept **external** (not bundled) so
+the ESM build stays loadable — bundling `mongoose` would pull the MongoDB driver's dynamic
+`require()` calls into the bundle and break ESM consumers.
 
-**`express` and `mongoose` are optional peer dependencies** — install them yourself if you
-use the serverless adapters (`express`) or the Mongoose helpers (`mongoose`). They are kept
-external so they are never bundled into this package (bundling `mongoose` pulls the MongoDB
-driver's dynamic `require()` calls into the ESM build and breaks ESM consumers).
+`express` is **not** a dependency: it is only ever used as a type
+(`import type { Request } from 'express'`), so it is erased from the build. A serverless
+host (Nest, or `@codegenie/serverless-express`) brings its own Express.
 
 Ships both formats (like the other toolkits): `import` resolves to ESM
 (`dist/index.js`), `require` resolves to CommonJS (`dist/index.cjs`), with `dist/index.d.ts`

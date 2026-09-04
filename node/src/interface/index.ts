@@ -1,5 +1,5 @@
-import { Express } from 'express';
-import { Document, ObjectId } from 'mongoose';
+import type { Express } from 'express';
+import type { Document, ObjectId } from 'mongoose';
 
 import {
 	AppEnvironmentType,

@@ -1,16 +1,19 @@
 /**
  * Regression guard for the published bundle's ESM compatibility.
  *
- * `@incloodsolutions/node-toolkit` ships `dist/index.js` as ESM. Two ways it can
+ * `@incloodsolutions/node-toolkit` ships `dist/index.js` as ESM. Ways it can
  * break a real ESM runtime (Node ESM, NestJS 12, Vite):
  *
  *   1. Named imports from a CJS-only dependency (e.g. `crypto-js`) —
  *      `import { AES } from 'crypto-js'` — throw
  *      `SyntaxError: ... does not provide an export named 'AES'`.
  *   2. A bundled CJS dependency doing `require('fs')` — esbuild turns these into
- *      a `__require(...)` shim that throws
- *      `Dynamic require of "fs" is not supported` under ESM. `mongoose` /
- *      `express` must stay external (they are `peerDependencies`).
+ *      a `__require(...)` shim that throws `Dynamic require of "fs" is not
+ *      supported` under ESM. `mongoose` must stay EXTERNAL (it is a regular
+ *      dependency, not bundled).
+ *   3. A static `import` of a package that is not a dependency (`express` used
+ *      to be here) — Node ESM resolves every static import eagerly, so it fails
+ *      even on code paths you never call. `express` is now `import type` only.
  *
  * These tests only run when `dist/` has been built (`npm run build`).
  */
@@ -39,13 +42,18 @@ suite('published ESM bundle (dist/index.js)', () => {
 		}
 	});
 
-	it('contains no unresolved dynamic requires (mongoose/express stay external)', () => {
+	it('contains no unresolved dynamic requires', () => {
 		expect(source()).not.toMatch(/__require\(["']/);
+	});
+
+	it('does not import `express` (all express usage is type-only)', () => {
+		expect(source()).not.toMatch(/from ['"]express['"]/);
 	});
 
 	it('loads as ESM', async () => {
 		const mod = await import(distEsm);
 		expect(typeof mod.encryptData).toBe('function');
 		expect(typeof mod.initS3ClientWrapper).toBe('function');
+		expect(typeof mod.initMongooseSchema).toBe('function');
 	});
 });

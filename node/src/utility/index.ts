@@ -5,7 +5,7 @@ import path from 'path';
 // import sqlBrick from 'sql-bricks';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
-import { Express, Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 // `crypto-js` is CJS-only with no named ESM exports — default-import it so the
 // built ESM bundle loads in a real ESM runtime (Node ESM, NestJS 12, Vite).
 import cryptoJs from 'crypto-js';
