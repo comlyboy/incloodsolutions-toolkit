@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"axios": "^1.20.0",
+		"csv-parse": "^7.0.2",
 		"handlebars": "^4.7.9",
 		"libphonenumber-js": "^1.13.12",
 		"nanoid": "^6.0.1",

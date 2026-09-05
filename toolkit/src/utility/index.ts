@@ -15,6 +15,7 @@ import {
 import { ObjectType } from '../interface';
 import { CustomException } from '../error';
 import { nanoid } from 'nanoid';
+import { OptionsWithColumns, parse } from 'csv-parse/sync';
 
 /**
  * Checks whether a string is a valid ISO 8601 date or date-time.
@@ -685,4 +686,25 @@ export async function fetchGoogleSheet({
 		url.searchParams.set('gid', gid);
 	}
 	return sendHttpRequest<string>({ url: url.toString() });
+}
+
+
+export function parseCsv<TSchema>({ csv, options }: {
+	csv: Buffer | string | Uint8Array;
+	options: OptionsWithColumns<TSchema, any>;
+}) {
+	return parse<TSchema>(csv, {
+		columns: true,
+		skipEmptyLines: true,
+		trim: true,
+		autoParse: true,
+		castDate: true,
+		cast: options?.cast || ((value) => {
+			value = value.trim();
+			if (value === '') return null;
+			if (value.toLowerCase() === 'true') return true;
+			if (value.toLowerCase() === 'false') return false;
+			return value;
+		})
+	});
 }
