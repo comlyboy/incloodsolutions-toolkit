@@ -1,0 +1,40 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"moduleResolution": "bundler",
+		"customConditions": ["node"],
+		"ignoreDeprecations": "6.0",
+		"target": "ES2022",
+		"lib": [
+			"esnext"
+		],
+		"declaration": true,
+		"declarationMap": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"sourceMap": true,
+		"rootDir": "./src",
+		"outDir": "dist",
+		"declarationDir": "./dist",
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"importHelpers": true,
+		"noUnusedLocals": true,
+		"strictNullChecks": false,
+		"noImplicitAny": true,
+		"noEmitOnError": true,
+		"strictBindCallApply": false,
+		"allowUnreachableCode": false,
+		"noFallthroughCasesInSwitch": false,
+		"useUnknownInCatchVariables": false,
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": false,
+	},
+	"include": [
+		"./src",
+	],
+	"exclude": [
+		"node_modules",
+		"./dist"
+	]
+}
