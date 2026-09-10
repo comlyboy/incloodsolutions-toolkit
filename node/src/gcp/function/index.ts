@@ -1,14 +1,7 @@
 import type { Express, Request, Response } from 'express';
 
 import { CustomException } from '@incloodsolutions/toolkit';
-import { isNestApplication } from '../../utility';
-import { INestAppInstance } from '../../interface';
 
-/**
- * Cached Express instance, reused across warm function invocations so the app is
- * only bootstrapped once.
- */
-let expressApplication: Express = null;
 
 /**
  * Runs an Express or NestJS application as a Google Cloud Functions HTTP handler.
@@ -35,21 +28,13 @@ export async function initGcpFunctionHandler({
 	request,
 	response,
 }: {
-	app: Express | INestAppInstance;
+	app: Express;
 	request: Request;
 	response: Response;
 }) {
 	if (!app) {
 		throw new CustomException('App instance must be defined!');
 	}
-	if (!expressApplication) {
-		console.log('Initializing new API instance!');
-		if (isNestApplication(app)) {
-			expressApplication = app.getHttpAdapter().getInstance();
-			await app.init();
-		} else {
-			expressApplication = app;
-		}
-	}
-	return expressApplication(request, response);
+
+	return app(request, response);
 }

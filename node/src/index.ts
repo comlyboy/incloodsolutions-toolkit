@@ -10,8 +10,8 @@
  * - `config`   — {@link initEnvironmentVariables}, env-var loading/validation without `dotenv`.
  * - `gcp`      — {@link initGcpFunctionHandler}, the Google Cloud Functions adapter.
  * - `interface`— `IBaseEnvironmentVariable`, `IBaseApiResult`, `IBaseMongoDocument`,
- *                `INestAppInstance`, `MongoIdType`, `SortOrderType`.
- * - `mongo-db` — {@link initMongooseConnection} (serverless-safe) and {@link initMongooseSchema}.
+ *                `MongoIdType`, `SortOrderType`.
+ * - `mongo`    — {@link initMongooseConnection} (serverless-safe) and {@link initMongooseSchema}.
  * - `utility`  — crypto/hashing, Lambda `/tmp` file IO, IDs, API-response and logging
  *                helpers, class-validator helpers, Mongoose normalisers, QR/barcode.
  *
@@ -23,5 +23,5 @@ export * from './aws';
 export * from './config';
 export * from './gcp';
 export * from './interface';
-export * from './mongo-db';
+export * from './mongo';
 export * from './utility';

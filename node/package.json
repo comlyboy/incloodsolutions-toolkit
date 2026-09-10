@@ -13,6 +13,113 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"require": "./dist/index.cjs"
+		},
+		"./aws": {
+			"types": "./dist/aws.d.ts",
+			"import": "./dist/aws.js",
+			"require": "./dist/aws.cjs"
+		},
+		"./aws-lambda": {
+			"types": "./dist/aws-lambda.d.ts",
+			"import": "./dist/aws-lambda.js",
+			"require": "./dist/aws-lambda.cjs"
+		},
+		"./aws-cli": {
+			"types": "./dist/aws-cli.d.ts",
+			"import": "./dist/aws-cli.js",
+			"require": "./dist/aws-cli.cjs"
+		},
+		"./aws-sdk": {
+			"types": "./dist/aws-sdk.d.ts",
+			"import": "./dist/aws-sdk.js",
+			"require": "./dist/aws-sdk.cjs"
+		},
+		"./aws-sdk/s3": {
+			"types": "./dist/aws-sdk/s3.d.ts",
+			"import": "./dist/aws-sdk/s3.js",
+			"require": "./dist/aws-sdk/s3.cjs"
+		},
+		"./aws-sdk/ses": {
+			"types": "./dist/aws-sdk/ses.d.ts",
+			"import": "./dist/aws-sdk/ses.js",
+			"require": "./dist/aws-sdk/ses.cjs"
+		},
+		"./aws-sdk/sns": {
+			"types": "./dist/aws-sdk/sns.d.ts",
+			"import": "./dist/aws-sdk/sns.js",
+			"require": "./dist/aws-sdk/sns.cjs"
+		},
+		"./aws-sdk/dynamo-db": {
+			"types": "./dist/aws-sdk/dynamo-db.d.ts",
+			"import": "./dist/aws-sdk/dynamo-db.js",
+			"require": "./dist/aws-sdk/dynamo-db.cjs"
+		},
+		"./aws-sdk/event-bridge": {
+			"types": "./dist/aws-sdk/event-bridge.d.ts",
+			"import": "./dist/aws-sdk/event-bridge.js",
+			"require": "./dist/aws-sdk/event-bridge.cjs"
+		},
+		"./gcp": {
+			"types": "./dist/gcp.d.ts",
+			"import": "./dist/gcp.js",
+			"require": "./dist/gcp.cjs"
+		},
+		"./gcp/function": {
+			"types": "./dist/gcp/function.d.ts",
+			"import": "./dist/gcp/function.js",
+			"require": "./dist/gcp/function.cjs"
+		},
+		"./mongo": {
+			"types": "./dist/mongo.d.ts",
+			"import": "./dist/mongo.js",
+			"require": "./dist/mongo.cjs"
+		},
+		"./mongo/db": {
+			"types": "./dist/mongo/db.d.ts",
+			"import": "./dist/mongo/db.js",
+			"require": "./dist/mongo/db.cjs"
+		},
+		"./mongo/helper": {
+			"types": "./dist/mongo/helper.d.ts",
+			"import": "./dist/mongo/helper.js",
+			"require": "./dist/mongo/helper.cjs"
+		},
+		"./utility": {
+			"types": "./dist/utility.d.ts",
+			"import": "./dist/utility.js",
+			"require": "./dist/utility.cjs"
+		},
+		"./config": {
+			"types": "./dist/config.d.ts",
+			"import": "./dist/config.js",
+			"require": "./dist/config.cjs"
+		},
+		"./interface": {
+			"types": "./dist/interface.d.ts",
+			"import": "./dist/interface.js",
+			"require": "./dist/interface.cjs"
+		},
+		"./package.json": "./package.json"
+	},
+	"typesVersions": {
+		"*": {
+			"aws": ["./dist/aws.d.ts"],
+			"aws-lambda": ["./dist/aws-lambda.d.ts"],
+			"aws-cli": ["./dist/aws-cli.d.ts"],
+			"aws-sdk": ["./dist/aws-sdk.d.ts"],
+			"aws-sdk/s3": ["./dist/aws-sdk/s3.d.ts"],
+			"aws-sdk/ses": ["./dist/aws-sdk/ses.d.ts"],
+			"aws-sdk/sns": ["./dist/aws-sdk/sns.d.ts"],
+			"aws-sdk/dynamo-db": ["./dist/aws-sdk/dynamo-db.d.ts"],
+			"aws-sdk/event-bridge": ["./dist/aws-sdk/event-bridge.d.ts"],
+			"gcp": ["./dist/gcp.d.ts"],
+			"gcp/function": ["./dist/gcp/function.d.ts"],
+			"mongo": ["./dist/mongo.d.ts"],
+			"mongo/db": ["./dist/mongo/db.d.ts"],
+			"mongo/helper": ["./dist/mongo/helper.d.ts"],
+			"utility": ["./dist/utility.d.ts"],
+			"config": ["./dist/config.d.ts"],
+			"interface": ["./dist/interface.d.ts"]
 		}
 	},
 	"engines": {

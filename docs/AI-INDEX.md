@@ -151,10 +151,19 @@ The type namespace is re-exported as `ValidatorTypes`.
 
 ## @incloodsolutions/node-toolkit
 
-Node.js. Entry point: `src/index.ts` → `aws`, `config`, `gcp`, `interface`, `mongo-db`,
+Node.js. Entry point: `src/index.ts` → `aws`, `config`, `gcp`, `interface`, `mongo`,
 `utility`. Depends on `@incloodsolutions/toolkit` plus AWS SDK v3, `bcryptjs`, `bwip-js`,
 `class-transformer`, `class-validator`, `crypto-js`, `handlebars`, `morgan`, `uuid`, `zod`.
 `express` and `mongoose` are used in types and must be available in the host app.
+
+Also published as tree-shakeable subpaths — one build per module and sub-module, each with
+its own ESM + CJS + `.d.ts` (AWS sub-modules are flattened to `aws-*`, everything else
+mirrors the source folder):
+`@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk, aws-sdk/s3, aws-sdk/ses,
+aws-sdk/sns, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, gcp/function, mongo, mongo/db,
+mongo/helper, utility, config, interface}` (the bare `@incloodsolutions/node-toolkit`
+remains the full barrel). Configured in `node/tsup.config.ts` (`entry` map) and
+`node/package.json` (`exports` + `typesVersions`).
 
 ### Serverless adapters — `src/aws/lambda/index.ts`, `src/gcp/function/index.ts`
 
@@ -164,7 +173,7 @@ Node.js. Entry point: `src/index.ts` → `aws`, `config`, `gcp`, `interface`, `m
 | `getCurrentLambdaInvocation` | `() => { context: Context; event }` | Current Lambda `context`/`event`; `null` fields outside Lambda. |
 | `initGcpFunctionHandler` | `({ app: Express \| INestAppInstance; request: Request; response: Response }) => Promise<unknown>` | Run an Express/NestJS app as a GCP HTTP Function. |
 
-### AWS SDK wrappers — `src/aws/sdk/`
+### AWS SDK wrappers — `src/aws/sdk/` (subpath `aws-sdk/*`)
 
 | Symbol | Signature | Summary |
 | ------ | --------- | ------- |
@@ -182,13 +191,13 @@ Node.js. Entry point: `src/index.ts` → `aws`, `config`, `gcp`, `interface`, `m
 | ------ | --------- | ------- |
 | `initEnvironmentVariables` | `<TSchema>(schema: { [K in keyof TSchema]: { required?: boolean; defaultValue?: string \| number \| boolean } }, options?: { envPath?: string; includeAllVariables?: boolean; enableDebug?: boolean }) => TSchema & IBaseEnvironmentVariable` | Read + validate `process.env` without `dotenv`. Throws `CustomException` for a missing required var with no default; caches results. |
 
-### MongoDB / Mongoose — `src/mongo-db/`
+### MongoDB / Mongoose — `src/mongo/`
 
 | Symbol | Signature | Summary |
 | ------ | --------- | ------- |
 | `initMongooseConnection` | `(params?: { url?: string; options?: { retries?: number; retryDelayMs?: number; enableDebug?: boolean }; connectionOptions?: ConnectOptions }) => Promise<{ connection: Connection; closeConnection: () => Promise<void> }>` | Globally-cached singleton connection tuned for serverless (pool size 1, retries, stale-connection ping). Defaults URL to `process.env.MONGO_DATABASE_URL`. |
 | `initMongooseSchema` | `<TModel>(fields: SchemaDefinition<TModel>, options?: SchemaOptions<TModel>) => Schema<TModel>` | `new Schema` with `strict: 'throw'` and virtuals on in `toJSON`/`toObject` by default. |
-| `BaseSchemaEntity` | class | **not-exported** — `mongo-db/types` is commented out in `mongo-db/index.ts`. Implements `IBaseCreator & IBaseDelete & IBaseEditor` with class-validator decorators. |
+| `BaseSchemaEntity` | class | **not-exported** — `mongo/types` is commented out in `mongo/index.ts`. Implements `IBaseCreator & IBaseDelete & IBaseEditor` with class-validator decorators. |
 
 ### Utilities — `src/utility/index.ts`
 

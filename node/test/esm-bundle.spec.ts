@@ -57,3 +57,70 @@ suite('published ESM bundle (dist/index.js)', () => {
 		expect(typeof mod.initMongooseSchema).toBe('function');
 	});
 });
+
+/**
+ * Each public module is also published as its own subpath
+ * (`@incloodsolutions/node-toolkit/aws`, …) so consumers can tree-shake. Guard
+ * that every entry is built, loads as ESM, and carries no dynamic-require shim.
+ */
+const SUBPATH_ENTRIES: Record<string, string> = {
+	aws: 'initS3ClientWrapper',
+	gcp: 'initGcpFunctionHandler',
+	mongo: 'initMongooseSchema',
+	utility: 'encryptData',
+	config: 'initEnvironmentVariables',
+	interface: '',
+
+	// sub-modules
+	'aws-lambda': 'initLambdaFunctionHandler',
+	'aws-cli': 'uploadToS3ViaCli',
+	'aws-sdk': 'initS3ClientWrapper',
+	'aws-sdk/s3': 'initS3ClientWrapper',
+	'aws-sdk/ses': 'initSesClientWrapper',
+	'aws-sdk/sns': 'initSnsClientWrapper',
+	'aws-sdk/dynamo-db': 'initDynamoDbClientWrapper',
+	'aws-sdk/event-bridge': 'initEventBridgeClientWrapper',
+	'gcp/function': 'initGcpFunctionHandler',
+	'mongo/db': 'initMongooseConnection',
+	'mongo/helper': 'initMongooseSchema',
+};
+
+suite('published subpath entries (dist/<module>.js)', () => {
+	for (const [name, expectedExport] of Object.entries(SUBPATH_ENTRIES)) {
+		const file = fileURLToPath(new URL(`../dist/${name}.js`, import.meta.url));
+
+		it(`${name}: built, no unresolved dynamic requires`, () => {
+			expect(existsSync(file), `dist/${name}.js is missing — run npm run build`).toBe(true);
+			expect(readFileSync(file, 'utf8')).not.toMatch(/__require\(["']/);
+		});
+
+		it(`${name}: loads as ESM`, async () => {
+			const mod = await import(file);
+			if (expectedExport) {
+				expect(typeof mod[expectedExport]).toBe('function');
+			} else {
+				expect(mod).toBeTypeOf('object');
+			}
+		});
+	}
+
+	it('aws entry does not bundle mongoose or bwip-js', () => {
+		const src = readFileSync(
+			fileURLToPath(new URL('../dist/aws.js', import.meta.url)),
+			'utf8',
+		);
+		expect(src).not.toMatch(/from ['"]mongoose['"]/);
+		expect(src).not.toMatch(/from ['"]bwip-js['"]/);
+	});
+
+	it('aws-sdk/s3 entry pulls only the S3 client — not DynamoDB, Zod, or class-validator', () => {
+		const src = readFileSync(
+			fileURLToPath(new URL('../dist/aws-sdk/s3.js', import.meta.url)),
+			'utf8',
+		);
+		expect(src).toMatch(/from ['"]@aws-sdk\/client-s3['"]/);
+		expect(src).not.toMatch(/@aws-sdk\/client-dynamodb/);
+		expect(src).not.toMatch(/from ['"]zod['"]/);
+		expect(src).not.toMatch(/from ['"]class-validator['"]/);
+	});
+});

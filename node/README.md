@@ -36,6 +36,45 @@ Ships both formats (like the other toolkits): `import` resolves to ESM
 for types. The ESM bundle is verified to load in a real ESM runtime by
 [`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts).
 
+## Modular imports (tree-shaking)
+
+Each area is published as its own subpath — down to the individual AWS service —
+so you only pull in what you use. Importing one does not drag the rest of the
+package into your build: `@incloodsolutions/node-toolkit/aws-sdk/s3` pulls only
+`@aws-sdk/client-s3`, not the DynamoDB client or its Zod / class-validator chain.
+
+```typescript
+import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit/aws-lambda';
+import { initS3ClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/s3';
+import { initGcpFunctionHandler } from '@incloodsolutions/node-toolkit/gcp';
+import { initMongooseConnection, initMongooseSchema } from '@incloodsolutions/node-toolkit/mongo';
+import { encryptData, generateCustomUUID } from '@incloodsolutions/node-toolkit/utility';
+import { initEnvironmentVariables } from '@incloodsolutions/node-toolkit/config';
+import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
+```
+
+| Subpath | Contents |
+| ------- | -------- |
+| `@incloodsolutions/node-toolkit` | everything (the barrel — kept for backwards compatibility) |
+| `.../aws` | everything AWS: Lambda adapter + all SDK wrappers |
+| `.../aws-lambda` | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation` |
+| `.../aws-cli` | `uploadToS3ViaCli` (placeholder) |
+| `.../aws-sdk` | all SDK wrappers (S3, SES, SNS, DynamoDB, EventBridge) + `validateSchema` |
+| `.../aws-sdk/s3` | `initS3ClientWrapper` |
+| `.../aws-sdk/ses` | `initSesClientWrapper` |
+| `.../aws-sdk/sns` | `initSnsClientWrapper` |
+| `.../aws-sdk/dynamo-db` | `initDynamoDbClientWrapper`, `validateSchema` |
+| `.../aws-sdk/event-bridge` | `initEventBridgeClientWrapper` (placeholder) |
+| `.../gcp` · `.../gcp/function` | `initGcpFunctionHandler` |
+| `.../mongo` | `initMongooseConnection`, `initMongooseSchema` |
+| `.../mongo/db` | `initMongooseConnection` |
+| `.../mongo/helper` | `initMongooseSchema` |
+| `.../utility` | crypto/hashing, Lambda `/tmp` IO, IDs, API-response and logging helpers, class-validator helpers, Mongoose normalisers, QR/barcode |
+| `.../config` | `initEnvironmentVariables` |
+| `.../interface` | `IBaseEnvironmentVariable`, `IBaseApiResult`, `IBaseMongoDocument`, `MongoIdType`, `SortOrderType` |
+
+Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`.
+
 ## What's inside
 
 | Area | Exports |
@@ -62,7 +101,7 @@ Not yet implemented: `initEventBridgeClientWrapper` (returns `{}`), `uploadToS3V
 ### Run an Express or NestJS app on AWS Lambda
 
 ```typescript
-import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit';
+import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit/aws-lambda';
 import { app } from './app'; // an Express instance or a NestJS app instance
 
 export const handler = (event: any, context: any, callback: any) =>
@@ -75,7 +114,7 @@ The equivalent for Google Cloud Functions is `initGcpFunctionHandler({ app, requ
 ### Load and validate environment variables (no `dotenv`)
 
 ```typescript
-import { initEnvironmentVariables } from '@incloodsolutions/node-toolkit';
+import { initEnvironmentVariables } from '@incloodsolutions/node-toolkit/config';
 
 export const env = initEnvironmentVariables(
   {
@@ -92,7 +131,7 @@ A required variable with no value and no `defaultValue` throws a `CustomExceptio
 ### DynamoDB document-client wrapper
 
 ```typescript
-import { initDynamoDbClientWrapper } from '@incloodsolutions/node-toolkit';
+import { initDynamoDbClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/dynamo-db';
 
 const users = initDynamoDbClientWrapper<UserRecord, 'emailIndex'>({
   tableName: 'users',
@@ -119,11 +158,9 @@ The wrapper handles DynamoDB reserved words, projection (`select`), `contains` s
 ### S3, SES, SNS
 
 ```typescript
-import {
-  initS3ClientWrapper,
-  initSesClientWrapper,
-  initSnsClientWrapper,
-} from '@incloodsolutions/node-toolkit';
+import { initS3ClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/s3';
+import { initSesClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/ses';
+import { initSnsClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/sns';
 
 const s3 = initS3ClientWrapper({ bucketName: 'assets' });
 const url = await s3.generateSignedUrl({ fileName: 'a.png', commandType: 'read', expiresIn: 900 });
@@ -138,7 +175,7 @@ await sns.sendSms({ message: 'Code 1234', phoneNumber: '+15550000000' });
 ### Mongoose in serverless
 
 ```typescript
-import { initMongooseConnection, initMongooseSchema } from '@incloodsolutions/node-toolkit';
+import { initMongooseConnection, initMongooseSchema } from '@incloodsolutions/node-toolkit/mongo';
 
 const { connection, closeConnection } = await initMongooseConnection({
   options: { retries: 5, retryDelayMs: 5000, enableDebug: true },
@@ -156,7 +193,7 @@ import {
   encryptData, decryptData,
   hashWithBcrypt, validateHashWithBcrypt,
   generateCustomUUID,
-} from '@incloodsolutions/node-toolkit';
+} from '@incloodsolutions/node-toolkit/utility';
 
 const token = encryptData({ data: { userId: 1 }, secret: process.env.SECRET, type: 'aes256' });
 const payload = decryptData<{ userId: number }>({ hashedData: token, secret: process.env.SECRET });
@@ -173,7 +210,7 @@ const id = generateCustomUUID({ version: 7, asUpperCase: true });
 import {
   returnApiResponse, apiResult, returnApiOverview,
   reqResLogger, printLog, initCustomLogger,
-} from '@incloodsolutions/node-toolkit';
+} from '@incloodsolutions/node-toolkit/utility';
 
 app.use(reqResLogger({ formats: ['user-agent'] }));
 app.get('/', (_req, res) => res.send(returnApiOverview({ name: 'My API', docsUrl: '/docs' })));
@@ -183,7 +220,7 @@ app.get('/users', (_req, res) => returnApiResponse(res, apiResult({ data: users 
 ### Normalising Mongoose documents for API output
 
 ```typescript
-import { normalizeMongooseData_v2 } from '@incloodsolutions/node-toolkit';
+import { normalizeMongooseData_v2 } from '@incloodsolutions/node-toolkit/utility';
 
 const user = normalizeMongooseData_v2(await UserModel.findById(id));
 // ObjectIds become strings recursively; `id` is added from `_id`.
@@ -192,7 +229,7 @@ const user = normalizeMongooseData_v2(await UserModel.findById(id));
 ### QR codes and barcodes
 
 ```typescript
-import { generateQrBarcode } from '@incloodsolutions/node-toolkit';
+import { generateQrBarcode } from '@incloodsolutions/node-toolkit/utility';
 
 const qr = await generateQrBarcode('https://inclood.io');            // data:image/png;base64,...
 const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
