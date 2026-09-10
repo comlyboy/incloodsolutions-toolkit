@@ -5,7 +5,6 @@ import serverlessExpress, {
 import {
 	APIGatewayProxyEventV2,
 	APIGatewayProxyHandlerV2,
-	Callback,
 	Context,
 	EventBridgeEvent,
 	SNSEvent,
@@ -16,10 +15,7 @@ import {
 import type Framework from '@codegenie/serverless-express/src/frameworks';
 
 import { ObjectType } from '@incloodsolutions/toolkit';
-import { INestAppInstance } from '../../interface';
-import { isNestApplication } from '../../utility';
 
-let expressInstance: Express = null;
 let lambdaInstance: APIGatewayProxyHandlerV2;
 
 type EventSources =
@@ -54,20 +50,17 @@ type EventSources =
  */
 export async function initLambdaFunctionHandler<
 	TEvent extends
-		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> =
-		any,
-	TCallback extends Callback<any> = any,
+	APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> =
+	any,
 >({
 	app,
 	event,
 	context,
-	callback,
 	options,
 }: {
-	app: Express | INestAppInstance;
+	app: Express;
 	event: TEvent;
 	context: Context;
-	callback?: TCallback;
 	/** ConfigureParams from serverless-express */
 	options?: {
 		loggerOptions?: {
@@ -91,20 +84,12 @@ export async function initLambdaFunctionHandler<
 }): Promise<any> {
 	context.callbackWaitsForEmptyEventLoop = false;
 	if (!lambdaInstance) {
-		if (!expressInstance) {
-			if (isNestApplication(app)) {
-				await app.init();
-				expressInstance = app.getHttpAdapter().getInstance();
-			} else {
-				expressInstance = app;
-			}
-		}
 		lambdaInstance = serverlessExpress({
-			app: expressInstance,
+			app,
 			...(options?.eventOptions as any),
 		});
 	}
-	return lambdaInstance(event as any, context, callback);
+	return lambdaInstance(event as any, context, undefined);
 }
 
 /**
@@ -116,11 +101,11 @@ export async function initLambdaFunctionHandler<
 export function getCurrentLambdaInvocation(): {
 	context: Context;
 	event:
-		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+	APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 } {
 	return getCurrentInvoke() as {
 		context: Context;
 		event:
-			APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 	};
 }

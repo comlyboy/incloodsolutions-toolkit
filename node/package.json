@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.14",
+	"version": "0.0.15",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -16,7 +16,7 @@
 		}
 	},
 	"engines": {
-		"node": ">=22"
+		"node": ">=24"
 	},
 	"author": "Inclood Solutions",
 	"private": false,
@@ -51,11 +51,11 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.1126.0",
-		"@aws-sdk/client-ses": "^3.1126.0",
-		"@aws-sdk/client-sns": "^3.1126.0",
-		"@aws-sdk/lib-dynamodb": "^3.1126.0",
-		"@aws-sdk/s3-request-presigner": "^3.1126.0",
+		"@aws-sdk/client-s3": "^3.1130.0",
+		"@aws-sdk/client-ses": "^3.1130.0",
+		"@aws-sdk/client-sns": "^3.1130.0",
+		"@aws-sdk/lib-dynamodb": "^3.1130.0",
+		"@aws-sdk/s3-request-presigner": "^3.1130.0",
 		"@codegenie/serverless-express": "^5.0.0",
 		"@incloodsolutions/toolkit": "^0.1.10",
 		"bcryptjs": "^3.0.3",
@@ -64,14 +64,14 @@
 		"class-validator": "^0.15.1",
 		"crypto-js": "^4.2.0",
 		"handlebars": "^4.7.9",
-		"mongoose": "^9.9.4",
+		"mongoose": "^9.10.0",
 		"morgan": "^1.12.0",
 		"tslib": "^2.8.1",
 		"uuid": "^14.0.2",
-		"zod": "^4.5.4"
+		"zod": "^4.6.2"
 	},
 	"devDependencies": {
-		"@swc/core": "^1.16.1",
+		"@swc/core": "^1.16.2",
 		"@types/aws-lambda": "^8.10.163",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/crypto-js": "^4.2.2",
@@ -87,7 +87,7 @@
 		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.5.1",
 		"typescript": "^6.0.3",
-		"unplugin-swc": "^1.5.11",
+		"unplugin-swc": "^1.6.0",
 		"vitest": "^5.0.0"
 	}
 }

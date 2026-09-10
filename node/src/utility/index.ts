@@ -5,7 +5,7 @@ import path from 'path';
 // import sqlBrick from 'sql-bricks';
 import morgan, { Options } from 'morgan';
 import { compare, genSalt, hash } from 'bcryptjs';
-import type { Express, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 // `crypto-js` is CJS-only with no named ESM exports — default-import it so the
 // built ESM bundle loads in a real ESM runtime (Node ESM, NestJS 12, Vite).
 import cryptoJs from 'crypto-js';
@@ -34,7 +34,7 @@ import {
 } from '@incloodsolutions/toolkit';
 
 import { getCurrentLambdaInvocation } from '../aws';
-import { IBaseApiResult, INestAppInstance } from '../interface';
+import { IBaseApiResult } from '../interface';
 
 const { AES, enc, HmacSHA512, SHA512 } = cryptoJs;
 
@@ -872,23 +872,6 @@ export function normalizeMongooseData_v2<T>(data: T): T {
 	}
 
 	return normalized as T;
-}
-
-/**
- * Type guard that distinguishes a NestJS application instance from a bare
- * Express app, by checking for a `getHttpAdapter` method.
- *
- * @param instance - An Express app or a NestJS app instance.
- * @returns `true` (narrowing to {@link INestAppInstance}) when `instance` looks like a Nest app.
- */
-export function isNestApplication(
-	instance: Express | INestAppInstance,
-): instance is INestAppInstance {
-	return (
-		typeof instance === 'object' &&
-		instance &&
-		typeof (instance as INestAppInstance).getHttpAdapter === 'function'
-	);
 }
 
 /**

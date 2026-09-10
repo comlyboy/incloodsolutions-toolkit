@@ -1,4 +1,3 @@
-import type { Express } from 'express';
 import type { Document, ObjectId } from 'mongoose';
 
 import {
@@ -88,10 +87,3 @@ export interface IBaseMongoDocument<
  * - `'descending'` means highest to lowest.
  */
 export type SortOrderType = 'descending' | 'ascending';
-
-export interface INestAppInstance extends ObjectType {
-	init: () => Promise<void>;
-	getHttpAdapter: () => {
-		getInstance: () => Express;
-	} & ObjectType;
-}
