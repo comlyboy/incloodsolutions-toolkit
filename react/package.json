@@ -8,6 +8,10 @@
 	"types": "./dist/index.d.ts",
 	"sideEffects": false,
 	"homepage": "https://www.npmjs.com/package/@incloodsolutions/react-toolkit",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
+	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
