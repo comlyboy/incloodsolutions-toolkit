@@ -31,17 +31,18 @@ the ESM build stays loadable — bundling `mongoose` would pull the MongoDB driv
 (`import type { Request } from 'express'`), so it is erased from the build. A serverless
 host (Nest, or `@codegenie/serverless-express`) brings its own Express.
 
-Ships both formats (like the other toolkits): `import` resolves to ESM
-(`dist/index.js`), `require` resolves to CommonJS (`dist/index.cjs`), with `dist/index.d.ts`
-for types. The ESM bundle is verified to load in a real ESM runtime by
-[`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts).
+Every subpath ships both formats (like the other toolkits): `import` resolves to ESM,
+`require` to CommonJS, each with its own `.d.ts`. Every bundle is verified to load in a
+real ESM runtime by [`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts).
 
 ## Modular imports (tree-shaking)
 
-Each area is published as its own subpath — down to the individual AWS service —
-so you only pull in what you use. Importing one does not drag the rest of the
-package into your build: `@incloodsolutions/node-toolkit/aws-sdk/s3` pulls only
-`@aws-sdk/client-s3`, not the DynamoDB client or its Zod / class-validator chain.
+**There is no package-root import.** `import ... from '@incloodsolutions/node-toolkit'`
+does not resolve — you must import a specific subpath, so nothing can pull the whole
+package (the AWS SDK, Mongoose, `bwip-js`, …) by accident. Each area is published as its
+own subpath, down to the individual AWS service:
+`@incloodsolutions/node-toolkit/aws-sdk/s3` pulls only `@aws-sdk/client-s3`, not the
+DynamoDB client or its Zod / class-validator chain.
 
 ```typescript
 import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit/aws-lambda';
@@ -55,7 +56,6 @@ import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
 
 | Subpath | Contents |
 | ------- | -------- |
-| `@incloodsolutions/node-toolkit` | everything (the barrel — kept for backwards compatibility) |
 | `.../aws` | everything AWS: Lambda adapter + all SDK wrappers |
 | `.../aws-lambda` | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation` |
 | `.../aws-cli` | `uploadToS3ViaCli` (placeholder) |
@@ -65,10 +65,8 @@ import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
 | `.../aws-sdk/sns` | `initSnsClientWrapper` |
 | `.../aws-sdk/dynamo-db` | `initDynamoDbClientWrapper`, `validateSchema` |
 | `.../aws-sdk/event-bridge` | `initEventBridgeClientWrapper` (placeholder) |
-| `.../gcp` · `.../gcp/function` | `initGcpFunctionHandler` |
+| `.../gcp` | `initGcpFunctionHandler` |
 | `.../mongo` | `initMongooseConnection`, `initMongooseSchema` |
-| `.../mongo/db` | `initMongooseConnection` |
-| `.../mongo/helper` | `initMongooseSchema` |
 | `.../utility` | crypto/hashing, Lambda `/tmp` IO, IDs, API-response and logging helpers, class-validator helpers, Mongoose normalisers, QR/barcode |
 | `.../config` | `initEnvironmentVariables` |
 | `.../interface` | `IBaseEnvironmentVariable`, `IBaseApiResult`, `IBaseMongoDocument`, `MongoIdType`, `SortOrderType` |
@@ -239,7 +237,7 @@ const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
 
 ```bash
 npm install
-npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
+npm run build      # tsup: one ESM + CJS + .d.ts bundle per subpath entry
 npm run format     # prettier --write (tabs, single quotes, trailing commas)
 npm run lint       # eslint --fix
 npm test           # vitest run — behaviour tests for every export
@@ -257,9 +255,10 @@ that are currently buggy.
 > `moduleResolution: "bundler"` with `customConditions: ["node"]` so packages that expose
 > their types only through a `node` export condition (e.g. `bwip-js`) resolve.
 >
-> The published package is ESM-first, matching `@incloodsolutions/toolkit` and
-> `@incloodsolutions/devkit`: `"type": "module"`, `dist/index.js` is ESM, `dist/index.cjs`
-> is CommonJS, and both `import` and `require` are wired up in `exports`.
+> The published package is ESM-first (`"type": "module"`). It has **no root export** and
+> no `main`/`module`/`types` fields — every entry point is a subpath in `exports`, each
+> wiring up `import` (ESM), `require` (CommonJS), and `types`. The `index` bundle is still
+> built as the test aggregation point but is not reachable by the package name.
 
 ## License
 

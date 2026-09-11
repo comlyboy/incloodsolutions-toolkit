@@ -3,17 +3,9 @@
 	"version": "0.0.15",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"sideEffects": false,
 	"homepage": "https://www.npmjs.com/package/@incloodsolutions/node-toolkit",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"require": "./dist/index.cjs"
-		},
 		"./aws": {
 			"types": "./dist/aws.d.ts",
 			"import": "./dist/aws.js",
@@ -64,25 +56,10 @@
 			"import": "./dist/gcp.js",
 			"require": "./dist/gcp.cjs"
 		},
-		"./gcp/function": {
-			"types": "./dist/gcp/function.d.ts",
-			"import": "./dist/gcp/function.js",
-			"require": "./dist/gcp/function.cjs"
-		},
 		"./mongo": {
 			"types": "./dist/mongo.d.ts",
 			"import": "./dist/mongo.js",
 			"require": "./dist/mongo.cjs"
-		},
-		"./mongo/db": {
-			"types": "./dist/mongo/db.d.ts",
-			"import": "./dist/mongo/db.js",
-			"require": "./dist/mongo/db.cjs"
-		},
-		"./mongo/helper": {
-			"types": "./dist/mongo/helper.d.ts",
-			"import": "./dist/mongo/helper.js",
-			"require": "./dist/mongo/helper.cjs"
 		},
 		"./utility": {
 			"types": "./dist/utility.d.ts",
@@ -113,10 +90,7 @@
 			"aws-sdk/dynamo-db": ["./dist/aws-sdk/dynamo-db.d.ts"],
 			"aws-sdk/event-bridge": ["./dist/aws-sdk/event-bridge.d.ts"],
 			"gcp": ["./dist/gcp.d.ts"],
-			"gcp/function": ["./dist/gcp/function.d.ts"],
 			"mongo": ["./dist/mongo.d.ts"],
-			"mongo/db": ["./dist/mongo/db.d.ts"],
-			"mongo/helper": ["./dist/mongo/helper.d.ts"],
 			"utility": ["./dist/utility.d.ts"],
 			"config": ["./dist/config.d.ts"],
 			"interface": ["./dist/interface.d.ts"]

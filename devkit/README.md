@@ -47,6 +47,27 @@ interface IBaseCdkConstructProps<TOptions = any> {
 The created resource is exposed as a public readonly field (`.function`, `.api`, `.table`,
 `.topic`, `.queue`, `.layer`, `.distribution`, ...).
 
+## Modular imports (tree-shaking)
+
+**There is no package-root import.** `import ... from '@incloodsolutions/devkit'` does not
+resolve — you must import a specific subpath. Every construct is published as its own
+subpath, so a stack that uses one construct does not bundle the code for all seventeen:
+
+```typescript
+import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/lambda';
+import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/dynamo-db';
+import type { IBaseCdkConstructProps } from '@incloodsolutions/devkit/aws-types';
+```
+
+| Subpath | Contents |
+| ------- | -------- |
+| `.../aws` · `.../aws-cdk` | all `Base*` constructs |
+| `.../aws-cdk/<name>` | one construct — `api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`, `dynamo-db`, `event-bridge`, `lambda`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `s3`, `s3-deployment`, `sns`, `sqs`, `vpc` |
+| `.../aws-types` | `IBaseConstruct`, `IBaseCdkConstructProps` |
+
+Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`.
+`aws-cdk-lib` and `constructs` stay external in every bundle.
+
 ## Constructs
 
 | Construct | Wraps | Notable defaults |
@@ -81,11 +102,9 @@ The created resource is exposed as a public readonly field (`.function`, `.api`,
 ```typescript
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {
-  BaseLambdaConstruct,
-  BaseApiGatewayV2Construct,
-  BaseDynamoDBConstruct,
-} from '@incloodsolutions/devkit';
+import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/lambda';
+import { BaseApiGatewayV2Construct } from '@incloodsolutions/devkit/aws-cdk/api-gateway-v2';
+import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/dynamo-db';
 
 export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -133,9 +152,15 @@ npm run package    # build, then npm pack a tarball
 in a throwaway `Stack` and checks the output with `aws-cdk-lib/assertions` (`Template`).
 Nothing is deployed and no AWS credentials are used. Its header comment records the
 constructs that need extra props or currently throw.
+[`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts) guards that every subpath entry is
+built, loads as ESM, and keeps `aws-cdk-lib` / `constructs` external.
 
-> The whole build is `tsup` (`dts: true`), pinned to `typescript@^6`. Only the package root
-> is exported — there are no `./*` subpath entrypoints.
+> The whole build is `tsup` (`dts: true`), pinned to `typescript@^6`. There is **no root
+> export** and no `main`/`module`/`types` fields — every module and every construct is a
+> `./*` subpath in `exports` (see [Modular imports](#modular-imports-tree-shaking)),
+> configured by the `entry` map in `tsup.config.ts` and `exports` + `typesVersions` in
+> `package.json`. The `index` bundle is still built as the test aggregation point but is
+> not reachable by the package name.
 
 ## License
 

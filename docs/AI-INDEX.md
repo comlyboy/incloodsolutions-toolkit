@@ -151,19 +151,20 @@ The type namespace is re-exported as `ValidatorTypes`.
 
 ## @incloodsolutions/node-toolkit
 
-Node.js. Entry point: `src/index.ts` → `aws`, `config`, `gcp`, `interface`, `mongo`,
-`utility`. Depends on `@incloodsolutions/toolkit` plus AWS SDK v3, `bcryptjs`, `bwip-js`,
-`class-transformer`, `class-validator`, `crypto-js`, `handlebars`, `morgan`, `uuid`, `zod`.
-`express` and `mongoose` are used in types and must be available in the host app.
+Node.js. **No package-root export** — `@incloodsolutions/node-toolkit` alone does not
+resolve; import a subpath. Modules: `aws`, `config`, `gcp`, `interface`, `mongo`,
+`utility` (internal barrel still at `src/index.ts` for tests). Depends on
+`@incloodsolutions/toolkit` plus AWS SDK v3, `bcryptjs`, `bwip-js`, `class-transformer`,
+`class-validator`, `crypto-js`, `handlebars`, `morgan`, `uuid`, `zod`. `express` and
+`mongoose` are used in types and must be available in the host app.
 
-Also published as tree-shakeable subpaths — one build per module and sub-module, each with
-its own ESM + CJS + `.d.ts` (AWS sub-modules are flattened to `aws-*`, everything else
-mirrors the source folder):
+Published as tree-shakeable subpaths — one build per module and sub-module, each with its
+own ESM + CJS + `.d.ts` (AWS sub-modules are flattened to `aws-*`, everything else mirrors
+the source folder):
 `@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk, aws-sdk/s3, aws-sdk/ses,
-aws-sdk/sns, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, gcp/function, mongo, mongo/db,
-mongo/helper, utility, config, interface}` (the bare `@incloodsolutions/node-toolkit`
-remains the full barrel). Configured in `node/tsup.config.ts` (`entry` map) and
-`node/package.json` (`exports` + `typesVersions`).
+aws-sdk/sns, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, mongo, utility, config,
+interface}`. Configured in `node/tsup.config.ts` (`entry` map) and `node/package.json`
+(`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### Serverless adapters — `src/aws/lambda/index.ts`, `src/gcp/function/index.ts`
 
@@ -302,9 +303,20 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 
 ## @incloodsolutions/devkit
 
-Node.js + AWS CDK v2. Entry point: `src/index.ts` → `aws` → `cdk/constructs` + `types`.
-Depends on `aws-cdk-lib`, `constructs`, `esbuild`, `@incloodsolutions/toolkit`.
-`src/utility`, `src/lint`, `src/prettier`, and `src/aws/cli` are present but empty.
+Node.js + AWS CDK v2. **No package-root export** — `@incloodsolutions/devkit` alone does
+not resolve; import a subpath. Internal barrel still at `src/index.ts` (`aws` →
+`cdk/constructs` + `types`) for tests. Depends on `aws-cdk-lib`, `constructs`, `esbuild`,
+`@incloodsolutions/toolkit`. `src/utility`, `src/lint`, `src/prettier`, and `src/aws/cli`
+are present but empty.
+
+Published as tree-shakeable subpaths — one build per module and per construct, each with
+its own ESM + CJS + `.d.ts`: `@incloodsolutions/devkit/{aws, aws-cdk, aws-types}` plus
+`@incloodsolutions/devkit/aws-cdk/<name>` for every construct (`lambda`, `dynamo-db`, `s3`,
+`api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`,
+`event-bridge`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`,
+`s3-deployment`, `sns`, `sqs`, `vpc`), with the `-construct` suffix dropped. Configured in
+`devkit/tsup.config.ts` (`entry` map) and `devkit/package.json` (`exports` +
+`typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### CDK constructs — `src/aws/cdk/constructs/`
 

@@ -10,7 +10,10 @@ import { tsupBaseConfig } from "../shared/tsup-base.config";
  * `@aws-sdk/client-s3`, not the DynamoDB client, its Zod/class-validator chain,
  * or Mongoose.
  *
- * `.` stays the full barrel (`src/index.ts`) for backwards compatibility.
+ * There is no package-root export in `package.json` — consumers must import a
+ * specific subpath so nothing pulls the whole package by accident. The `index`
+ * bundle is still built (it is the test aggregation point and documents the full
+ * surface) but is unreachable by the package name.
  */
 export default defineConfig([
 	{
@@ -20,6 +23,7 @@ export default defineConfig([
 		// `require()` calls into the ESM output. See `test/esm-bundle.spec.ts`.
 		skipNodeModulesBundle: true,
 		entry: {
+			// Built but NOT exported from package.json — see the note above.
 			index: 'src/index.ts',
 
 			// Top-level modules
@@ -39,13 +43,6 @@ export default defineConfig([
 			'aws-sdk/sns': 'src/aws/sdk/sns.ts',
 			'aws-sdk/dynamo-db': 'src/aws/sdk/dynamo-db.ts',
 			'aws-sdk/event-bridge': 'src/aws/sdk/event-bridge.ts',
-
-			// GCP sub-modules
-			'gcp/function': 'src/gcp/function/index.ts',
-
-			// MongoDB sub-modules
-			'mongo/db': 'src/mongo/db/index.ts',
-			'mongo/helper': 'src/mongo/helper/index.ts',
 		},
 	}
 ]);

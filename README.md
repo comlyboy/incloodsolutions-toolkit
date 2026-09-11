@@ -137,12 +137,16 @@ Run it before committing. (For `angular/`, run `npm install` first so Prettier i
 
 ## Building and publishing
 
-`toolkit/`, `node/`, `devkit/`, and `react/` share one build shape: a single `src/index.ts`
-entry and `npm run build` = **`tsup`**. tsup bundles the JavaScript — `dist/index.js` (ESM)
-and, for the three non-React packages, `dist/index.cjs` (CommonJS) — and rolls the whole
-public type surface into a single bundled `dist/index.d.ts` (`dts: true`). `dist/` holds
-just those files plus source maps: no per-folder declaration tree, and the single
-`index.d.ts` has no relative re-exports to trip up strict-ESM consumers.
+`toolkit/`, `node/`, `devkit/`, and `react/` share one build tool: `npm run build` =
+**`tsup`**, emitting ESM (`.js`) and — for the three non-React packages — CommonJS
+(`.cjs`) plus bundled declarations (`.d.ts`, `dts: true`), with source maps.
+
+`toolkit/` and `react/` build a single `src/index.ts` entry to `dist/index.*` and export
+only the package root. `node/` and `devkit/` instead build **one bundle per module (and
+sub-module / construct)** and have **no package-root export** — consumers import a subpath
+(`@incloodsolutions/node-toolkit/mongo`, `@incloodsolutions/devkit/aws-cdk/lambda`) so
+nothing pulls the whole package. Each `tsup.config.ts` `entry` map lines up with the
+`exports` + `typesVersions` in its `package.json`.
 
 All four are on **TypeScript 6** (`typescript@^6.0.3`) — this is the version tsup's bundled
 declaration bundler supports, so nothing extra is needed on top of tsup. Their `tsconfig.json`
