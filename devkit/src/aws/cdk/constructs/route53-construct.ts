@@ -24,30 +24,74 @@ import { IBaseCdkConstructProps } from '../../types';
  * Props for BaseRoute53Construct
  *
  * Exactly one of `hostedZoneOptions`, `fromExistingHostedZoneAttributes`, or
- * `fromLookupOptions` must be provided to obtain the hosted zone. Records are
- * then added to that zone.
+ * `fromLookupOptions` must be provided to obtain the hosted zone — a hosted
+ * zone is the container Route53 uses to hold every DNS record for one domain.
+ * Records are then added to that zone via `aRecords` / `aaaaRecords` /
+ * `cnameRecords` / `txtRecords`.
  */
 interface IRoute53ConstructProps extends Omit<
 	IBaseCdkConstructProps<{
-		/** Create a new public hosted zone */
+		/**
+		 * Create a brand-new public hosted zone for `zoneName`. Use this when
+		 * Route53 has not yet been given authority over the domain — CDK also
+		 * prints the four NS records you must set as the domain's nameservers at
+		 * the registrar to actually delegate DNS to this zone.
+		 */
 		readonly hostedZoneOptions?: HostedZoneProps;
 
-		/** Import an existing hosted zone by its ID and zone name */
+		/**
+		 * Reference an existing hosted zone by its ID and zone name, without
+		 * creating a new one. Cheapest and most predictable option — no synth-time
+		 * AWS API call, no risk of creating a duplicate zone — but you must already
+		 * know the hosted zone ID (from the console, another stack's output, etc.).
+		 */
 		readonly fromExistingHostedZoneAttributes?: HostedZoneAttributes;
 
-		/** Look up an existing public hosted zone by domain name at synth time */
+		/**
+		 * Resolve an existing public hosted zone by domain name via an AWS API
+		 * call made while CDK synthesises the stack (not at deploy time). Convenient
+		 * when you only know the domain name, but requires AWS credentials at synth
+		 * and re-runs that lookup (and may cache stale results) on every synth.
+		 */
 		readonly fromLookupOptions?: HostedZoneProviderProps;
 
-		/** `A` records to add to the zone, e.g. an alias to CloudFront or API Gateway */
+		/**
+		 * `A` records — map this zone (or a subdomain) to one or more IPv4
+		 * addresses, or, via `target: RecordTarget.fromAlias(...)`, "alias" the
+		 * record directly to an AWS resource (CloudFront, API Gateway custom
+		 * domain, ALB, another Route53 record, …). Alias `A` records are free,
+		 * auto-update if the target's IP changes, and — unlike `CNAME` — are the
+		 * only way to point the zone apex (`example.com` itself, not a subdomain)
+		 * at an AWS resource. Use this for "point my (sub)domain at this AWS
+		 * service" or "point it at a fixed IPv4 address".
+		 */
 		readonly aRecords?: Omit<ARecordProps, 'zone'>[];
 
-		/** `AAAA` records to add to the zone */
+		/**
+		 * `AAAA` records — the IPv6 counterpart to `A` records: map this zone or a
+		 * subdomain to IPv6 addresses, or alias to an AWS resource, the same way
+		 * `aRecords` does for IPv4. Add these alongside `aRecords` (not instead of)
+		 * when the target also needs to be reachable over IPv6.
+		 */
 		readonly aaaaRecords?: Omit<AaaaRecordProps, 'zone'>[];
 
-		/** `CNAME` records to add to the zone */
+		/**
+		 * `CNAME` records — alias a subdomain to another DNS name (not an IP
+		 * address), e.g. `www.example.com` → `example.com`, or a subdomain to a
+		 * third-party service's domain (a SaaS custom-domain setup). DNS rules
+		 * forbid a `CNAME` at the zone apex and forbid mixing it with any other
+		 * record type on the same name — use an alias `A`/`AAAA` record instead
+		 * for the apex or for AWS-resource targets.
+		 */
 		readonly cnameRecords?: Omit<CnameRecordProps, 'zone'>[];
 
-		/** `TXT` records to add to the zone, e.g. for domain ownership verification */
+		/**
+		 * `TXT` records — arbitrary text attached to a name, not used for routing
+		 * traffic at all. The standard way to prove domain ownership (ACM
+		 * certificate DNS validation, Google/Microsoft/other SaaS site
+		 * verification) and to publish email-authentication policy (SPF, DKIM,
+		 * DMARC). Each string in `values` becomes one quoted TXT value.
+		 */
 		readonly txtRecords?: Omit<TxtRecordProps, 'zone'>[];
 	}>,
 	'appName' | 'stackName'
