@@ -5,6 +5,10 @@
 	"type": "module",
 	"sideEffects": false,
 	"homepage": "https://www.npmjs.com/package/@incloodsolutions/node-toolkit",
+		"repository": {
+    "type": "git",
+    "url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
+  },
 	"exports": {
 		"./aws": {
 			"types": "./dist/aws.d.ts",
