@@ -26,6 +26,7 @@ import {
 import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Schedule } from 'aws-cdk-lib/aws-events';
 import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Source } from 'aws-cdk-lib/aws-s3-deployment';
 
@@ -43,6 +44,7 @@ import {
 	BaseLambdaConstruct,
 	BaseLambdaLayerConstruct,
 	BaseRolePolicyConstruct,
+	BaseRoute53Construct,
 	BaseS3Construct,
 	BaseS3DeploymentConstruct,
 	BaseSnsConstruct,
@@ -83,7 +85,7 @@ describe('BaseLambdaConstruct', () => {
 			Architectures: ['arm64'],
 			MemorySize: 1024,
 			Handler: 'lambda.handler',
-			FunctionName: 'orders-handler',
+			FunctionName: 'orders',
 		});
 	});
 
@@ -262,6 +264,47 @@ describe('BaseRolePolicyConstruct', () => {
 		} as never);
 		expect(c.role).toBeDefined();
 		Template.fromStack(s).resourceCountIs('AWS::IAM::Role', 1);
+	});
+});
+
+describe('BaseRoute53Construct', () => {
+	it('creates a new public hosted zone', () => {
+		const s = stack();
+		const c = new BaseRoute53Construct(s, 'Zone', {
+			options: { hostedZoneOptions: { zoneName: 'example.com' } },
+		} as never);
+		expect(c.hostedZone).toBeDefined();
+		Template.fromStack(s).resourceCountIs('AWS::Route53::HostedZone', 1);
+	});
+
+	it('imports an existing hosted zone and attaches A/CNAME/TXT records', () => {
+		const s = stack();
+		const c = new BaseRoute53Construct(s, 'Zone', {
+			options: {
+				fromExistingHostedZoneAttributes: {
+					hostedZoneId: 'Z1234567890',
+					zoneName: 'example.com',
+				},
+				aRecords: [
+					{ recordName: 'api', target: RecordTarget.fromValues('1.2.3.4') },
+				],
+				cnameRecords: [{ recordName: 'www', domainName: 'example.com' }],
+				txtRecords: [{ recordName: '_verify', values: ['token=abc123'] }],
+			},
+		} as never);
+		expect(c.hostedZone).toBeDefined();
+		const t = Template.fromStack(s);
+		t.resourceCountIs('AWS::Route53::HostedZone', 0);
+		t.hasResourceProperties('AWS::Route53::RecordSet', { Type: 'A' });
+		t.hasResourceProperties('AWS::Route53::RecordSet', { Type: 'CNAME' });
+		t.hasResourceProperties('AWS::Route53::RecordSet', { Type: 'TXT' });
+	});
+
+	it('throws when none of hostedZoneOptions / fromExistingHostedZoneAttributes / fromLookupOptions is provided', () => {
+		const s = stack();
+		expect(() => new BaseRoute53Construct(s, 'Zone', { options: {} } as never)).toThrow(
+			/requires one of/,
+		);
 	});
 });
 

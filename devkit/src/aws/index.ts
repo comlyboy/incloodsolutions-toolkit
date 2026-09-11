@@ -1,2 +1,2 @@
-export * from './cdk/constructs';
+export * from './cdk';
 export * from './types';

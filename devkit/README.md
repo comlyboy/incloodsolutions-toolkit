@@ -50,20 +50,26 @@ The created resource is exposed as a public readonly field (`.function`, `.api`,
 ## Modular imports (tree-shaking)
 
 **There is no package-root import.** `import ... from '@incloodsolutions/devkit'` does not
-resolve — you must import a specific subpath. Every construct is published as its own
-subpath, so a stack that uses one construct does not bundle the code for all seventeen:
+resolve — you must import a specific subpath. Every construct and every stack is published
+as its own subpath, so using one does not bundle the other seventeen constructs or the
+other two stacks. **There is also no "all constructs" or "all stacks" barrel** —
+`.../aws-cdk`, `.../aws-cdk/constructs`, and `.../aws-cdk/stacks` do not resolve, on
+purpose: each would silently re-bundle every construct or every stack the moment anyone
+imported it. `.../aws` is the one deliberate exception — the "just give me everything"
+escape hatch, documented as non-treeshaking.
 
 ```typescript
-import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/lambda';
-import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/dynamo-db';
+import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/constructs/lambda';
+import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/constructs/dynamo-db';
 import type { IBaseCdkConstructProps } from '@incloodsolutions/devkit/aws-types';
 ```
 
 | Subpath | Contents |
 | ------- | -------- |
-| `.../aws` · `.../aws-cdk` | all `Base*` constructs |
-| `.../aws-cdk/<name>` | one construct — `api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`, `dynamo-db`, `event-bridge`, `lambda`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `s3`, `s3-deployment`, `sns`, `sqs`, `vpc` |
-| `.../aws-types` | `IBaseConstruct`, `IBaseCdkConstructProps` |
+| `.../aws` | everything: all `Base*` constructs and stacks + shared types (does not tree-shake) |
+| `.../aws-cdk/constructs/<name>` | one construct — `api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`, `dynamo-db`, `event-bridge`, `lambda`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `route53`, `s3`, `s3-deployment`, `sns`, `sqs`, `vpc` |
+| `.../aws-cdk/stacks/<name>` | one stack — `lambda-api`, `lambda-sns`, `lambda-sqs` |
+| `.../aws-types` | `IBaseConstruct`, `IBaseCdkConstructProps`, `IBaseStackProps` |
 
 Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`.
 `aws-cdk-lib` and `constructs` stay external in every bundle.
@@ -89,6 +95,29 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | `BaseEventBridgeConstruct` | `aws-events.Rule` | Rule with a Lambda target. |
 | `BaseVpcConstruct` | `aws-ec2.Vpc` | VPC with defaults. |
 | `BaseRolePolicyConstruct` | `aws-iam.Role` + `PolicyStatement` / `ManagedPolicy` | IAM role and policy helper. |
+| `BaseRoute53Construct` | `aws-route53.HostedZone` + `ARecord` / `AaaaRecord` / `CnameRecord` / `TxtRecord` | Create, import (`fromExistingHostedZoneAttributes`), or look up (`fromLookupOptions`) a hosted zone — exactly one required. Optional `aRecords` / `aaaaRecords` / `cnameRecords` / `txtRecords` arrays attach records to it. Exposes `.hostedZone`. |
+
+## Stacks
+
+Ready-made `Stack` subclasses that wire a few constructs together. Props are based on
+`IBaseStackProps<TStackOptions>` — a regular CDK `StackProps` plus a required
+`stackOptions` bag (`stage`, `enableDebug`, and the stack's own options).
+
+| Stack | Source file | Wires together |
+| ----- | ----------- | --------------- |
+| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any method). |
+| `BaseLambdaSnsStack` | `lambda-sns-stack.ts` | `BaseLambdaConstruct` subscribed to a `BaseSnsConstruct` topic. |
+| `BaseLambdaSqsStack` | `lambda-sqs-stack.ts` | `BaseLambdaConstruct` as the target of a `BaseSqsConstruct` queue. |
+
+```typescript
+import { App } from 'aws-cdk-lib';
+import { BaseLambdaApiStack } from '@incloodsolutions/devkit/aws-cdk/stacks/lambda-api';
+
+const app = new App();
+new BaseLambdaApiStack(app, 'OrdersApi', {
+  stackOptions: { stage: 'production' },
+});
+```
 
 ## Types
 
@@ -96,15 +125,16 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | ------ | ------- |
 | `IBaseConstruct` | extends `IBaseEnableDebug`. |
 | `IBaseCdkConstructProps<TOptions>` | shared construct props (see above). |
+| `IBaseStackProps<TStackOptions>` | shared stack props: CDK `StackProps` + a required `stackOptions: { stage?; enableDebug? } & TStackOptions`. |
 
 ## Usage
 
 ```typescript
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/lambda';
-import { BaseApiGatewayV2Construct } from '@incloodsolutions/devkit/aws-cdk/api-gateway-v2';
-import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/dynamo-db';
+import { BaseLambdaConstruct } from '@incloodsolutions/devkit/aws-cdk/constructs/lambda';
+import { BaseApiGatewayV2Construct } from '@incloodsolutions/devkit/aws-cdk/constructs/api-gateway-v2';
+import { BaseDynamoDBConstruct } from '@incloodsolutions/devkit/aws-cdk/constructs/dynamo-db';
 
 export class ApiStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {

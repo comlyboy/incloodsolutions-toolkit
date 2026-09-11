@@ -160,11 +160,13 @@ resolve; import a subpath. Modules: `aws`, `config`, `gcp`, `interface`, `mongo`
 
 Published as tree-shakeable subpaths — one build per module and sub-module, each with its
 own ESM + CJS + `.d.ts` (AWS sub-modules are flattened to `aws-*`, everything else mirrors
-the source folder):
-`@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk, aws-sdk/s3, aws-sdk/ses,
+the source folder). Deliberately **no** bare `aws-sdk` barrel (it would bundle all five AWS
+SDK wrappers together) — only the per-service leaves:
+`@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk/s3, aws-sdk/ses,
 aws-sdk/sns, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, mongo, utility, config,
-interface}`. Configured in `node/tsup.config.ts` (`entry` map) and `node/package.json`
-(`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
+interface}` (`aws` is the sole "everything" escape hatch). Configured in
+`node/tsup.config.ts` (`entry` map) and `node/package.json` (`exports` + `typesVersions`,
+no `.` / `main` / `module` / `types`).
 
 ### Serverless adapters — `src/aws/lambda/index.ts`, `src/gcp/function/index.ts`
 
@@ -305,16 +307,21 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 
 Node.js + AWS CDK v2. **No package-root export** — `@incloodsolutions/devkit` alone does
 not resolve; import a subpath. Internal barrel still at `src/index.ts` (`aws` →
-`cdk/constructs` + `types`) for tests. Depends on `aws-cdk-lib`, `constructs`, `esbuild`,
-`@incloodsolutions/toolkit`. `src/utility`, `src/lint`, `src/prettier`, and `src/aws/cli`
-are present but empty.
+`cdk` (`constructs` + `stacks`) + `types`) for tests. Depends on `aws-cdk-lib`,
+`constructs`, `esbuild`, `@incloodsolutions/toolkit`. `src/utility`, `src/lint`,
+`src/prettier`, and `src/aws/cli` are present but empty.
 
-Published as tree-shakeable subpaths — one build per module and per construct, each with
-its own ESM + CJS + `.d.ts`: `@incloodsolutions/devkit/{aws, aws-cdk, aws-types}` plus
-`@incloodsolutions/devkit/aws-cdk/<name>` for every construct (`lambda`, `dynamo-db`, `s3`,
-`api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`,
-`event-bridge`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`,
-`s3-deployment`, `sns`, `sqs`, `vpc`), with the `-construct` suffix dropped. Configured in
+Published as tree-shakeable subpaths — one build per leaf item only, each with its own
+ESM + CJS + `.d.ts`: `@incloodsolutions/devkit/aws-cdk/constructs/<name>` for every
+construct (`lambda`, `dynamo-db`, `s3`, `api-gateway`, `api-gateway-v2`,
+`api-gateway-websocket`, `cloudfront`, `cloudwatch`, `event-bridge`, `lambda-authorizer`,
+`lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `route53`, `s3-deployment`, `sns`,
+`sqs`, `vpc`), `@incloodsolutions/devkit/aws-cdk/stacks/<name>` for every stack (`lambda-api`,
+`lambda-sns`, `lambda-sqs`), and `@incloodsolutions/devkit/aws-types`, with the
+`-construct`/`-stack` suffix dropped. Deliberately **no** `aws-cdk`, `aws-cdk/constructs`,
+or `aws-cdk/stacks` barrel subpath — each would re-bundle every construct or every stack
+into one artifact, defeating tree-shaking; `@incloodsolutions/devkit/aws` remains the sole
+"everything" escape hatch. Configured in
 `devkit/tsup.config.ts` (`entry` map) and `devkit/package.json` (`exports` +
 `typesVersions`, no `.` / `main` / `module` / `types`).
 
@@ -342,6 +349,20 @@ is based on `IBaseCdkConstructProps`, applies opinionated defaults, and emits a 
 | `BaseEventBridgeConstruct` | `event-bridge-construct.ts` | `aws-events.Rule` with Lambda target. |
 | `BaseVpcConstruct` | `vpc-construct.ts` | `aws-ec2.Vpc`. |
 | `BaseRolePolicyConstruct` | `role-policy-construct.ts` | `aws-iam.Role` + `PolicyStatement` / `ManagedPolicy`. |
+| `BaseRoute53Construct` | `route53-construct.ts` | `aws-route53.HostedZone` — created, imported by attributes, or looked up by domain name (exactly one of `hostedZoneOptions` / `fromExistingHostedZoneAttributes` / `fromLookupOptions` required, else throws). Optionally attaches `ARecord` / `AaaaRecord` / `CnameRecord` / `TxtRecord` entries via `aRecords` / `aaaaRecords` / `cnameRecords` / `txtRecords`. Exposes `.hostedZone` and a `Route53HostedZoneId` output. |
+
+### CDK stacks — `src/aws/cdk/stacks/`
+
+Each is a `Stack` subclass, `(scope, id, props)` where `props` is based on
+`IBaseStackProps<TStackOptions>`, that wires a few `Base*` constructs together.
+Naming was inconsistent (`LambdaApiStack`/`LambdaSqsStack` had no `Base` prefix,
+`BaseLambdaSnsStack` did) — the user has since unified all three to `Base*`.
+
+| Symbol | Source file | Wires together |
+| ------ | ----------- | --------------- |
+| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer via ARN) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any HTTP method). |
+| `BaseLambdaSnsStack` | `lambda-sns-stack.ts` | `BaseLambdaConstruct` subscribed to a `BaseSnsConstruct` topic. |
+| `BaseLambdaSqsStack` | `lambda-sqs-stack.ts` | `BaseLambdaConstruct` as the target of a `BaseSqsConstruct` queue. |
 
 ### Types — `src/aws/types/index.ts`
 
@@ -349,6 +370,7 @@ is based on `IBaseCdkConstructProps`, applies opinionated defaults, and emits a 
 | ------ | ---- | ------- |
 | `IBaseConstruct` | interface | extends `IBaseEnableDebug`. |
 | `IBaseCdkConstructProps<TOptions = any>` | interface | `{ stage?: AppEnvironmentType; options?: TOptions; stackName?: string; appName?: string; enableDebug?: boolean }` (all readonly). |
+| `IBaseStackProps<TStackOptions = any>` | interface | Extends CDK `StackProps`; adds a **required** `stackOptions: { stage?: AppEnvironmentType } & TStackOptions & Partial<IBaseEnableDebug>`. |
 
 ---
 

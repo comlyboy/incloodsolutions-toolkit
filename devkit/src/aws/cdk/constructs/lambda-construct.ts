@@ -75,9 +75,9 @@ export class BaseLambdaConstruct extends Construct {
 
 			/**
 			 * Lambda function name
-			 * Defaults to "<stackName>-handler" if not provided
+			 * Defaults to "<stackName>" if not provided
 			 */
-			functionName: `${props?.options?.lambdaOptions?.functionName || props?.stackName}-handler`,
+			functionName: `${props?.options?.lambdaOptions?.functionName || props?.stackName}`,
 
 			/**
 			 * Function description

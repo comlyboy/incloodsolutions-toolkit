@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/devkit",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "A comprehensive development toolkit for Node.js and TypeScript, providing development utilities, configuration helpers, AWS CDK constructs, stacks, and infrastructure tooling.",
 	"type": "module",
 	"sideEffects": false,
@@ -15,100 +15,115 @@
 			"import": "./dist/aws.js",
 			"require": "./dist/aws.cjs"
 		},
-		"./aws-cdk": {
-			"types": "./dist/aws-cdk.d.ts",
-			"import": "./dist/aws-cdk.js",
-			"require": "./dist/aws-cdk.cjs"
-		},
 		"./aws-types": {
 			"types": "./dist/aws-types.d.ts",
 			"import": "./dist/aws-types.js",
 			"require": "./dist/aws-types.cjs"
 		},
-		"./aws-cdk/api-gateway": {
-			"types": "./dist/aws-cdk/api-gateway.d.ts",
-			"import": "./dist/aws-cdk/api-gateway.js",
-			"require": "./dist/aws-cdk/api-gateway.cjs"
+		"./aws-cdk/constructs/api-gateway": {
+			"types": "./dist/aws-cdk/constructs/api-gateway.d.ts",
+			"import": "./dist/aws-cdk/constructs/api-gateway.js",
+			"require": "./dist/aws-cdk/constructs/api-gateway.cjs"
 		},
-		"./aws-cdk/api-gateway-v2": {
-			"types": "./dist/aws-cdk/api-gateway-v2.d.ts",
-			"import": "./dist/aws-cdk/api-gateway-v2.js",
-			"require": "./dist/aws-cdk/api-gateway-v2.cjs"
+		"./aws-cdk/constructs/api-gateway-v2": {
+			"types": "./dist/aws-cdk/constructs/api-gateway-v2.d.ts",
+			"import": "./dist/aws-cdk/constructs/api-gateway-v2.js",
+			"require": "./dist/aws-cdk/constructs/api-gateway-v2.cjs"
 		},
-		"./aws-cdk/api-gateway-websocket": {
-			"types": "./dist/aws-cdk/api-gateway-websocket.d.ts",
-			"import": "./dist/aws-cdk/api-gateway-websocket.js",
-			"require": "./dist/aws-cdk/api-gateway-websocket.cjs"
+		"./aws-cdk/constructs/api-gateway-websocket": {
+			"types": "./dist/aws-cdk/constructs/api-gateway-websocket.d.ts",
+			"import": "./dist/aws-cdk/constructs/api-gateway-websocket.js",
+			"require": "./dist/aws-cdk/constructs/api-gateway-websocket.cjs"
 		},
-		"./aws-cdk/cloudfront": {
-			"types": "./dist/aws-cdk/cloudfront.d.ts",
-			"import": "./dist/aws-cdk/cloudfront.js",
-			"require": "./dist/aws-cdk/cloudfront.cjs"
+		"./aws-cdk/constructs/cloudfront": {
+			"types": "./dist/aws-cdk/constructs/cloudfront.d.ts",
+			"import": "./dist/aws-cdk/constructs/cloudfront.js",
+			"require": "./dist/aws-cdk/constructs/cloudfront.cjs"
 		},
-		"./aws-cdk/cloudwatch": {
-			"types": "./dist/aws-cdk/cloudwatch.d.ts",
-			"import": "./dist/aws-cdk/cloudwatch.js",
-			"require": "./dist/aws-cdk/cloudwatch.cjs"
+		"./aws-cdk/constructs/cloudwatch": {
+			"types": "./dist/aws-cdk/constructs/cloudwatch.d.ts",
+			"import": "./dist/aws-cdk/constructs/cloudwatch.js",
+			"require": "./dist/aws-cdk/constructs/cloudwatch.cjs"
 		},
-		"./aws-cdk/dynamo-db": {
-			"types": "./dist/aws-cdk/dynamo-db.d.ts",
-			"import": "./dist/aws-cdk/dynamo-db.js",
-			"require": "./dist/aws-cdk/dynamo-db.cjs"
+		"./aws-cdk/constructs/dynamo-db": {
+			"types": "./dist/aws-cdk/constructs/dynamo-db.d.ts",
+			"import": "./dist/aws-cdk/constructs/dynamo-db.js",
+			"require": "./dist/aws-cdk/constructs/dynamo-db.cjs"
 		},
-		"./aws-cdk/event-bridge": {
-			"types": "./dist/aws-cdk/event-bridge.d.ts",
-			"import": "./dist/aws-cdk/event-bridge.js",
-			"require": "./dist/aws-cdk/event-bridge.cjs"
+		"./aws-cdk/constructs/event-bridge": {
+			"types": "./dist/aws-cdk/constructs/event-bridge.d.ts",
+			"import": "./dist/aws-cdk/constructs/event-bridge.js",
+			"require": "./dist/aws-cdk/constructs/event-bridge.cjs"
 		},
-		"./aws-cdk/lambda": {
-			"types": "./dist/aws-cdk/lambda.d.ts",
-			"import": "./dist/aws-cdk/lambda.js",
-			"require": "./dist/aws-cdk/lambda.cjs"
+		"./aws-cdk/constructs/lambda": {
+			"types": "./dist/aws-cdk/constructs/lambda.d.ts",
+			"import": "./dist/aws-cdk/constructs/lambda.js",
+			"require": "./dist/aws-cdk/constructs/lambda.cjs"
 		},
-		"./aws-cdk/lambda-authorizer": {
-			"types": "./dist/aws-cdk/lambda-authorizer.d.ts",
-			"import": "./dist/aws-cdk/lambda-authorizer.js",
-			"require": "./dist/aws-cdk/lambda-authorizer.cjs"
+		"./aws-cdk/constructs/lambda-authorizer": {
+			"types": "./dist/aws-cdk/constructs/lambda-authorizer.d.ts",
+			"import": "./dist/aws-cdk/constructs/lambda-authorizer.js",
+			"require": "./dist/aws-cdk/constructs/lambda-authorizer.cjs"
 		},
-		"./aws-cdk/lambda-authorizer-v2": {
-			"types": "./dist/aws-cdk/lambda-authorizer-v2.d.ts",
-			"import": "./dist/aws-cdk/lambda-authorizer-v2.js",
-			"require": "./dist/aws-cdk/lambda-authorizer-v2.cjs"
+		"./aws-cdk/constructs/lambda-authorizer-v2": {
+			"types": "./dist/aws-cdk/constructs/lambda-authorizer-v2.d.ts",
+			"import": "./dist/aws-cdk/constructs/lambda-authorizer-v2.js",
+			"require": "./dist/aws-cdk/constructs/lambda-authorizer-v2.cjs"
 		},
-		"./aws-cdk/lambda-layer": {
-			"types": "./dist/aws-cdk/lambda-layer.d.ts",
-			"import": "./dist/aws-cdk/lambda-layer.js",
-			"require": "./dist/aws-cdk/lambda-layer.cjs"
+		"./aws-cdk/constructs/lambda-layer": {
+			"types": "./dist/aws-cdk/constructs/lambda-layer.d.ts",
+			"import": "./dist/aws-cdk/constructs/lambda-layer.js",
+			"require": "./dist/aws-cdk/constructs/lambda-layer.cjs"
 		},
-		"./aws-cdk/role-policy": {
-			"types": "./dist/aws-cdk/role-policy.d.ts",
-			"import": "./dist/aws-cdk/role-policy.js",
-			"require": "./dist/aws-cdk/role-policy.cjs"
+		"./aws-cdk/constructs/role-policy": {
+			"types": "./dist/aws-cdk/constructs/role-policy.d.ts",
+			"import": "./dist/aws-cdk/constructs/role-policy.js",
+			"require": "./dist/aws-cdk/constructs/role-policy.cjs"
 		},
-		"./aws-cdk/s3": {
-			"types": "./dist/aws-cdk/s3.d.ts",
-			"import": "./dist/aws-cdk/s3.js",
-			"require": "./dist/aws-cdk/s3.cjs"
+		"./aws-cdk/constructs/route53": {
+			"types": "./dist/aws-cdk/constructs/route53.d.ts",
+			"import": "./dist/aws-cdk/constructs/route53.js",
+			"require": "./dist/aws-cdk/constructs/route53.cjs"
 		},
-		"./aws-cdk/s3-deployment": {
-			"types": "./dist/aws-cdk/s3-deployment.d.ts",
-			"import": "./dist/aws-cdk/s3-deployment.js",
-			"require": "./dist/aws-cdk/s3-deployment.cjs"
+		"./aws-cdk/constructs/s3": {
+			"types": "./dist/aws-cdk/constructs/s3.d.ts",
+			"import": "./dist/aws-cdk/constructs/s3.js",
+			"require": "./dist/aws-cdk/constructs/s3.cjs"
 		},
-		"./aws-cdk/sns": {
-			"types": "./dist/aws-cdk/sns.d.ts",
-			"import": "./dist/aws-cdk/sns.js",
-			"require": "./dist/aws-cdk/sns.cjs"
+		"./aws-cdk/constructs/s3-deployment": {
+			"types": "./dist/aws-cdk/constructs/s3-deployment.d.ts",
+			"import": "./dist/aws-cdk/constructs/s3-deployment.js",
+			"require": "./dist/aws-cdk/constructs/s3-deployment.cjs"
 		},
-		"./aws-cdk/sqs": {
-			"types": "./dist/aws-cdk/sqs.d.ts",
-			"import": "./dist/aws-cdk/sqs.js",
-			"require": "./dist/aws-cdk/sqs.cjs"
+		"./aws-cdk/constructs/sns": {
+			"types": "./dist/aws-cdk/constructs/sns.d.ts",
+			"import": "./dist/aws-cdk/constructs/sns.js",
+			"require": "./dist/aws-cdk/constructs/sns.cjs"
 		},
-		"./aws-cdk/vpc": {
-			"types": "./dist/aws-cdk/vpc.d.ts",
-			"import": "./dist/aws-cdk/vpc.js",
-			"require": "./dist/aws-cdk/vpc.cjs"
+		"./aws-cdk/constructs/sqs": {
+			"types": "./dist/aws-cdk/constructs/sqs.d.ts",
+			"import": "./dist/aws-cdk/constructs/sqs.js",
+			"require": "./dist/aws-cdk/constructs/sqs.cjs"
+		},
+		"./aws-cdk/constructs/vpc": {
+			"types": "./dist/aws-cdk/constructs/vpc.d.ts",
+			"import": "./dist/aws-cdk/constructs/vpc.js",
+			"require": "./dist/aws-cdk/constructs/vpc.cjs"
+		},
+		"./aws-cdk/stacks/lambda-api": {
+			"types": "./dist/aws-cdk/stacks/lambda-api.d.ts",
+			"import": "./dist/aws-cdk/stacks/lambda-api.js",
+			"require": "./dist/aws-cdk/stacks/lambda-api.cjs"
+		},
+		"./aws-cdk/stacks/lambda-sns": {
+			"types": "./dist/aws-cdk/stacks/lambda-sns.d.ts",
+			"import": "./dist/aws-cdk/stacks/lambda-sns.js",
+			"require": "./dist/aws-cdk/stacks/lambda-sns.cjs"
+		},
+		"./aws-cdk/stacks/lambda-sqs": {
+			"types": "./dist/aws-cdk/stacks/lambda-sqs.d.ts",
+			"import": "./dist/aws-cdk/stacks/lambda-sqs.js",
+			"require": "./dist/aws-cdk/stacks/lambda-sqs.cjs"
 		},
 		"./package.json": "./package.json"
 	},
@@ -135,7 +150,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
-		"build": "tsup",
+		"build": "NODE_OPTIONS=--max-old-space-size=4096 tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
 		"format": "prettier --write --no-error-on-unmatched-pattern \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -162,66 +177,29 @@
 	},
 	"typesVersions": {
 		"*": {
-			"aws": [
-				"./dist/aws.d.ts"
-			],
-			"aws-cdk": [
-				"./dist/aws-cdk.d.ts"
-			],
-			"aws-types": [
-				"./dist/aws-types.d.ts"
-			],
-			"aws-cdk/api-gateway": [
-				"./dist/aws-cdk/api-gateway.d.ts"
-			],
-			"aws-cdk/api-gateway-v2": [
-				"./dist/aws-cdk/api-gateway-v2.d.ts"
-			],
-			"aws-cdk/api-gateway-websocket": [
-				"./dist/aws-cdk/api-gateway-websocket.d.ts"
-			],
-			"aws-cdk/cloudfront": [
-				"./dist/aws-cdk/cloudfront.d.ts"
-			],
-			"aws-cdk/cloudwatch": [
-				"./dist/aws-cdk/cloudwatch.d.ts"
-			],
-			"aws-cdk/dynamo-db": [
-				"./dist/aws-cdk/dynamo-db.d.ts"
-			],
-			"aws-cdk/event-bridge": [
-				"./dist/aws-cdk/event-bridge.d.ts"
-			],
-			"aws-cdk/lambda": [
-				"./dist/aws-cdk/lambda.d.ts"
-			],
-			"aws-cdk/lambda-authorizer": [
-				"./dist/aws-cdk/lambda-authorizer.d.ts"
-			],
-			"aws-cdk/lambda-authorizer-v2": [
-				"./dist/aws-cdk/lambda-authorizer-v2.d.ts"
-			],
-			"aws-cdk/lambda-layer": [
-				"./dist/aws-cdk/lambda-layer.d.ts"
-			],
-			"aws-cdk/role-policy": [
-				"./dist/aws-cdk/role-policy.d.ts"
-			],
-			"aws-cdk/s3": [
-				"./dist/aws-cdk/s3.d.ts"
-			],
-			"aws-cdk/s3-deployment": [
-				"./dist/aws-cdk/s3-deployment.d.ts"
-			],
-			"aws-cdk/sns": [
-				"./dist/aws-cdk/sns.d.ts"
-			],
-			"aws-cdk/sqs": [
-				"./dist/aws-cdk/sqs.d.ts"
-			],
-			"aws-cdk/vpc": [
-				"./dist/aws-cdk/vpc.d.ts"
-			]
+			"aws": ["./dist/aws.d.ts"],
+			"aws-types": ["./dist/aws-types.d.ts"],
+			"aws-cdk/constructs/api-gateway": ["./dist/aws-cdk/constructs/api-gateway.d.ts"],
+			"aws-cdk/constructs/api-gateway-v2": ["./dist/aws-cdk/constructs/api-gateway-v2.d.ts"],
+			"aws-cdk/constructs/api-gateway-websocket": ["./dist/aws-cdk/constructs/api-gateway-websocket.d.ts"],
+			"aws-cdk/constructs/cloudfront": ["./dist/aws-cdk/constructs/cloudfront.d.ts"],
+			"aws-cdk/constructs/cloudwatch": ["./dist/aws-cdk/constructs/cloudwatch.d.ts"],
+			"aws-cdk/constructs/dynamo-db": ["./dist/aws-cdk/constructs/dynamo-db.d.ts"],
+			"aws-cdk/constructs/event-bridge": ["./dist/aws-cdk/constructs/event-bridge.d.ts"],
+			"aws-cdk/constructs/lambda": ["./dist/aws-cdk/constructs/lambda.d.ts"],
+			"aws-cdk/constructs/lambda-authorizer": ["./dist/aws-cdk/constructs/lambda-authorizer.d.ts"],
+			"aws-cdk/constructs/lambda-authorizer-v2": ["./dist/aws-cdk/constructs/lambda-authorizer-v2.d.ts"],
+			"aws-cdk/constructs/lambda-layer": ["./dist/aws-cdk/constructs/lambda-layer.d.ts"],
+			"aws-cdk/constructs/role-policy": ["./dist/aws-cdk/constructs/role-policy.d.ts"],
+			"aws-cdk/constructs/route53": ["./dist/aws-cdk/constructs/route53.d.ts"],
+			"aws-cdk/constructs/s3": ["./dist/aws-cdk/constructs/s3.d.ts"],
+			"aws-cdk/constructs/s3-deployment": ["./dist/aws-cdk/constructs/s3-deployment.d.ts"],
+			"aws-cdk/constructs/sns": ["./dist/aws-cdk/constructs/sns.d.ts"],
+			"aws-cdk/constructs/sqs": ["./dist/aws-cdk/constructs/sqs.d.ts"],
+			"aws-cdk/constructs/vpc": ["./dist/aws-cdk/constructs/vpc.d.ts"],
+			"aws-cdk/stacks/lambda-api": ["./dist/aws-cdk/stacks/lambda-api.d.ts"],
+			"aws-cdk/stacks/lambda-sns": ["./dist/aws-cdk/stacks/lambda-sns.d.ts"],
+			"aws-cdk/stacks/lambda-sqs": ["./dist/aws-cdk/stacks/lambda-sqs.d.ts"]
 		}
 	}
 }

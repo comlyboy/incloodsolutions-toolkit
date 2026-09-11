@@ -10,6 +10,7 @@ export * from './lambda-authorizer-v2-construct';
 export * from './lambda-construct';
 export * from './lambda-layer-construct';
 export * from './role-policy-construct';
+export * from './route53-construct';
 export * from './s3-construct';
 export * from './s3-deployment-construct';
 export * from './sns-construct';

@@ -11,13 +11,14 @@ import {
 	IBaseEnableDebug,
 	ObjectType,
 } from '@incloodsolutions/toolkit';
+import { StackProps } from 'aws-cdk-lib';
 
 /**
  * Marker interface for a construct that supports a debug flag.
  *
  * Equivalent to `{ enableDebug: boolean }` (from `@incloodsolutions/toolkit`).
  */
-export interface IBaseConstruct extends IBaseEnableDebug {}
+export interface IBaseConstruct extends IBaseEnableDebug { }
 
 /**
  * The common configuration shape accepted by every `Base*` CDK construct in this
@@ -45,4 +46,17 @@ export interface IBaseCdkConstructProps<
 	readonly appName?: string;
 	// Also inherits `readonly enableDebug?: boolean` from IBaseEnableDebug —
 	// emit verbose construct logs during synthesis (defaults to false).
+}
+
+/**
+ * The common configuration shape accepted by every `Base*` CDK stack in this package.
+ */
+export interface IBaseStackProps<TStackOptions extends ObjectType = any> extends StackProps {
+	readonly stackOptions: {
+		/**
+		 * Deployment stage/environment. Some constructs use it to pick defaults
+		 * (e.g. a longer Lambda timeout in `'production'`) and to set `NODE_ENV`.
+		 */
+		readonly stage?: AppEnvironmentType;
+	} & TStackOptions & Readonly<Partial<IBaseEnableDebug>>;
 }
