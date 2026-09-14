@@ -1,4 +1,4 @@
-import { App, CfnOutput, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
+import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
 import { LayerVersionProps } from 'aws-cdk-lib/aws-lambda';
 
 import { IBaseStackProps } from '../../types';
@@ -12,7 +12,7 @@ export class BaseLambdaLayerStack extends Stack {
 			readonly layerOptions: Partial<
 				Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>
 			> &
-				Required<Pick<LayerVersionProps, 'layerVersionName'>>;
+			Required<Pick<LayerVersionProps, 'layerVersionName'>>;
 		}>,
 	) {
 		super(scope, id, {
@@ -24,14 +24,12 @@ export class BaseLambdaLayerStack extends Stack {
 				}),
 		});
 
-		const { layer } = new BaseLambdaLayerConstruct(this, 'lambdaLayer', {
+		new BaseLambdaLayerConstruct(this, 'layer', {
+			enableDebug: props?.stackOptions?.enableDebug,
 			options: {
 				layerOptions: props?.stackOptions?.layerOptions,
 			},
 		});
 
-		new CfnOutput(this, 'LambdaLayerOutput', {
-			value: layer.layerVersionArn,
-		});
 	}
 }

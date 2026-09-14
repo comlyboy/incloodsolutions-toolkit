@@ -35,6 +35,7 @@ export class BaseLambdaSqsStack extends Stack {
 				throw new CustomException('Invalid layer options provided');
 			}
 			const { existingLayer } = new BaseLambdaLayerConstruct(this, 'layer', {
+				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					fromExistingLayerArn: `arn:aws:lambda:${props.env?.region}:${props.env?.account}:layer:${props.stackOptions?.layerOptions?.name}:${props.stackOptions?.layerOptions?.version}`,
 				},
@@ -48,6 +49,7 @@ export class BaseLambdaSqsStack extends Stack {
 			{
 				stage: props.stackOptions?.stage,
 				stackName: props.stackName,
+				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					lambdaOptions: { layers },
 				},
@@ -56,6 +58,7 @@ export class BaseLambdaSqsStack extends Stack {
 
 		new BaseSqsConstruct(this, 'sqs', {
 			targetFunctions: [lambdaFunction],
+			enableDebug: props?.stackOptions?.enableDebug,
 			options: {
 				eventSourceMappingOptions: {},
 				queueOptions: {},
