@@ -302,9 +302,9 @@ describe('BaseRoute53Construct', () => {
 
 	it('throws when none of hostedZoneOptions / fromExistingHostedZoneAttributes / fromLookupOptions is provided', () => {
 		const s = stack();
-		expect(() => new BaseRoute53Construct(s, 'Zone', { options: {} } as never)).toThrow(
-			/requires one of/,
-		);
+		expect(
+			() => new BaseRoute53Construct(s, 'Zone', { options: {} } as never),
+		).toThrow(/requires one of/);
 	});
 });
 

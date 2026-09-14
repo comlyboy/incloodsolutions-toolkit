@@ -56,7 +56,10 @@ const SUBPATH_ENTRIES: Record<string, string> = {
 		]),
 	),
 	...Object.fromEntries(
-		Object.entries(STACKS).map(([name, cls]) => [`aws-cdk/stacks/${name}`, cls]),
+		Object.entries(STACKS).map(([name, cls]) => [
+			`aws-cdk/stacks/${name}`,
+			cls,
+		]),
 	),
 };
 
@@ -78,7 +81,11 @@ suite('published subpath entries', () => {
 		expect(pkg.main).toBeUndefined();
 		expect(pkg.module).toBeUndefined();
 		expect(pkg.types).toBeUndefined();
-		for (const barrel of ['./aws-cdk', './aws-cdk/constructs', './aws-cdk/stacks']) {
+		for (const barrel of [
+			'./aws-cdk',
+			'./aws-cdk/constructs',
+			'./aws-cdk/stacks',
+		]) {
 			expect(
 				pkg.exports[barrel],
 				`${barrel} would bundle every construct/stack into one artifact — only leaf subpaths should exist`,

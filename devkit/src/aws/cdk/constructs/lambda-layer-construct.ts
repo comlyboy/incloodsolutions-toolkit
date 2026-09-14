@@ -18,7 +18,7 @@ import { IBaseCdkConstructProps } from '../../types';
  * - Creating a new Lambda Layer
  * - Importing an existing layer by ARN or attributes
  */
-interface ILambdaLayerConstructProps extends Omit<
+export interface ILambdaLayerConstructProps extends Omit<
 	IBaseCdkConstructProps<{
 		/**
 		 * Configuration for creating a new Lambda layer
