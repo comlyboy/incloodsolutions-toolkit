@@ -688,8 +688,10 @@ export async function fetchGoogleSheet({
 	return sendHttpRequest<string>({ url: url.toString() });
 }
 
-
-export function parseCsv<TSchema>({ csv, options }: {
+export function parseCsv<TSchema>({
+	csv,
+	options,
+}: {
 	csv: Buffer | string | Uint8Array;
 	options: OptionsWithColumns<TSchema, any>;
 }) {
@@ -699,12 +701,14 @@ export function parseCsv<TSchema>({ csv, options }: {
 		trim: true,
 		autoParse: true,
 		castDate: true,
-		cast: options?.cast || ((value) => {
-			value = value.trim();
-			if (value === '') return null;
-			if (value.toLowerCase() === 'true') return true;
-			if (value.toLowerCase() === 'false') return false;
-			return value;
-		})
+		cast:
+			options?.cast ||
+			((value) => {
+				value = value.trim();
+				if (value === '') return null;
+				if (value.toLowerCase() === 'true') return true;
+				if (value.toLowerCase() === 'false') return false;
+				return value;
+			}),
 	});
 }

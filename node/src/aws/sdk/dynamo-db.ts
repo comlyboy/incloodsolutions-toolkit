@@ -200,7 +200,7 @@ export function initDynamoDbClientWrapper<
 	 */
 	async function validateSchemaWithClassValidator<TData>(
 		data: TData,
-		skipMissingProperties = false,
+		_skipMissingProperties = false,
 	) {}
 
 	/**
@@ -415,9 +415,11 @@ export function initDynamoDbClientWrapper<
 
 					const filterExpressionValue = `${key} = ${modifiedRawKey}`;
 
-					queryParam.FilterExpression
-						? (queryParam.FilterExpression += ` AND ${filterExpressionValue}`)
-						: (queryParam.FilterExpression = filterExpressionValue);
+					if (queryParam.FilterExpression) {
+						queryParam.FilterExpression += ` AND ${filterExpressionValue}`;
+					} else {
+						queryParam.FilterExpression = filterExpressionValue;
+					}
 					queryParam.ExpressionAttributeValues = {
 						...queryParam.ExpressionAttributeValues,
 						[modifiedRawKey]: value,
@@ -518,7 +520,9 @@ export function initDynamoDbClientWrapper<
 		}) => {
 			let queryResponse: BatchGetCommandOutput;
 			let responseData: TType[] = [];
-			let consumedCapacity = 0;
+			// Always overwritten before being read — the loop below is a `do-while`,
+			// so it runs (and reassigns this) at least once before the value is used.
+			let consumedCapacity: number;
 
 			if (!keys || !keys.length) {
 				return {
@@ -618,9 +622,11 @@ export function initDynamoDbClientWrapper<
 					};
 				}
 				const filterValue = `${propertyKey} = :${propertyKey}`;
-				updateParam.UpdateExpression
-					? (updateParam.UpdateExpression += `, ${filterValue}`)
-					: (updateParam.UpdateExpression = `SET ${filterValue}`);
+				if (updateParam.UpdateExpression) {
+					updateParam.UpdateExpression += `, ${filterValue}`;
+				} else {
+					updateParam.UpdateExpression = `SET ${filterValue}`;
+				}
 				updateParam.ExpressionAttributeValues = {
 					...updateParam.ExpressionAttributeValues,
 					[`:${propertyKey}`]: value,

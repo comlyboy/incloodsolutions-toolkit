@@ -31,6 +31,7 @@ import {
 	CustomException,
 	IBaseEnableDebug,
 	ObjectType,
+	printLog,
 } from '@incloodsolutions/toolkit';
 
 import { getCurrentLambdaInvocation } from '../aws';
@@ -151,7 +152,7 @@ export function encryptData<TData>({
 export function decryptData<TResponse>({
 	hashedData,
 	secret,
-	type = 'aes256',
+	type: _type = 'aes256',
 	enableDebug,
 }: {
 	secret: string;

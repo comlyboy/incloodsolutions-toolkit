@@ -73,7 +73,7 @@ export async function initLambdaFunctionHandler<
 			log?: any;
 			framework?: Framework;
 			binarySettings?: {
-				isBinary?: boolean | Function;
+				isBinary?: boolean | ((...args: any[]) => boolean);
 				contentTypes: string[];
 				contentEncodings: string[];
 			};

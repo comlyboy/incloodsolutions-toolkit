@@ -5,10 +5,10 @@
 	"type": "module",
 	"sideEffects": false,
 	"homepage": "https://www.npmjs.com/package/@incloodsolutions/node-toolkit",
-		"repository": {
-    "type": "git",
-    "url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
-  },
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
+	},
 	"exports": {
 		"./aws": {
 			"types": "./dist/aws.d.ts",
@@ -84,20 +84,48 @@
 	},
 	"typesVersions": {
 		"*": {
-			"aws": ["./dist/aws.d.ts"],
-			"aws-lambda": ["./dist/aws-lambda.d.ts"],
-			"aws-cli": ["./dist/aws-cli.d.ts"],
-			"aws-sdk": ["./dist/aws-sdk.d.ts"],
-			"aws-sdk/s3": ["./dist/aws-sdk/s3.d.ts"],
-			"aws-sdk/ses": ["./dist/aws-sdk/ses.d.ts"],
-			"aws-sdk/sns": ["./dist/aws-sdk/sns.d.ts"],
-			"aws-sdk/dynamo-db": ["./dist/aws-sdk/dynamo-db.d.ts"],
-			"aws-sdk/event-bridge": ["./dist/aws-sdk/event-bridge.d.ts"],
-			"gcp": ["./dist/gcp.d.ts"],
-			"mongo": ["./dist/mongo.d.ts"],
-			"utility": ["./dist/utility.d.ts"],
-			"config": ["./dist/config.d.ts"],
-			"interface": ["./dist/interface.d.ts"]
+			"aws": [
+				"./dist/aws.d.ts"
+			],
+			"aws-lambda": [
+				"./dist/aws-lambda.d.ts"
+			],
+			"aws-cli": [
+				"./dist/aws-cli.d.ts"
+			],
+			"aws-sdk": [
+				"./dist/aws-sdk.d.ts"
+			],
+			"aws-sdk/s3": [
+				"./dist/aws-sdk/s3.d.ts"
+			],
+			"aws-sdk/ses": [
+				"./dist/aws-sdk/ses.d.ts"
+			],
+			"aws-sdk/sns": [
+				"./dist/aws-sdk/sns.d.ts"
+			],
+			"aws-sdk/dynamo-db": [
+				"./dist/aws-sdk/dynamo-db.d.ts"
+			],
+			"aws-sdk/event-bridge": [
+				"./dist/aws-sdk/event-bridge.d.ts"
+			],
+			"gcp": [
+				"./dist/gcp.d.ts"
+			],
+			"mongo": [
+				"./dist/mongo.d.ts"
+			],
+			"utility": [
+				"./dist/utility.d.ts"
+			],
+			"config": [
+				"./dist/config.d.ts"
+			],
+			"interface": [
+				"./dist/interface.d.ts"
+			]
 		}
 	},
 	"engines": {
@@ -156,6 +184,7 @@
 		"zod": "^4.6.5"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"@swc/core": "^1.16.2",
 		"@types/aws-lambda": "^8.10.163",
 		"@types/bcryptjs": "^3.0.0",
@@ -164,6 +193,8 @@
 		"@types/morgan": "^1.9.10",
 		"@types/node": "^26.5.1",
 		"aws-sdk-client-mock": "^4.1.0",
+		"eslint": "^10.10.0",
+		"eslint-config-prettier": "^10.1.8",
 		"jest": "^30.5.1",
 		"prettier": "^3.9.6",
 		"rimraf": "^6.1.3",
@@ -172,6 +203,7 @@
 		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.5.1",
 		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.70.0",
 		"unplugin-swc": "^1.6.0",
 		"vitest": "^5.0.0"
 	}
