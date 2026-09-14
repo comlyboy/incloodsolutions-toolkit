@@ -600,49 +600,6 @@ export function returnApiOverview({
 }
 
 /**
- * Writes a formatted line to `console.log` without a logging library. Mirrors
- * `printLog` from `@incloodsolutions/toolkit`.
- *
- * Output: `<UTC date> - LOG [context] message <data>`.
- *
- * @param context - Short bracketed label.
- * @param message - The message text.
- * @param data - Optional payload appended to the line.
- * @param options - Options.
- * @param options.prettify - Apply ANSI colours. Defaults to `false`.
- * @param options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
- */
-export function printLog(
-	context: string,
-	message: string,
-	data?: any,
-	options?: {
-		prettify?: boolean;
-		ignoreDate?: boolean;
-	},
-) {
-	const yellowColor = '\x1b[33m';
-	const resetColor = '\x1b[0m';
-	const greenColor = '\x1b[32m';
-
-	const ctx = context
-		? options?.prettify
-			? `${yellowColor}[${context}]${resetColor} `
-			: `[${context}] `
-		: '';
-
-	const logLabel = options?.prettify ? `${greenColor}LOG${resetColor}` : 'LOG';
-	const logMessage = options?.prettify
-		? `${greenColor}${message}${resetColor}`
-		: message;
-
-	console.log(
-		`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`,
-		data || '',
-	);
-}
-
-/**
  * Builds a `morgan` request/response logging middleware with extra tokens.
  *
  * The log line is `:id | :method | :status | :url | <your formats> | :total-time ms | :res[content-length]`,

@@ -50,8 +50,8 @@ type EventSources =
  */
 export async function initLambdaFunctionHandler<
 	TEvent extends
-	APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> =
-	any,
+		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any> =
+		any,
 >({
 	app,
 	event,
@@ -101,11 +101,11 @@ export async function initLambdaFunctionHandler<
 export function getCurrentLambdaInvocation(): {
 	context: Context;
 	event:
-	APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 } {
 	return getCurrentInvoke() as {
 		context: Context;
 		event:
-		APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
+			APIGatewayProxyEventV2 | SNSEvent | SQSEvent | EventBridgeEvent<any, any>;
 	};
 }

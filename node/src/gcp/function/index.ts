@@ -2,7 +2,6 @@ import type { Express, Request, Response } from 'express';
 
 import { CustomException } from '@incloodsolutions/toolkit';
 
-
 /**
  * Runs an Express or NestJS application as a Google Cloud Functions HTTP handler.
  *
