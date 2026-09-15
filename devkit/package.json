@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/devkit",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"description": "A comprehensive development toolkit for Node.js and TypeScript, providing development utilities, configuration helpers, AWS CDK constructs, stacks, and infrastructure tooling.",
 	"type": "module",
 	"sideEffects": false,
