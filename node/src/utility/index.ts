@@ -193,24 +193,28 @@ export function decryptData<TResponse>({
 /**
  * Extracts the best-guess client IP address from an Express request.
  *
- * Checks, in order: the first entry of the `x-forwarded-for` header, then
- * `socket.remoteAddress`, then `req.ip` — returning the first that is a valid
- * IP. Returns `''` when none qualifies.
+ * Checks, in order: `socket.remoteAddress`, then `req.ip`, then the first
+ * entry of the `x-forwarded-for` header — returning the first that is a
+ * valid IP. Returns `''` when none qualifies.
+ *
+ * `remoteAddress`/`req.ip` are checked first deliberately, not last: on
+ * Lambda via `@codegenie/serverless-express` (how every one of this
+ * toolkit's own NestJS projects runs), the adapter sets both directly from
+ * `requestContext.http.sourceIp` — the address API Gateway itself observed
+ * over the connection, which a client cannot influence. `x-forwarded-for`,
+ * by contrast, is just a request header: a client can set it to anything on
+ * their original request, so trusting its first entry over the
+ * network-observed address would let a client spoof whatever IP it wants
+ * (defeating IP-based rate limiting, for one). It's kept as the last resort
+ * for setups where neither of the other two is populated.
  *
  * @param req - The Express `Request`.
  * @returns The client IP string, or `''` if it cannot be determined.
  */
 export function getIpAddress(req: Request) {
-	const ipAddress = req?.ip;
 	const remoteAddress = req?.socket?.remoteAddress;
+	const ipAddress = req?.ip;
 	const xForwardedFor = req?.headers['x-forwarded-for'];
-
-	if (xForwardedFor && typeof xForwardedFor === 'string') {
-		const ipCurrent = xForwardedFor.split(',')[0].trim();
-		if (isIP(ipCurrent)) {
-			return ipCurrent;
-		}
-	}
 
 	if (
 		remoteAddress &&
@@ -222,6 +226,13 @@ export function getIpAddress(req: Request) {
 
 	if (ipAddress && typeof ipAddress === 'string' && isIP(ipAddress)) {
 		return ipAddress;
+	}
+
+	if (xForwardedFor && typeof xForwardedFor === 'string') {
+		const ipCurrent = xForwardedFor.split(',')[0].trim();
+		if (isIP(ipCurrent)) {
+			return ipCurrent;
+		}
 	}
 
 	return '';

@@ -150,13 +150,36 @@ describe('getIpAddress', () => {
 	const req = (over: Record<string, unknown>) =>
 		({ headers: {}, ...over }) as never;
 
-	it('prefers the first x-forwarded-for entry', () => {
+	it('prefers socket.remoteAddress over req.ip and x-forwarded-for', () => {
+		expect(
+			getIpAddress(
+				req({
+					socket: { remoteAddress: '9.9.9.9' },
+					ip: '8.8.8.8',
+					headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' },
+				}),
+			),
+		).toBe('9.9.9.9');
+	});
+
+	it('prefers req.ip over x-forwarded-for when there is no remoteAddress', () => {
+		expect(
+			getIpAddress(
+				req({
+					ip: '8.8.8.8',
+					headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' },
+				}),
+			),
+		).toBe('8.8.8.8');
+	});
+
+	it('falls back to the first x-forwarded-for entry when neither is set', () => {
 		expect(
 			getIpAddress(req({ headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' } })),
 		).toBe('1.2.3.4');
 	});
 
-	it('falls back to socket.remoteAddress, then req.ip', () => {
+	it('falls back to socket.remoteAddress, then req.ip, when x-forwarded-for is absent', () => {
 		expect(getIpAddress(req({ socket: { remoteAddress: '9.9.9.9' } }))).toBe(
 			'9.9.9.9',
 		);

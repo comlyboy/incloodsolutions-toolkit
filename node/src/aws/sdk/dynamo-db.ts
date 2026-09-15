@@ -28,9 +28,10 @@ import {
 	CustomException,
 	generateISODate,
 	generateDateInNumber,
+	printLog,
 } from '@incloodsolutions/toolkit';
 
-import { generateCustomUUID, printLog } from '../../utility';
+import { generateCustomUUID } from '../../utility';
 
 /**
  * Validates data using either Zod or class-validator.

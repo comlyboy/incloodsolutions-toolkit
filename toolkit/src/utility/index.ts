@@ -617,12 +617,12 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({
  * printLog('Auth', 'user signed in', undefined, { prettify: true, ignoreDate: true });
  */
 export function printLog(
-	context: string,
-	message: string,
-	data?: any,
-	options?: {
-		prettify?: boolean;
-		ignoreDate?: boolean;
+	{ context, message, data, options }: {
+		context: string; message: string; data?: any;
+		options?: {
+			prettify?: boolean;
+			ignoreDate?: boolean;
+		};
 	},
 ) {
 	const yellowColor = '\x1b[33m';
