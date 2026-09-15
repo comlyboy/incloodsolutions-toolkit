@@ -1,4 +1,4 @@
-import { App, Stack } from 'aws-cdk-lib';
+import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
 
 import { IBaseStackProps } from '../../types';
 import {
@@ -23,7 +23,23 @@ export class BaseLambdaSnsStack extends Stack {
 			topicOptions?: TopicProps;
 		}>,
 	) {
-		super(scope, id, props);
+		super(scope, id, {
+			...props,
+			env: {
+				...props?.env,
+				region: props?.env?.region || 'us-east-1',
+				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT,
+			},
+			tags: {
+				...props.tags,
+				stackName: props.tags?.stackName,
+			},
+			synthesizer:
+				props?.synthesizer ||
+				new DefaultStackSynthesizer({
+					bucketPrefix: `functions/${props.stackOptions?.stage}/`,
+				}),
+		});
 		let layers: ILayerVersion[] = [];
 
 		if (props?.stackOptions?.layerOptions) {
