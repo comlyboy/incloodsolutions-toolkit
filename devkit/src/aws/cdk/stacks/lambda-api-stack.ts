@@ -1,5 +1,5 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
-import { ILayerVersion } from 'aws-cdk-lib/aws-lambda';
+import { FunctionProps, ILayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 
 import { IBaseStackProps } from '../../types';
@@ -19,7 +19,7 @@ export class BaseLambdaApiStack extends Stack {
 				name: string;
 				version: number;
 			};
-			lambdaOptions?: {};
+			lambdaOptions?: Partial<FunctionProps>;
 			apiGatewayOptions?: {};
 		}>,
 	) {
@@ -67,7 +67,7 @@ export class BaseLambdaApiStack extends Stack {
 				stackName: props.stackName,
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
-					lambdaOptions: { layers },
+					lambdaOptions: { ...props.stackOptions.lambdaOptions, layers },
 				},
 			},
 		);
