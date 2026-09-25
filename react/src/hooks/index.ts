@@ -16,7 +16,6 @@
 
 export * from './useKeyEvent';
 export * from './usePageMetadata';
-export * from './useCustomNavigation';
 
 export * from 'usehooks-ts';
 

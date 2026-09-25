@@ -16,7 +16,7 @@
  * See `README.md` and `../docs/AI-INDEX.md` for the full catalogue and known gaps.
  */
 
-export * from './components';
+// export * from './components';
 export * from './hooks';
 export * from './types';
 export * from './utilities';
