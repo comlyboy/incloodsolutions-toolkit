@@ -64,7 +64,7 @@ Framework-agnostic. Entry point: `src/index.ts` → `constant`, `error`, `utilit
 | `jsonToXml` | `<TData>(dataObject: TData, options: BuilderOptions) => Promise<string>` | Build XML from object (`xml2js`). |
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Throws `CustomException` if a dotted key path repeats. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compile + render a Handlebars template. |
-| `consoleLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional colour/timestamp. |
+| `consoleLog` | `({ context: string; message: string; data?: any; options?: { prettify?: boolean; ignoreDate?: boolean } }) => void` | Formatted `console.log` with optional colour/timestamp. |
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint (`sendHttpRequest<string>` under the hood — the `text/csv` response is never JSON-parsed). No authentication — the sheet must be shared as "Anyone with the link can view"; `gid` selects a specific tab, otherwise the default sheet is exported. A private sheet returns an HTML sign-in page with status `200` rather than failing. |
 
 ### Validation schemas (Zod) — `src/validator/index.ts`
