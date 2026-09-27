@@ -115,6 +115,11 @@
 			"import": "./dist/aws-cdk/stacks/lambda-api.js",
 			"require": "./dist/aws-cdk/stacks/lambda-api.cjs"
 		},
+		"./aws-cdk/stacks/lambda-layer": {
+			"types": "./dist/aws-cdk/stacks/lambda-layer.d.ts",
+			"import": "./dist/aws-cdk/stacks/lambda-layer.js",
+			"require": "./dist/aws-cdk/stacks/lambda-layer.cjs"
+		},
 		"./aws-cdk/stacks/lambda-sns": {
 			"types": "./dist/aws-cdk/stacks/lambda-sns.d.ts",
 			"import": "./dist/aws-cdk/stacks/lambda-sns.js",
@@ -198,6 +203,7 @@
 			"aws-cdk/constructs/sqs": ["./dist/aws-cdk/constructs/sqs.d.ts"],
 			"aws-cdk/constructs/vpc": ["./dist/aws-cdk/constructs/vpc.d.ts"],
 			"aws-cdk/stacks/lambda-api": ["./dist/aws-cdk/stacks/lambda-api.d.ts"],
+			"aws-cdk/stacks/lambda-layer": ["./dist/aws-cdk/stacks/lambda-layer.d.ts"],
 			"aws-cdk/stacks/lambda-sns": ["./dist/aws-cdk/stacks/lambda-sns.d.ts"],
 			"aws-cdk/stacks/lambda-sqs": ["./dist/aws-cdk/stacks/lambda-sqs.d.ts"]
 		}

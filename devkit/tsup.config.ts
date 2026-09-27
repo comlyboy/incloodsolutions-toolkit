@@ -41,7 +41,7 @@ const constructs = [
 	"vpc",
 ] as const;
 
-const stacks = ["lambda-api", "lambda-sns", "lambda-sqs"] as const;
+const stacks = ["lambda-api", "lambda-layer", "lambda-sns", "lambda-sqs"] as const;
 
 export default defineConfig([
 	{

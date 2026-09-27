@@ -42,6 +42,7 @@ const CONSTRUCTS: Record<string, string> = {
 
 const STACKS: Record<string, string> = {
 	'lambda-api': 'BaseLambdaApiStack',
+	'lambda-layer': 'BaseLambdaLayerStack',
 	'lambda-sns': 'BaseLambdaSnsStack',
 	'lambda-sqs': 'BaseLambdaSqsStack',
 };

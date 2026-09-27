@@ -68,7 +68,7 @@ import type { IBaseCdkConstructProps } from '@incloodsolutions/devkit/aws-types'
 | ------- | -------- |
 | `.../aws` | everything: all `Base*` constructs and stacks + shared types (does not tree-shake) |
 | `.../aws-cdk/constructs/<name>` | one construct — `api-gateway`, `api-gateway-v2`, `api-gateway-websocket`, `cloudfront`, `cloudwatch`, `dynamo-db`, `event-bridge`, `lambda`, `lambda-authorizer`, `lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `route53`, `s3`, `s3-deployment`, `sns`, `sqs`, `vpc` |
-| `.../aws-cdk/stacks/<name>` | one stack — `lambda-api`, `lambda-sns`, `lambda-sqs` |
+| `.../aws-cdk/stacks/<name>` | one stack — `lambda-api`, `lambda-layer`, `lambda-sns`, `lambda-sqs` |
 | `.../aws-types` | `IBaseConstruct`, `IBaseCdkConstructProps`, `IBaseStackProps` |
 
 Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`.
@@ -106,6 +106,7 @@ Ready-made `Stack` subclasses that wire a few constructs together. Props are bas
 | Stack | Source file | Wires together |
 | ----- | ----------- | --------------- |
 | `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any method). |
+| `BaseLambdaLayerStack` | `lambda-layer-stack.ts` | A standalone `BaseLambdaLayerConstruct` — publishes a Lambda layer on its own, with a dedicated asset bucket (`DefaultStackSynthesizer({ bucketPrefix: 'layer/' })`) so other stacks can import it by ARN. |
 | `BaseLambdaSnsStack` | `lambda-sns-stack.ts` | `BaseLambdaConstruct` subscribed to a `BaseSnsConstruct` topic. |
 | `BaseLambdaSqsStack` | `lambda-sqs-stack.ts` | `BaseLambdaConstruct` as the target of a `BaseSqsConstruct` queue. |
 

@@ -10,7 +10,7 @@ import {
 	RestApiProps,
 } from 'aws-cdk-lib/aws-apigateway';
 
-import { printLog } from '@incloodsolutions/toolkit';
+import { consoleLog } from '@incloodsolutions/toolkit';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
@@ -190,10 +190,10 @@ export class BaseApiGatewayConstruct
 
 			/** Optional debug logging */
 			if (this.enableDebug) {
-				printLog(
-					BaseApiGatewayConstruct.name,
-					`Route created: ${route.method} ${currentPath}`,
-				);
+				consoleLog({
+					context: BaseApiGatewayConstruct.name,
+					message: `Route created: ${route.method} ${currentPath}`,
+				});
 			}
 		});
 	}

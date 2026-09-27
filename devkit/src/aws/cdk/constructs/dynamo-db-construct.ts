@@ -10,7 +10,7 @@ import {
 	TableProps,
 } from 'aws-cdk-lib/aws-dynamodb';
 
-import { printLog } from '@incloodsolutions/toolkit';
+import { consoleLog } from '@incloodsolutions/toolkit';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
@@ -87,10 +87,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				printLog(
-					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`,
-				);
+				consoleLog({
+					context: BaseDynamoDBConstruct.name,
+					message: `Created Dynamo-DB table from existing using name ${props.options?.fromExistingTableName}`,
+				});
 			}
 
 			/**
@@ -106,10 +106,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				printLog(
-					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing using ARN`,
-				);
+				consoleLog({
+					context: BaseDynamoDBConstruct.name,
+					message: `Created Dynamo-DB table from existing using ARN`,
+				});
 			}
 
 			/**
@@ -125,10 +125,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 			);
 
 			if (this.enableDebug) {
-				printLog(
-					BaseDynamoDBConstruct.name,
-					`Created Dynamo-DB table from existing attributes`,
-				);
+				consoleLog({
+					context: BaseDynamoDBConstruct.name,
+					message: `Created Dynamo-DB table from existing attributes`,
+				});
 			}
 
 			/**
@@ -167,10 +167,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 					this.table.addGlobalSecondaryIndex(globalIndex);
 
 					if (this.enableDebug) {
-						printLog(
-							BaseDynamoDBConstruct.name,
-							`Added GSI: ${globalIndex.indexName}`,
-						);
+						consoleLog({
+							context: BaseDynamoDBConstruct.name,
+							message: `Added GSI: ${globalIndex.indexName}`,
+						});
 					}
 				});
 			}
@@ -183,10 +183,10 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 					this.table.addLocalSecondaryIndex(localIndex);
 
 					if (this.enableDebug) {
-						printLog(
-							BaseDynamoDBConstruct.name,
-							`Added LSI: ${localIndex.indexName}`,
-						);
+						consoleLog({
+							context: BaseDynamoDBConstruct.name,
+							message: `Added LSI: ${localIndex.indexName}`,
+						});
 					}
 				});
 			}
