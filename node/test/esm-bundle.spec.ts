@@ -41,6 +41,7 @@ const SUBPATH_ENTRIES: Record<string, string> = {
 	'aws-sdk/sns': 'initSnsClientWrapper',
 	'aws-sdk/dynamo-db': 'initDynamoDbClientWrapper',
 	'aws-sdk/event-bridge': 'initEventBridgeClientWrapper',
+	'aws-sdk/parameter': 'initSsmParameterClientWrapper',
 };
 
 const dist = (name: string) =>

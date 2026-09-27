@@ -21,6 +21,12 @@ import {
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import {
+	GetParameterCommand,
+	GetParametersByPathCommand,
+	GetParametersCommand,
+	SSMClient,
+} from '@aws-sdk/client-ssm';
+import {
 	DeleteCommand,
 	DynamoDBDocumentClient,
 	GetCommand,
@@ -38,6 +44,7 @@ import {
 	initS3ClientWrapper,
 	initSesClientWrapper,
 	initSnsClientWrapper,
+	initSsmParameterClientWrapper,
 	uploadToS3ViaCli,
 	validateSchema,
 } from '../src/index';
@@ -45,12 +52,14 @@ import {
 const s3Mock = mockClient(S3Client);
 const sesMock = mockClient(SESClient);
 const snsMock = mockClient(SNSClient);
+const ssmMock = mockClient(SSMClient);
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
 beforeEach(() => {
 	s3Mock.reset();
 	sesMock.reset();
 	snsMock.reset();
+	ssmMock.reset();
 	ddbMock.reset();
 	vi.mocked(getSignedUrl).mockClear();
 });
@@ -158,6 +167,62 @@ describe('initSnsClientWrapper', () => {
 			Message: 'Code 1234',
 			PhoneNumber: '+15550000000',
 		});
+	});
+});
+
+describe('initSsmParameterClientWrapper', () => {
+	const ssm = () => initSsmParameterClientWrapper();
+
+	it('getParameter returns the decrypted value', async () => {
+		ssmMock
+			.on(GetParameterCommand)
+			.resolves({ Parameter: { Name: '/app/db-password', Value: 's3cret' } });
+		const value = await ssm().getParameter({ name: '/app/db-password' });
+		expect(value).toBe('s3cret');
+		const input = ssmMock.commandCalls(GetParameterCommand)[0].args[0].input;
+		expect(input).toEqual({
+			Name: '/app/db-password',
+			WithDecryption: true,
+		});
+	});
+
+	it('getParameter returns undefined when the parameter has no value', async () => {
+		ssmMock.on(GetParameterCommand).resolves({});
+		expect(await ssm().getParameter({ name: '/app/missing' })).toBeUndefined();
+	});
+
+	it('getParameters maps found names to values and reports invalid names', async () => {
+		ssmMock.on(GetParametersCommand).resolves({
+			Parameters: [
+				{ Name: '/app/a', Value: '1' },
+				{ Name: '/app/b', Value: '2' },
+			],
+			InvalidParameters: ['/app/missing'],
+		});
+		const { values, invalidParameterNames } = await ssm().getParameters({
+			names: ['/app/a', '/app/b', '/app/missing'],
+		});
+		expect(values).toEqual({ '/app/a': '1', '/app/b': '2' });
+		expect(invalidParameterNames).toEqual(['/app/missing']);
+	});
+
+	it('getParametersByPath follows pagination until NextToken is exhausted', async () => {
+		ssmMock
+			.on(GetParametersByPathCommand)
+			.resolvesOnce({
+				Parameters: [{ Name: '/app/a', Value: '1' }],
+				NextToken: 'page-2',
+			})
+			.resolvesOnce({
+				Parameters: [{ Name: '/app/b', Value: '2' }],
+			});
+		const values = await ssm().getParametersByPath({ path: '/app/' });
+		expect(values).toEqual({ '/app/a': '1', '/app/b': '2' });
+		expect(ssmMock.commandCalls(GetParametersByPathCommand)).toHaveLength(2);
+		expect(
+			ssmMock.commandCalls(GetParametersByPathCommand)[1].args[0].input
+				.NextToken,
+		).toBe('page-2');
 	});
 });
 

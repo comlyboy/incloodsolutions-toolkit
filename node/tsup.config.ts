@@ -43,6 +43,7 @@ export default defineConfig([
 			'aws-sdk/sns': 'src/aws/sdk/sns.ts',
 			'aws-sdk/dynamo-db': 'src/aws/sdk/dynamo-db.ts',
 			'aws-sdk/event-bridge': 'src/aws/sdk/event-bridge.ts',
+			'aws-sdk/parameter': 'src/aws/sdk/parameter.ts',
 		},
 	}
 ]);

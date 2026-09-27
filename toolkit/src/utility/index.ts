@@ -605,26 +605,36 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({
  * Output shape: `<UTC date> - LOG [context] message <data>`. Colours and the
  * leading date are opt-in.
  *
- * @param context - Short label shown in brackets, e.g. a module or function name.
- * @param message - The message text.
- * @param data - Optional payload appended to the line (object, array, etc.).
- * @param options - Formatting options.
- * @param options.prettify - Apply ANSI colours to the label, context, and message. Defaults to `false`.
- * @param options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
+ * @param params - Parameters.
+ * @param params.context - Short label shown in brackets, e.g. a module or function name.
+ * @param params.message - The message text.
+ * @param params.data - Optional payload appended to the line (object, array, etc.).
+ * @param params.options - Formatting options.
+ * @param params.options.prettify - Apply ANSI colours to the label, context, and message. Defaults to `false`.
+ * @param params.options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
  *
  * @example
- * printLog('Auth', 'user signed in', { id: 1 });
- * printLog('Auth', 'user signed in', undefined, { prettify: true, ignoreDate: true });
+ * consoleLog({ context: 'Auth', message: 'user signed in', data: { id: 1 } });
+ * consoleLog({
+ *   context: 'Auth',
+ *   message: 'user signed in',
+ *   options: { prettify: true, ignoreDate: true },
+ * });
  */
-export function printLog(
-	{ context, message, data, options }: {
-		context: string; message: string; data?: any;
-		options?: {
-			prettify?: boolean;
-			ignoreDate?: boolean;
-		};
-	},
-) {
+export function consoleLog({
+	context,
+	message,
+	data,
+	options,
+}: {
+	context: string;
+	message: string;
+	data?: any;
+	options?: {
+		prettify?: boolean;
+		ignoreDate?: boolean;
+	};
+}) {
 	const yellowColor = '\x1b[33m';
 	const resetColor = '\x1b[0m';
 	const greenColor = '\x1b[32m';

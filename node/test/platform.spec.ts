@@ -22,7 +22,6 @@ vi.mock('mongoose', async (importOriginal) => {
 import * as node from '../src/index';
 import {
 	initEnvironmentVariables,
-	initGcpFunctionHandler,
 	initMongooseConnection,
 	initMongooseSchema,
 } from '../src/index';

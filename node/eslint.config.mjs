@@ -16,7 +16,7 @@ export default tseslint.config(
 				// tsconfig's `include`) falls back to an untyped default program
 				// instead of erroring.
 				projectService: {
-					allowDefaultProject: ['test/**/*.ts'],
+					allowDefaultProject: ['test/*.ts'],
 				},
 				tsconfigRootDir: import.meta.dirname,
 			},

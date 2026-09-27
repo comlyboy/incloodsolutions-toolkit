@@ -55,6 +55,11 @@
 			"import": "./dist/aws-sdk/event-bridge.js",
 			"require": "./dist/aws-sdk/event-bridge.cjs"
 		},
+		"./aws-sdk/parameter": {
+			"types": "./dist/aws-sdk/parameter.d.ts",
+			"import": "./dist/aws-sdk/parameter.js",
+			"require": "./dist/aws-sdk/parameter.cjs"
+		},
 		"./gcp": {
 			"types": "./dist/gcp.d.ts",
 			"import": "./dist/gcp.js",
@@ -84,48 +89,21 @@
 	},
 	"typesVersions": {
 		"*": {
-			"aws": [
-				"./dist/aws.d.ts"
-			],
-			"aws-lambda": [
-				"./dist/aws-lambda.d.ts"
-			],
-			"aws-cli": [
-				"./dist/aws-cli.d.ts"
-			],
-			"aws-sdk": [
-				"./dist/aws-sdk.d.ts"
-			],
-			"aws-sdk/s3": [
-				"./dist/aws-sdk/s3.d.ts"
-			],
-			"aws-sdk/ses": [
-				"./dist/aws-sdk/ses.d.ts"
-			],
-			"aws-sdk/sns": [
-				"./dist/aws-sdk/sns.d.ts"
-			],
-			"aws-sdk/dynamo-db": [
-				"./dist/aws-sdk/dynamo-db.d.ts"
-			],
-			"aws-sdk/event-bridge": [
-				"./dist/aws-sdk/event-bridge.d.ts"
-			],
-			"gcp": [
-				"./dist/gcp.d.ts"
-			],
-			"mongo": [
-				"./dist/mongo.d.ts"
-			],
-			"utility": [
-				"./dist/utility.d.ts"
-			],
-			"config": [
-				"./dist/config.d.ts"
-			],
-			"interface": [
-				"./dist/interface.d.ts"
-			]
+			"aws": ["./dist/aws.d.ts"],
+			"aws-lambda": ["./dist/aws-lambda.d.ts"],
+			"aws-cli": ["./dist/aws-cli.d.ts"],
+			"aws-sdk": ["./dist/aws-sdk.d.ts"],
+			"aws-sdk/s3": ["./dist/aws-sdk/s3.d.ts"],
+			"aws-sdk/ses": ["./dist/aws-sdk/ses.d.ts"],
+			"aws-sdk/sns": ["./dist/aws-sdk/sns.d.ts"],
+			"aws-sdk/dynamo-db": ["./dist/aws-sdk/dynamo-db.d.ts"],
+			"aws-sdk/event-bridge": ["./dist/aws-sdk/event-bridge.d.ts"],
+			"aws-sdk/parameter": ["./dist/aws-sdk/parameter.d.ts"],
+			"gcp": ["./dist/gcp.d.ts"],
+			"mongo": ["./dist/mongo.d.ts"],
+			"utility": ["./dist/utility.d.ts"],
+			"config": ["./dist/config.d.ts"],
+			"interface": ["./dist/interface.d.ts"]
 		}
 	},
 	"engines": {
@@ -167,6 +145,7 @@
 		"@aws-sdk/client-s3": "^3.1132.0",
 		"@aws-sdk/client-ses": "^3.1132.0",
 		"@aws-sdk/client-sns": "^3.1132.0",
+		"@aws-sdk/client-ssm": "^3.1141.0",
 		"@aws-sdk/lib-dynamodb": "^3.1132.0",
 		"@aws-sdk/s3-request-presigner": "^3.1132.0",
 		"@codegenie/serverless-express": "^5.0.0",

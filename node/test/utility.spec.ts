@@ -45,7 +45,6 @@ import {
 	isValidUUID,
 	normalizeMongooseData,
 	normalizeMongooseData_v2,
-	printLog,
 	reqResLogger,
 	returnApiOverview,
 	returnApiResponse,
@@ -350,20 +349,6 @@ describe('initCustomLogger', () => {
 		try {
 			initCustomLogger('Payments').info('charge ok');
 			expect(spy.mock.calls[0][0]).toMatch(/- INFO \[Payments\] charge ok$/);
-		} finally {
-			spy.mockRestore();
-		}
-	});
-});
-
-describe('printLog', () => {
-	it('formats "<date> - LOG [ctx] message" and appends the payload', () => {
-		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-		try {
-			printLog('Db', 'connected', { host: 'x' });
-			const [line, payload] = spy.mock.calls[0];
-			expect(line).toContain('LOG [Db] connected');
-			expect(payload).toEqual({ host: 'x' });
 		} finally {
 			spy.mockRestore();
 		}

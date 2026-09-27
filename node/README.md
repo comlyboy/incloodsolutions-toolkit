@@ -59,10 +59,11 @@ import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
 | `.../aws` | everything AWS: Lambda adapter + all SDK wrappers |
 | `.../aws-lambda` | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation` |
 | `.../aws-cli` | `uploadToS3ViaCli` (placeholder) |
-| `.../aws-sdk` | all SDK wrappers (S3, SES, SNS, DynamoDB, EventBridge) + `validateSchema` |
+| `.../aws-sdk` | all SDK wrappers (S3, SES, SNS, SSM, DynamoDB, EventBridge) + `validateSchema` |
 | `.../aws-sdk/s3` | `initS3ClientWrapper` |
 | `.../aws-sdk/ses` | `initSesClientWrapper` |
 | `.../aws-sdk/sns` | `initSnsClientWrapper` |
+| `.../aws-sdk/parameter` | `initSsmParameterClientWrapper` |
 | `.../aws-sdk/dynamo-db` | `initDynamoDbClientWrapper`, `validateSchema` |
 | `.../aws-sdk/event-bridge` | `initEventBridgeClientWrapper` (placeholder) |
 | `.../gcp` | `initGcpFunctionHandler` |
@@ -78,14 +79,14 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | Area | Exports |
 | ---- | ------- |
 | Serverless adapters | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation`, `initGcpFunctionHandler` |
-| AWS SDK wrappers | `initS3ClientWrapper`, `initSesClientWrapper`, `initSnsClientWrapper`, `initDynamoDbClientWrapper`, `validateSchema` |
+| AWS SDK wrappers | `initS3ClientWrapper`, `initSesClientWrapper`, `initSnsClientWrapper`, `initSsmParameterClientWrapper`, `initDynamoDbClientWrapper`, `validateSchema` |
 | Config | `initEnvironmentVariables` |
 | MongoDB / Mongoose | `initMongooseConnection`, `initMongooseSchema` |
 | Crypto & hashing | `encryptData`, `decryptData`, `hashWithBcrypt`, `validateHashWithBcrypt` |
 | Lambda filesystem | `writeFileToLambda`, `readFileFromLambda`, `isLambdaEnvironment` |
 | IDs | `generateCustomUUID`, `isValidUUID`, `isValidMongoId` |
 | HTTP / API | `apiResult`, `returnApiResponse`, `returnApiOverview`, `getIpAddress`, `reqResLogger`, `encodeUrlComponent`, `decodeUrlComponent` |
-| Logging | `printLog`, `initCustomLogger` |
+| Logging | `initCustomLogger` |
 | Validation | `validateDataWithClassValidator`, `validateSchema` |
 | Mongo data shaping | `normalizeMongooseData`, `normalizeMongooseData_v2`, `sanitizeObject` |
 | Misc | `generateQrBarcode`, `isNestApplication` |
@@ -125,6 +126,25 @@ export const env = initEnvironmentVariables(
 ```
 
 A required variable with no value and no `defaultValue` throws a `CustomException`.
+
+### SSM Parameter Store
+
+```typescript
+import { initSsmParameterClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/parameter';
+
+const ssm = initSsmParameterClientWrapper();
+
+const dbPassword = await ssm.getParameter({ name: '/my-app/db-password' });
+
+const { values, invalidParameterNames } = await ssm.getParameters({
+  names: ['/my-app/db-password', '/my-app/api-key'],
+});
+
+// Every parameter under a path, with pagination handled for you.
+const config = await ssm.getParametersByPath({ path: '/my-app/' });
+```
+
+`SecureString` parameters are decrypted by default (`withDecryption: true`).
 
 ### DynamoDB document-client wrapper
 
@@ -207,7 +227,7 @@ const id = generateCustomUUID({ version: 7, asUpperCase: true });
 ```typescript
 import {
   returnApiResponse, apiResult, returnApiOverview,
-  reqResLogger, printLog, initCustomLogger,
+  reqResLogger, initCustomLogger,
 } from '@incloodsolutions/node-toolkit/utility';
 
 app.use(reqResLogger({ formats: ['user-agent'] }));

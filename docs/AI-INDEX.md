@@ -64,7 +64,7 @@ Framework-agnostic. Entry point: `src/index.ts` → `constant`, `error`, `utilit
 | `jsonToXml` | `<TData>(dataObject: TData, options: BuilderOptions) => Promise<string>` | Build XML from object (`xml2js`). |
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Throws `CustomException` if a dotted key path repeats. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compile + render a Handlebars template. |
-| `printLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional colour/timestamp. |
+| `consoleLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional colour/timestamp. |
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint (`sendHttpRequest<string>` under the hood — the `text/csv` response is never JSON-parsed). No authentication — the sheet must be shared as "Anyone with the link can view"; `gid` selects a specific tab, otherwise the default sheet is exported. A private sheet returns an HTML sign-in page with status `200` rather than failing. |
 
 ### Validation schemas (Zod) — `src/validator/index.ts`
@@ -160,11 +160,11 @@ resolve; import a subpath. Modules: `aws`, `config`, `gcp`, `interface`, `mongo`
 
 Published as tree-shakeable subpaths — one build per module and sub-module, each with its
 own ESM + CJS + `.d.ts` (AWS sub-modules are flattened to `aws-*`, everything else mirrors
-the source folder). Deliberately **no** bare `aws-sdk` barrel (it would bundle all five AWS
-SDK wrappers together) — only the per-service leaves:
-`@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk/s3, aws-sdk/ses,
-aws-sdk/sns, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, mongo, utility, config,
-interface}` (`aws` is the sole "everything" escape hatch). Configured in
+the source folder):
+`@incloodsolutions/node-toolkit/{aws, aws-lambda, aws-cli, aws-sdk, aws-sdk/s3, aws-sdk/ses,
+aws-sdk/sns, aws-sdk/parameter, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, mongo,
+utility, config, interface}`. `aws-sdk` (bare) bundles every SDK wrapper together — prefer
+a per-service leaf (`aws-sdk/s3`, …) unless you genuinely want all of them. Configured in
 `node/tsup.config.ts` (`entry` map) and `node/package.json` (`exports` + `typesVersions`,
 no `.` / `main` / `module` / `types`).
 
@@ -183,6 +183,7 @@ no `.` / `main` / `module` / `types`).
 | `initS3ClientWrapper` | `({ bucketName: string; config?: S3ClientConfig }) => { uploadFile, getFile, generateSignedUrl, deleteFile }` | S3 helper. `generateSignedUrl({ fileName, commandType: 'read' \| 'create' \| 'delete', expiresIn? })`. |
 | `initSesClientWrapper` | `({ sourceEmail: string; config?: SESClientConfig }) => { sendEmail }` | `sendEmail({ subject, message: { content, type?: 'html' \| 'text', charset? }, receivers: string[] })`. |
 | `initSnsClientWrapper` | `({ config: SNSClientConfig }) => { sendSnsMessage, sendSms, sendBatchMessage }` | SNS topic publish, SMS, and batch publish. |
+| `initSsmParameterClientWrapper` | `(params?: { config?: SSMClientConfig }) => { getParameter, getParameters, getParametersByPath }` | SSM Parameter Store reads (`src/aws/sdk/parameter.ts`, subpath `aws-sdk/parameter`). `getParameter({ name, withDecryption? })` → value or `undefined`; `getParameters({ names, withDecryption? })` → `{ values, invalidParameterNames }` (max 10 names, AWS limit); `getParametersByPath({ path, recursive?, withDecryption? })` → every value under the path, auto-paginated. `withDecryption` defaults to `true` on all three. |
 | `initDynamoDbClientWrapper` | `<TType, TIndex>(options) => { put, query, getOne, getMany, updateOne, delete }` | DynamoDB DocumentClient CRUD wrapper with auto primary-key generation (`uuid` / `timestampUuid` / `epochTimestamp`), reserved-word handling, projections, `contains` search, and full pagination in `query`/`getMany`. |
 | `validateSchema` | `<TData>({ schema: (new () => object) \| ZodObject; data; platform?: 'zod' \| 'class-validator'; enableDebug?; skipMissingProperties?; validationOptions? }) => Promise<TData>` | Validate + transform data with Zod or class-validator; throws `CustomException` with flattened messages. |
 | `initEventBridgeClientWrapper` | `() => {}` | **stub** — placeholder, returns `{}`. |
@@ -223,7 +224,6 @@ no `.` / `main` / `module` / `types`).
 | `encodeUrlComponent` / `decodeUrlComponent` | as core | URL component encode/decode. |
 | `isValidMongoId` | `(data: string \| object \| ObjectId) => boolean` | Strict Mongo ObjectId check. |
 | `initCustomLogger` | `(context?: string) => { log, info, debug, error }` | Timestamped console logger. |
-| `printLog` | as core | Formatted logging. |
 | `reqResLogger` | `({ formats?: string[]; options?: morgan.Options }) => RequestHandler` | `morgan` middleware with request-id and Lambda invocation-id tokens. |
 | `validateDataWithClassValidator` | `<TData, TSchema>(schema: ClassConstructor<TSchema>, data: TData, options: { validatorOptions; transformOptions }) => Promise<TSchema>` | class-transformer + class-validator; throws `CustomException`. |
 | `normalizeMongooseData` | `<TData>(data: TData) => TData` | Shallow: ObjectId → string, add `id` from `_id`. |

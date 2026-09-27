@@ -71,6 +71,7 @@ import {
 	UuidValidationSchema,
 	cloneDeep,
 	compileHtmlWithHandlebar,
+	consoleLog,
 	containsUUID,
 	decodeUrlComponent,
 	detectDuplicateProperties,
@@ -91,7 +92,6 @@ import {
 	jsonToXml,
 	normalizeEmail,
 	parsePhonenumber,
-	printLog,
 	removeDuplicates,
 	sanitizeObject,
 	sendHttpRequest,
@@ -626,11 +626,11 @@ describe('compileHtmlWithHandlebar', () => {
 	});
 });
 
-describe('printLog', () => {
+describe('consoleLog', () => {
 	it('writes "<date> - LOG [context] message" plus the payload', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
-			printLog('Auth', 'signed in', { id: 1 });
+			consoleLog('Auth', 'signed in', { id: 1 });
 			expect(spy).toHaveBeenCalledTimes(1);
 			const [line, payload] = spy.mock.calls[0];
 			expect(line).toContain('LOG [Auth] signed in');
@@ -644,7 +644,7 @@ describe('printLog', () => {
 	it('omits the date and adds ANSI colour codes with options', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
-			printLog('Ctx', 'msg', undefined, { prettify: true, ignoreDate: true });
+			consoleLog('Ctx', 'msg', undefined, { prettify: true, ignoreDate: true });
 			const [line] = spy.mock.calls[0];
 			expect(line).not.toMatch(/GMT/);
 			expect(line).toContain('\x1b['); // colour escape sequence
@@ -948,7 +948,7 @@ describe('public API surface', () => {
 			'jsonToXml',
 			'detectDuplicateProperties',
 			'compileHtmlWithHandlebar',
-			'printLog',
+			'consoleLog',
 			'fetchGoogleSheet',
 		] as const;
 		for (const name of expectedFunctions) {

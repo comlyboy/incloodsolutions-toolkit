@@ -174,7 +174,7 @@ Constructor: `new CustomException(error, statusCode?, options?)` where `error` i
 | `jsonToXml` | `<TData>(dataObject: TData, options: BuilderOptions) => Promise<string>` | Builds an XML string from an object with `xml2js`. |
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Walks an object and throws a `CustomException` if the same dotted key path appears twice. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compiles and renders a Handlebars template. |
-| `printLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional ANSI colour and timestamp. |
+| `consoleLog` | `(context: string, message: string, data?: any, options?: { prettify?: boolean; ignoreDate?: boolean }) => void` | Formatted `console.log` with optional ANSI colour and timestamp. |
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint. No auth — the sheet must be shared as "Anyone with the link can view". |
 
 ```typescript
