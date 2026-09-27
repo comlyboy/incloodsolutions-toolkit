@@ -28,10 +28,10 @@ import {
 } from 'class-transformer';
 
 import {
+	consoleLog,
 	CustomException,
 	IBaseEnableDebug,
 	ObjectType,
-	printLog,
 } from '@incloodsolutions/toolkit';
 
 import { getCurrentLambdaInvocation } from '../aws';
@@ -109,13 +109,21 @@ export function encryptData<TData>({
 		}
 
 		if (enableDebug) {
-			printLog(encryptData.name, 'Encrypting with type aes256', data);
+			consoleLog({
+				context: encryptData.name,
+				message: 'Encrypting with type aes256',
+				data,
+			});
 		}
 
 		const dataToString = JSON.stringify(data);
 
 		if (enableDebug) {
-			printLog(encryptData.name, 'Stringified encryption data', dataToString);
+			consoleLog({
+				context: encryptData.name,
+				message: 'Stringified encryption data',
+				data: dataToString,
+			});
 		}
 
 		if (type === 'hmacSha512') {
@@ -128,7 +136,7 @@ export function encryptData<TData>({
 	} catch (error) {
 		error['message'] = error?.message || 'Encryption errored out!';
 		if (enableDebug) {
-			printLog(encryptData.name, error.message);
+			consoleLog({ context: encryptData.name, message: error.message });
 		}
 		throw error;
 	}
@@ -170,21 +178,25 @@ export function decryptData<TResponse>({
 		}
 
 		if (enableDebug) {
-			printLog(
-				decryptData.name,
-				'Decryption WordArray to Utf8 string',
-				decryptedString,
-			);
+			consoleLog({
+				context: decryptData.name,
+				message: 'Decryption WordArray to Utf8 string',
+				data: decryptedString,
+			});
 		}
 		const result = JSON.parse(decryptedString);
 		if (enableDebug) {
-			printLog(decryptData.name, 'Decryption parsed data to JSON', result);
+			consoleLog({
+				context: decryptData.name,
+				message: 'Decryption parsed data to JSON',
+				data: result,
+			});
 		}
 		return result as TResponse;
 	} catch (error) {
 		error['message'] = error?.message || 'Decryption errored out!';
 		if (enableDebug) {
-			printLog(decryptData.name, error.message);
+			consoleLog({ context: decryptData.name, message: error.message });
 		}
 		throw error;
 	}

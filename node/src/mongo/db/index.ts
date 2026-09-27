@@ -1,9 +1,9 @@
 import { set, connect, disconnect, Connection, ConnectOptions } from 'mongoose';
 
 import {
+	consoleLog,
 	CustomException,
 	IBaseEnableDebug,
-	printLog,
 } from '@incloodsolutions/toolkit';
 
 let cachedConnection = (global as any).mongoose as {
@@ -67,7 +67,10 @@ export async function initMongooseConnection(params?: {
 			await cachedConnection.customConnection.db.admin().ping();
 			if (cachedConnection.customConnection.readyState === 1) {
 				if (enableDebug)
-					printLog('MongooseDbConnection', 'Reusing existing connection!');
+					consoleLog({
+						context: 'MongooseDbConnection',
+						message: 'Reusing existing connection!',
+					});
 				return {
 					connection: cachedConnection.customConnection,
 					closeConnection,
@@ -75,10 +78,10 @@ export async function initMongooseConnection(params?: {
 			}
 		} catch {
 			if (enableDebug)
-				printLog(
-					'MongooseDbConnection',
-					'Detected stale connection, reconnecting...',
-				);
+				consoleLog({
+					context: 'MongooseDbConnection',
+					message: 'Detected stale connection, reconnecting...',
+				});
 			await closeConnection();
 		}
 	}
@@ -88,10 +91,10 @@ export async function initMongooseConnection(params?: {
 	while (attempts < maxRetries) {
 		try {
 			if (enableDebug)
-				printLog(
-					'MongooseDbConnection',
-					`Connecting to database (Attempt ${attempts + 1})`,
-				);
+				consoleLog({
+					context: 'MongooseDbConnection',
+					message: `Connecting to database (Attempt ${attempts + 1})`,
+				});
 			if (enableDebug) set('debug', true);
 
 			cachedConnection.connectionPromise = connect(
@@ -112,7 +115,11 @@ export async function initMongooseConnection(params?: {
 			cachedConnection.customConnection =
 				await cachedConnection.connectionPromise;
 
-			if (enableDebug) printLog('MongooseDbConnection', '✅ MongoDB connected');
+			if (enableDebug)
+				consoleLog({
+					context: 'MongooseDbConnection',
+					message: '✅ MongoDB connected',
+				});
 			break;
 		} catch (error) {
 			attempts++;
@@ -122,10 +129,10 @@ export async function initMongooseConnection(params?: {
 				throw new CustomException(error);
 			}
 			if (enableDebug)
-				printLog(
-					'MongooseDbConnection',
-					`Retrying in ${retryDelay / 1000}s (${attempts}/${maxRetries})`,
-				);
+				consoleLog({
+					context: 'MongooseDbConnection',
+					message: `Retrying in ${retryDelay / 1000}s (${attempts}/${maxRetries})`,
+				});
 			await delay(retryDelay);
 		}
 	}

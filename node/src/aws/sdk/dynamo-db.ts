@@ -28,7 +28,7 @@ import {
 	CustomException,
 	generateISODate,
 	generateDateInNumber,
-	printLog,
+	consoleLog,
 } from '@incloodsolutions/toolkit';
 
 import { generateCustomUUID } from '../../utility';
@@ -262,8 +262,10 @@ export function initDynamoDbClientWrapper<
 			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} PutCommand`, 'successful', {
-					consumedCapacity: ConsumedCapacity?.CapacityUnits,
+				consoleLog({
+					context: `${debugContext} PutCommand`,
+					message: 'successful',
+					data: { consumedCapacity: ConsumedCapacity?.CapacityUnits },
 				});
 			}
 
@@ -337,11 +339,11 @@ export function initDynamoDbClientWrapper<
 					};
 				});
 				if (options?.options?.enableDebug) {
-					printLog(
-						`${debugContext} QueryCommand`,
-						'KeyConditions applied',
-						queryParam,
-					);
+					consoleLog({
+						context: `${debugContext} QueryCommand`,
+						message: 'KeyConditions applied',
+						data: queryParam,
+					});
 				}
 			}
 
@@ -393,11 +395,11 @@ export function initDynamoDbClientWrapper<
 					};
 				});
 				if (options?.options?.enableDebug) {
-					printLog(
-						`${debugContext} QueryCommand`,
-						'Applied search/filter',
-						queryParam,
-					);
+					consoleLog({
+						context: `${debugContext} QueryCommand`,
+						message: 'Applied search/filter',
+						data: queryParam,
+					});
 				}
 			}
 
@@ -428,16 +430,20 @@ export function initDynamoDbClientWrapper<
 				});
 
 				if (options?.options?.enableDebug) {
-					printLog(
-						`${debugContext} QueryCommand`,
-						'Applied FilterExpression',
-						queryParam,
-					);
+					consoleLog({
+						context: `${debugContext} QueryCommand`,
+						message: 'Applied FilterExpression',
+						data: queryParam,
+					});
 				}
 			}
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} QueryCommand`, 'Calling with', queryParam);
+				consoleLog({
+					context: `${debugContext} QueryCommand`,
+					message: 'Calling with',
+					data: queryParam,
+				});
 			}
 
 			do {
@@ -456,8 +462,10 @@ export function initDynamoDbClientWrapper<
 			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} QueryCommand`, 'successful', {
-					consumedCapacity,
+				consoleLog({
+					context: `${debugContext} QueryCommand`,
+					message: 'successful',
+					data: { consumedCapacity },
 				});
 			}
 
@@ -482,7 +490,11 @@ export function initDynamoDbClientWrapper<
 			select?: (keyof TType)[];
 		}) => {
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} GetCommand`, 'Calling with', key);
+				consoleLog({
+					context: `${debugContext} GetCommand`,
+					message: 'Calling with',
+					data: key,
+				});
 			}
 
 			const response = await dynamoDbClientInstance.send(
@@ -496,8 +508,10 @@ export function initDynamoDbClientWrapper<
 				}),
 			);
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} GetCommand`, 'successful', {
-					consumedCapacity: response.ConsumedCapacity?.CapacityUnits,
+				consoleLog({
+					context: `${debugContext} GetCommand`,
+					message: 'successful',
+					data: { consumedCapacity: response.ConsumedCapacity?.CapacityUnits },
 				});
 			}
 			return response.Item as TType;
@@ -545,11 +559,11 @@ export function initDynamoDbClientWrapper<
 			};
 
 			if (options?.options?.enableDebug) {
-				printLog(
-					`${debugContext} BatchGetCommand`,
-					'Calling with',
-					batchGetInput,
-				);
+				consoleLog({
+					context: `${debugContext} BatchGetCommand`,
+					message: 'Calling with',
+					data: batchGetInput,
+				});
 			}
 
 			do {
@@ -571,8 +585,10 @@ export function initDynamoDbClientWrapper<
 			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} BatchGetCommand`, 'successful', {
-					consumedCapacity,
+				consoleLog({
+					context: `${debugContext} BatchGetCommand`,
+					message: 'successful',
+					data: { consumedCapacity },
 				});
 			}
 
@@ -597,7 +613,11 @@ export function initDynamoDbClientWrapper<
 			data: Partial<TType>;
 		}) => {
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} UpdateCommand`, 'Validating data:', data);
+				consoleLog({
+					context: `${debugContext} UpdateCommand`,
+					message: 'Validating data:',
+					data,
+				});
 			}
 
 			await validateSchema({
@@ -635,7 +655,11 @@ export function initDynamoDbClientWrapper<
 			});
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} UpdateCommand`, 'Calling with', updateParam);
+				consoleLog({
+					context: `${debugContext} UpdateCommand`,
+					message: 'Calling with',
+					data: updateParam,
+				});
 			}
 
 			const response = await dynamoDbClientInstance.send(
@@ -643,8 +667,10 @@ export function initDynamoDbClientWrapper<
 			);
 
 			if (options?.options?.enableDebug) {
-				printLog(`${debugContext} UpdateCommand`, 'successful', {
-					consumedCapacity: response.ConsumedCapacity?.CapacityUnits,
+				consoleLog({
+					context: `${debugContext} UpdateCommand`,
+					message: 'successful',
+					data: { consumedCapacity: response.ConsumedCapacity?.CapacityUnits },
 				});
 			}
 
