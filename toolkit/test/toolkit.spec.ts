@@ -630,7 +630,7 @@ describe('consoleLog', () => {
 	it('writes "<date> - LOG [context] message" plus the payload', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
-			consoleLog('Auth', 'signed in', { id: 1 });
+			consoleLog({ context: 'Auth', message: 'signed in', data: { id: 1 } });
 			expect(spy).toHaveBeenCalledTimes(1);
 			const [line, payload] = spy.mock.calls[0];
 			expect(line).toContain('LOG [Auth] signed in');
