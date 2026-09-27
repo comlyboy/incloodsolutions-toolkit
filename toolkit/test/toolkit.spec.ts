@@ -644,7 +644,11 @@ describe('consoleLog', () => {
 	it('omits the date and adds ANSI colour codes with options', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
-			consoleLog('Ctx', 'msg', undefined, { prettify: true, ignoreDate: true });
+			consoleLog({
+				context: 'Ctx',
+				message: 'msg',
+				options: { prettify: true, ignoreDate: true },
+			});
 			const [line] = spy.mock.calls[0];
 			expect(line).not.toMatch(/GMT/);
 			expect(line).toContain('\x1b['); // colour escape sequence
