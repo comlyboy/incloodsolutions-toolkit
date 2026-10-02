@@ -142,12 +142,12 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.1141.0",
-		"@aws-sdk/client-ses": "^3.1141.0",
-		"@aws-sdk/client-sns": "^3.1141.0",
-		"@aws-sdk/client-ssm": "^3.1141.0",
-		"@aws-sdk/lib-dynamodb": "^3.1141.0",
-		"@aws-sdk/s3-request-presigner": "^3.1141.0",
+		"@aws-sdk/client-s3": "^3.1146.0",
+		"@aws-sdk/client-ses": "^3.1146.0",
+		"@aws-sdk/client-sns": "^3.1146.0",
+		"@aws-sdk/client-ssm": "^3.1146.0",
+		"@aws-sdk/lib-dynamodb": "^3.1146.0",
+		"@aws-sdk/s3-request-presigner": "^3.1146.0",
 		"@codegenie/serverless-express": "^5.0.0",
 		"@incloodsolutions/toolkit": "^0.1.12",
 		"bcryptjs": "^3.0.3",
@@ -156,7 +156,7 @@
 		"class-validator": "^0.15.1",
 		"crypto-js": "^4.2.0",
 		"handlebars": "^4.7.9",
-		"mongoose": "^9.10.2",
+		"mongoose": "^9.10.3",
 		"morgan": "^1.12.1",
 		"tslib": "^2.8.1",
 		"uuid": "^14.0.2",
@@ -164,15 +164,15 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@swc/core": "^1.16.2",
-		"@types/aws-lambda": "^8.10.163",
+		"@swc/core": "^1.16.13",
+		"@types/aws-lambda": "^8.10.164",
 		"@types/bcryptjs": "^3.0.0",
 		"@types/crypto-js": "^4.2.2",
 		"@types/express": "^5.0.6",
 		"@types/morgan": "^1.9.10",
-		"@types/node": "^26.6.3",
+		"@types/node": "^26.6.4",
 		"aws-sdk-client-mock": "^4.1.0",
-		"eslint": "^10.11.0",
+		"eslint": "^10.12.0",
 		"eslint-config-prettier": "^10.1.8",
 		"jest": "^30.5.2",
 		"prettier": "^3.9.9",
@@ -182,8 +182,8 @@
 		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.5.1",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.70.1",
+		"typescript-eslint": "^8.71.0",
 		"unplugin-swc": "^2.0.0",
-		"vitest": "^5.0.2"
+		"vitest": "^5.0.3"
 	}
 }
