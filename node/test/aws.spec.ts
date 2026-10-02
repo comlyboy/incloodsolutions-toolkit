@@ -237,10 +237,7 @@ describe('initEventBridgeClientWrapper / uploadToS3ViaCli (placeholders)', () =>
 });
 
 describe('initDynamoDbClientWrapper', () => {
-	class ItemDto {
-		@IsString()
-		name!: string;
-	}
+	const itemSchema = object({ name: string() }) as never;
 
 	const table = () =>
 		initDynamoDbClientWrapper<{
@@ -249,7 +246,7 @@ describe('initDynamoDbClientWrapper', () => {
 			createdAtDate: string;
 		}>({
 			tableName: 'items',
-			schema: ItemDto,
+			schema: itemSchema,
 			compositePrimaryKeyOptions: {
 				primaryKeyName: 'id',
 				primaryKeyIdType: 'uuid',
@@ -276,6 +273,14 @@ describe('initDynamoDbClientWrapper', () => {
 		expect(ddbMock.commandCalls(PutCommand)[0].args[0].input.TableName).toBe(
 			'items',
 		);
+	});
+
+	it('put validates against the Zod schema and never calls PutCommand on failure', async () => {
+		ddbMock.on(PutCommand).resolves({});
+		await expect(
+			table().put({ data: { name: 1 as never } }),
+		).rejects.toBeInstanceOf(CustomException);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
 	});
 
 	it('getOne issues a GetCommand and returns the Item', async () => {
