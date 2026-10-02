@@ -42,7 +42,7 @@ does not resolve — you must import a specific subpath, so nothing can pull the
 package (the AWS SDK, Mongoose, `bwip-js`, …) by accident. Each area is published as its
 own subpath, down to the individual AWS service:
 `@incloodsolutions/node-toolkit/aws-sdk/s3` pulls only `@aws-sdk/client-s3`, not the
-DynamoDB client or its Zod / class-validator chain.
+DynamoDB client or its Zod validation chain.
 
 ```typescript
 import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit/aws-lambda';
@@ -153,9 +153,8 @@ import { initDynamoDbClientWrapper } from '@incloodsolutions/node-toolkit/aws-sd
 
 const users = initDynamoDbClientWrapper<UserRecord, 'emailIndex'>({
   tableName: 'users',
-  schema: UserDto, // class-validator DTO or a ZodObject
+  schema: UserSchema, // a Zod object schema
   compositePrimaryKeyOptions: { primaryKeyName: 'id', primaryKeyIdType: 'uuid' },
-  validationOptions: { platform: 'zod' },
   options: { timestamp: true, enableDebug: false },
 });
 

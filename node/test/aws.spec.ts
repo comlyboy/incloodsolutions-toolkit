@@ -310,7 +310,11 @@ describe('validateSchema', () => {
 	it('skipMissingProperties validates against schema.partial() instead', async () => {
 		const schema = object({ name: string(), age: string() }) as never;
 		await expect(
-			validateSchema({ schema, data: { name: 'ok' }, skipMissingProperties: true }),
+			validateSchema({
+				schema,
+				data: { name: 'ok' },
+				skipMissingProperties: true,
+			}),
 		).resolves.toEqual({ name: 'ok' });
 		await expect(
 			validateSchema({ schema, data: { name: 'ok' } }),
