@@ -143,10 +143,10 @@ export function initDynamoDbClientWrapper<
 	 * @param data The data object to modify
 	 * @returns The modified data object with modifiedAtDate
 	 */
-	function mapSchemaModifiedDate(data: Partial<TType>) {
-		(data as any)['modifiedAtDate'] = data?.modifiedAtDate || generateISODate();
-		return data;
-	}
+	// function mapSchemaModifiedDate(data: Partial<TType>) {
+	// 	(data as any)['modifiedAtDate'] = data?.modifiedAtDate || generateISODate();
+	// 	return data;
+	// }
 
 	/**
 	 * Generates and sets the primary key for the data object based on configuration
@@ -545,6 +545,8 @@ export function initDynamoDbClientWrapper<
 			key: Partial<TType>;
 			data: Partial<TType>;
 		}) => {
+			// mapSchemaModifiedDate(data);
+
 			if (options?.options?.enableDebug) {
 				consoleLog({
 					context: `${debugContext} UpdateCommand`,

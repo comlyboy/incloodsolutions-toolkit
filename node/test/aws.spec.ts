@@ -30,6 +30,7 @@ import {
 	DynamoDBDocumentClient,
 	GetCommand,
 	PutCommand,
+	UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 
 vi.mock('@aws-sdk/s3-request-presigner', () => ({
@@ -293,6 +294,16 @@ describe('initDynamoDbClientWrapper', () => {
 	it('delete issues a DeleteCommand and resolves true', async () => {
 		ddbMock.on(DeleteCommand).resolves({});
 		await expect(table().delete({ key: { id: '1' } })).resolves.toBe(true);
+	});
+
+	it('updateOne stamps modifiedAtDate and includes it in the UpdateExpression', async () => {
+		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
+		await table().updateOne({ key: { id: '1' }, data: { name: 'Widget 2' } });
+		const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+		expect(input.UpdateExpression).toContain('modifiedAtDate');
+		expect(input.ExpressionAttributeValues[':modifiedAtDate']).toMatch(
+			/^\d{4}-\d{2}-\d{2}T/,
+		);
 	});
 });
 
