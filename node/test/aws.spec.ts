@@ -9,7 +9,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
 import { CustomException } from '@incloodsolutions/toolkit';
-import { IsEmail, IsString } from 'class-validator';
 import { object, string } from 'zod';
 
 import {
@@ -298,26 +297,23 @@ describe('initDynamoDbClientWrapper', () => {
 });
 
 describe('validateSchema', () => {
-	it('zod: returns the parsed data / throws CustomException on failure', async () => {
+	it('returns the parsed data / throws CustomException on failure', async () => {
 		const schema = object({ name: string() }) as never;
 		await expect(
-			validateSchema({ platform: 'zod', schema, data: { name: 'ok' } }),
+			validateSchema({ schema, data: { name: 'ok' } }),
 		).resolves.toEqual({ name: 'ok' });
 		await expect(
-			validateSchema({ platform: 'zod', schema, data: { name: 1 } }),
+			validateSchema({ schema, data: { name: 1 } }),
 		).rejects.toBeInstanceOf(CustomException);
 	});
 
-	it('class-validator: returns the instance / throws on failure', async () => {
-		class LoginDto {
-			@IsEmail()
-			email!: string;
-		}
+	it('skipMissingProperties validates against schema.partial() instead', async () => {
+		const schema = object({ name: string(), age: string() }) as never;
 		await expect(
-			validateSchema({ schema: LoginDto, data: { email: 'a@b.com' } }),
-		).resolves.toBeInstanceOf(LoginDto);
+			validateSchema({ schema, data: { name: 'ok' }, skipMissingProperties: true }),
+		).resolves.toEqual({ name: 'ok' });
 		await expect(
-			validateSchema({ schema: LoginDto, data: { email: 'nope' } }),
+			validateSchema({ schema, data: { name: 'ok' } }),
 		).rejects.toBeInstanceOf(CustomException);
 	});
 });
