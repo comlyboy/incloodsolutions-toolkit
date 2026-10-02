@@ -18,9 +18,7 @@ import {
 	UpdateCommand,
 	UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
-import { plainToInstance } from 'class-transformer';
 import { ZodObject } from 'zod';
-import { validate, ValidationError, ValidatorOptions } from 'class-validator';
 
 import {
 	ObjectType,
@@ -34,107 +32,49 @@ import {
 import { generateCustomUUID } from '../../utility';
 
 /**
- * Validates data using either Zod or class-validator.
+ * Validates data against a Zod schema.
  *
  * @template TData
  * @param options Validation options.
  * @param options.data Data to validate.
- * @param options.schema Validation schema or DTO class.
- * @param options.platform Validation platform to use.
- * @param options.enableDebug Enables validation debug logs.
- * @param options.skipMissingProperties Skips validation for missing properties.
- * @param options.validationOptions Additional validator options.
+ * @param options.schema The Zod object schema to validate against.
+ * @param options.skipMissingProperties Validates against `schema.partial()` instead
+ *   (every field optional) — use for partial updates where `data` is not expected
+ *   to carry every field.
  *
  * @throws {CustomException}
- * Thrown when validation fails.
+ * Thrown with the flattened issue messages when validation fails.
  *
- * @returns Validated and transformed data.
+ * @returns The parsed, validated data.
  */
 export async function validateSchema<TData>({
 	schema,
 	data,
-	enableDebug = false,
-	platform,
 	skipMissingProperties = false,
-	validationOptions,
 }: {
 	data: TData;
-	enableDebug?: boolean;
-	// options?: {
-	// 	debugContext?: string;
-	// }
 	skipMissingProperties?: boolean;
-	platform?: 'zod' | 'class-validator';
-	validationOptions?: ValidatorOptions & ObjectType;
-	schema: new () => ObjectType | ZodObject;
-}) {
-	if (platform === 'zod') {
-		const schemaa: ZodObject = skipMissingProperties
-			? (schema as any).partial()
-			: schema;
+	schema: ZodObject;
+}): Promise<TData> {
+	const resolvedSchema: ZodObject = skipMissingProperties
+		? schema.partial()
+		: schema;
 
-		const {
-			data: parsedData,
-			success,
-			error,
-		} = await schemaa.safeParseAsync(data);
+	const {
+		data: parsedData,
+		success,
+		error,
+	} = await resolvedSchema.safeParseAsync(data,);
 
-		if (!success) {
-			const errorMessages = error.issues.map((issue) => {
-				const path = issue.path.join('.');
-				return `${path ? `${path}: ` : ''}${issue.message}`;
-			});
-			throw new CustomException(errorMessages);
-		}
-
-		return parsedData;
-	} else {
-		/**
-		 * Flattens validation errors into an array of error messages
-		 * @param errors The validation errors to flatten
-		 * @returns Array of error messages
-		 */
-		function flattenValidationErrors(errors: ValidationError[]): string[] {
-			return errors.flatMap((error) => {
-				const currentConstraints = error.constraints
-					? Object.values(error.constraints).map((constraint) => {
-							const [first, ...rest] = constraint.split(' ');
-							return `'${first}': ${rest.join(' ')}`;
-						})
-					: [];
-				const childConstraints = error.children?.length
-					? flattenValidationErrors(error.children)
-					: [];
-				return [...currentConstraints, ...childConstraints];
-			});
-		}
-
-		const instance = plainToInstance(schema, data);
-		if (enableDebug) {
-			// printLog(`${} Validation`, 'Validating entity instance:', instance);
-		}
-		const errors = await validate(instance, {
-			...validationOptions,
-			enableDebugMessages:
-				validationOptions?.enableDebugMessages ||
-				validationOptions?.options?.enableDebug,
-			whitelist:
-				validationOptions?.whitelist === false
-					? validationOptions.validationOptions?.whitelist
-					: true,
-			// forbidNonWhitelisted: validationOptions?.forbidNonWhitelisted === false ? validationOptions.forbidNonWhitelisted : true,
-			forbidNonWhitelisted: true,
-			forbidUnknownValues:
-				validationOptions?.forbidUnknownValues === false
-					? validationOptions?.forbidUnknownValues
-					: true,
-			skipMissingProperties,
+	if (!success) {
+		const errorMessages = error.issues.map((issue) => {
+			const path = issue.path.join('.');
+			return `${path ? `${path}: ` : ''}${issue.message}`;
 		});
-		if (errors.length > 0) {
-			throw new CustomException(flattenValidationErrors(errors));
-		}
-		return instance;
+		throw new CustomException(errorMessages);
 	}
+
+	return parsedData as TData;
 }
 
 export function initDynamoDbClientWrapper<
@@ -143,8 +83,8 @@ export function initDynamoDbClientWrapper<
 >(options: {
 	/** Dynamo-db table name */
 	readonly tableName: string;
-	/** Class with class-validator and class-transformer decorators @ */
-	readonly schema: new () => ObjectType | ZodObject;
+	/** Zod object schema describing the item shape. */
+	readonly schema: ZodObject;
 	/** Options for primary and sort keys */
 	readonly compositePrimaryKeyOptions?: {
 		/** Dynamo-db primary key name @default 'id' */
@@ -163,11 +103,12 @@ export function initDynamoDbClientWrapper<
 	readonly config?: DynamoDBClientConfig;
 	/** Validation options. */
 	readonly validationOptions?: {
-		readonly platform?: 'zod' | 'class-validator';
-		/** Class validator options */
-		readonly classValidator?: ValidatorOptions;
-		/** Zod validator options */
-		readonly zod?: ObjectType;
+		/**
+		 * Validate `updateOne`'s `data` against `schema.partial()` instead of
+		 * `schema`, since an update payload is not expected to carry every field.
+		 * @default true
+		 */
+		readonly skipMissingPropertiesOnUpdate?: boolean;
 	};
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
@@ -193,18 +134,6 @@ export function initDynamoDbClientWrapper<
 	);
 
 	/**
-	 * Validates the data against the provided schema using class-validator
-	 * @param data The data to validate
-	 * @param skipMissingProperties Whether to skip validation for missing properties
-	 * @throws {CustomException} If validation fails
-	 * @returns The validated and transformed instance
-	 */
-	async function validateSchemaWithClassValidator<TData>(
-		data: TData,
-		_skipMissingProperties = false,
-	) {}
-
-	/**
 	 * Adds or updates the createdAtDate field in the data object
 	 * @param data The data object to modify
 	 * @returns The modified data object with createdAtDate
@@ -220,19 +149,17 @@ export function initDynamoDbClientWrapper<
 	 * @returns The modified data object with primary key
 	 */
 	function mapSchemaPrimaryKey(data: Partial<TType>) {
+		const primaryKeyIdType =
+			options.compositePrimaryKeyOptions?.primaryKeyIdType;
 		if (
 			options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId ===
 			true
 		)
 			return data;
-		if (
-			options.compositePrimaryKeyOptions?.primaryKeyIdType === 'timestampUuid'
-		) {
+		if (primaryKeyIdType === 'timestampUuid') {
 			(data as any)[primaryKeyName] =
 				`${generateDateInNumber()}-${generateCustomUUID()}`;
-		} else if (
-			options.compositePrimaryKeyOptions?.primaryKeyIdType === 'epochTimestamp'
-		) {
+		} else if (primaryKeyIdType === 'epochTimestamp') {
 			(data as any)[primaryKeyName] = `${Date.now()}`;
 		} else {
 			(data as any)[primaryKeyName] = generateCustomUUID();
@@ -251,7 +178,7 @@ export function initDynamoDbClientWrapper<
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
-			await validateSchemaWithClassValidator(data);
+			await validateSchema({ schema: options.schema, data });
 
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
 				new PutCommand({
@@ -481,10 +408,7 @@ export function initDynamoDbClientWrapper<
 		 * @param select Properties to include in the result
 		 * @returns The retrieved item or undefined if not found
 		 */
-		getOne: async ({
-			key,
-			select = [],
-		}: {
+		getOne: async ({ key, select = [] }: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
 			select?: (keyof TType)[];
@@ -623,7 +547,8 @@ export function initDynamoDbClientWrapper<
 			await validateSchema({
 				schema: options.schema,
 				data,
-				platform: options.validationOptions?.platform,
+				skipMissingProperties:
+					options.validationOptions?.skipMissingPropertiesOnUpdate !== false,
 			});
 
 			const updateParam: UpdateCommandInput = {
