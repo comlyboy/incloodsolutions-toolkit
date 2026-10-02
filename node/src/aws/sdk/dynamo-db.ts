@@ -18,7 +18,7 @@ import {
 	UpdateCommand,
 	UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
-import { ZodObject } from 'zod';
+// import { ZodObject,Zod } from 'zod';
 
 import {
 	ObjectType,
@@ -30,6 +30,8 @@ import {
 } from '@incloodsolutions/toolkit';
 
 import { generateCustomUUID } from '../../utility';
+import { ZodObject } from 'zod/v4';
+import { $ZodIssue, ParseContext } from 'zod/v4/core';
 
 /**
  * Validates data against a Zod schema.
@@ -64,7 +66,7 @@ export async function validateSchema<TData>({
 		data: parsedData,
 		success,
 		error,
-	} = await resolvedSchema.safeParseAsync(data,);
+	} = await resolvedSchema.safeParseAsync(data);
 
 	if (!success) {
 		const errorMessages = error.issues.map((issue) => {
@@ -102,14 +104,7 @@ export function initDynamoDbClientWrapper<
 	/** Dynamo-db client configuration */
 	readonly config?: DynamoDBClientConfig;
 	/** Validation options. */
-	readonly validationOptions?: {
-		/**
-		 * Validate `updateOne`'s `data` against `schema.partial()` instead of
-		 * `schema`, since an update payload is not expected to carry every field.
-		 * @default true
-		 */
-		readonly skipMissingPropertiesOnUpdate?: boolean;
-	};
+	readonly validationOptions?: ParseContext<$ZodIssue>;
 	/** Dynamo-db object translation options */
 	readonly translationConfig?: TranslateConfig;
 	readonly options?: {
@@ -144,6 +139,16 @@ export function initDynamoDbClientWrapper<
 	}
 
 	/**
+	 * Adds or updates the modifiedAtDate field in the data object
+	 * @param data The data object to modify
+	 * @returns The modified data object with modifiedAtDate
+	 */
+	function mapSchemaModifiedDate(data: Partial<TType>) {
+		(data as any)['modifiedAtDate'] = data?.modifiedAtDate || generateISODate();
+		return data;
+	}
+
+	/**
 	 * Generates and sets the primary key for the data object based on configuration
 	 * @param data The data object to modify
 	 * @returns The modified data object with primary key
@@ -154,8 +159,9 @@ export function initDynamoDbClientWrapper<
 		if (
 			options?.compositePrimaryKeyOptions?.ignoreAutoGeneratingPrimaryKeyId ===
 			true
-		)
+		) {
 			return data;
+		}
 		if (primaryKeyIdType === 'timestampUuid') {
 			(data as any)[primaryKeyName] =
 				`${generateDateInNumber()}-${generateCustomUUID()}`;
@@ -408,7 +414,10 @@ export function initDynamoDbClientWrapper<
 		 * @param select Properties to include in the result
 		 * @returns The retrieved item or undefined if not found
 		 */
-		getOne: async ({ key, select = [] }: {
+		getOne: async ({
+			key,
+			select = [],
+		}: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
 			select?: (keyof TType)[];
@@ -547,8 +556,7 @@ export function initDynamoDbClientWrapper<
 			await validateSchema({
 				schema: options.schema,
 				data,
-				skipMissingProperties:
-					options.validationOptions?.skipMissingPropertiesOnUpdate !== false,
+				skipMissingProperties: true,
 			});
 
 			const updateParam: UpdateCommandInput = {
