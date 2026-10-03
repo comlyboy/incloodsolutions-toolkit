@@ -10,7 +10,7 @@ import {
 	IBaseCreator,
 	IBaseDelete,
 	IBaseEditor,
-} from '@incloodsolutions/toolkit';
+} from '@incloodsolutions/toolkit/interface';
 export class BaseSchemaEntity
 	implements IBaseCreator, IBaseDelete, IBaseEditor
 {

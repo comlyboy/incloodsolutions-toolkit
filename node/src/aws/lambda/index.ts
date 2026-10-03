@@ -13,8 +13,8 @@ import {
 // type-only: importing this as a value pulls the framework adapters (express,
 // fastify, koa, hapi) — and their `require('fs')` calls — into the ESM bundle.
 import type Framework from '@codegenie/serverless-express/src/frameworks';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
-import { ObjectType } from '@incloodsolutions/toolkit';
 
 let lambdaInstance: APIGatewayProxyHandlerV2;
 

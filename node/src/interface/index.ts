@@ -4,7 +4,7 @@ import {
 	AppEnvironmentType,
 	IBaseErrorResponse,
 	ObjectType,
-} from '@incloodsolutions/toolkit';
+} from '@incloodsolutions/toolkit/interface';
 
 /**
  * Interface representing the environment variables required by the application.

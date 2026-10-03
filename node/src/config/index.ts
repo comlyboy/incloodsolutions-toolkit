@@ -1,8 +1,6 @@
-import {
-	ObjectType,
-	IBaseEnableDebug,
-	CustomException,
-} from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
+import { ObjectType, IBaseEnableDebug } from '@incloodsolutions/toolkit/interface';
+
 import { IBaseEnvironmentVariable } from '../interface';
 
 /**

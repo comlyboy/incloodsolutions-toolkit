@@ -1,6 +1,6 @@
 import { Schema, SchemaDefinition, SchemaOptions } from 'mongoose';
 
-import { ObjectType } from '@incloodsolutions/toolkit';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Creates a Mongoose {@link Schema} with project-wide defaults applied.

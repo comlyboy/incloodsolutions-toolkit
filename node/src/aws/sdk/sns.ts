@@ -7,7 +7,7 @@ import {
 	SNSClientConfig,
 } from '@aws-sdk/client-sns';
 
-import { ObjectType } from '@incloodsolutions/toolkit';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Initialize an Amazon SNS (Simple Notification Service) client wrapper

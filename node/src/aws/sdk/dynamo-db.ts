@@ -18,20 +18,15 @@ import {
 	UpdateCommand,
 	UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
-// import { ZodObject,Zod } from 'zod';
 
-import {
-	ObjectType,
-	IBaseEnableDebug,
-	CustomException,
-	generateISODate,
-	generateDateInNumber,
-	consoleLog,
-} from '@incloodsolutions/toolkit';
-
-import { generateCustomUUID } from '../../utility';
 import { ZodObject } from 'zod/v4';
 import { $ZodIssue, ParseContext } from 'zod/v4/core';
+
+import { CustomException } from '@incloodsolutions/toolkit/error';
+import { ObjectType, IBaseEnableDebug } from '@incloodsolutions/toolkit/interface';
+import { consoleLog, generateISODate, generateDateInNumber } from '@incloodsolutions/toolkit/utility';
+
+import { generateCustomUUID } from '../../utility';
 
 /**
  * Validates data against a Zod schema.
@@ -177,7 +172,7 @@ export function initDynamoDbClientWrapper<
 		 * @default timestampUuid
 		 */
 		readonly primaryKeyIdType?:
-			'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
+		'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
 	};
 	/** Dynamo-db client configuration, forwarded to `new DynamoDBClient(...)`. */
 	readonly config?: DynamoDBClientConfig;
