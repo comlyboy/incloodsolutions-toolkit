@@ -331,4 +331,31 @@ describe('validateSchema', () => {
 			validateSchema({ schema, data: { name: 'ok' } }),
 		).rejects.toBeInstanceOf(CustomException);
 	});
+
+	it('enableDebug logs the attempt and the result via console.log, and stays silent by default', async () => {
+		const schema = object({ name: string() }) as never;
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		try {
+			await validateSchema({ schema, data: { name: 'ok' } });
+			expect(spy).not.toHaveBeenCalled();
+
+			await validateSchema({
+				schema,
+				data: { name: 'ok' },
+				enableDebug: true,
+			});
+			expect(spy).toHaveBeenCalledTimes(2);
+			expect(spy.mock.calls[0][0]).toContain('Validating against schema');
+			expect(spy.mock.calls[1][0]).toContain('Validation succeeded');
+
+			spy.mockClear();
+			await expect(
+				validateSchema({ schema, data: { name: 1 }, enableDebug: true }),
+			).rejects.toBeInstanceOf(CustomException);
+			expect(spy).toHaveBeenCalledTimes(2);
+			expect(spy.mock.calls[1][0]).toContain('Validation failed');
+		} finally {
+			spy.mockRestore();
+		}
+	});
 });

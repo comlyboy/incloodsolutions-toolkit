@@ -43,6 +43,10 @@ import { $ZodIssue, ParseContext } from 'zod/v4/core';
  * @param options.skipMissingProperties Validates against `schema.partial()` instead
  *   (every field optional) — use for partial updates where `data` is not expected
  *   to carry every field.
+ * @param options.enableDebug Logs, via `consoleLog`: the data being validated
+ *   (and whether it's against the full or `.partial()` schema) before
+ *   validating, then either the flattened issue messages on failure or the
+ *   parsed data on success. Defaults to `false`.
  *
  * @throws {CustomException}
  * Thrown with the flattened issue messages when validation fails.
@@ -53,30 +57,53 @@ export async function validateSchema<TData>({
 	schema,
 	data,
 	skipMissingProperties = false,
+	enableDebug = false,
 }: {
 	data: TData;
 	skipMissingProperties?: boolean;
 	schema: ZodObject;
+	enableDebug?: boolean;
 }): Promise<TData> {
 	const resolvedSchema: ZodObject = skipMissingProperties
 		? schema.partial()
 		: schema;
 
-	const {
-		data: parsedData,
-		success,
-		error,
-	} = await resolvedSchema.safeParseAsync(data);
+	if (enableDebug) {
+		consoleLog({
+			context: validateSchema.name,
+			message: skipMissingProperties
+				? 'Validating against schema.partial()'
+				: 'Validating against schema',
+			data,
+		});
+	}
 
-	if (!success) {
-		const errorMessages = error.issues.map((issue) => {
+	const validationResult = await resolvedSchema.safeParseAsync(data);
+
+	if (!validationResult.success) {
+		const errorMessages = validationResult.error.issues.map((issue) => {
 			const path = issue.path.join('.');
 			return `${path ? `${path}: ` : ''}${issue.message}`;
 		});
+		if (enableDebug) {
+			consoleLog({
+				context: validateSchema.name,
+				message: 'Validation failed',
+				data: errorMessages,
+			});
+		}
 		throw new CustomException(errorMessages);
 	}
 
-	return parsedData as TData;
+	if (enableDebug) {
+		consoleLog({
+			context: validateSchema.name,
+			message: 'Validation succeeded',
+			data: validationResult.data,
+		});
+	}
+
+	return validationResult.data as TData;
 }
 
 /**
@@ -150,7 +177,7 @@ export function initDynamoDbClientWrapper<
 		 * @default timestampUuid
 		 */
 		readonly primaryKeyIdType?:
-		'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
+			'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
 	};
 	/** Dynamo-db client configuration, forwarded to `new DynamoDBClient(...)`. */
 	readonly config?: DynamoDBClientConfig;
@@ -266,6 +293,70 @@ export function initDynamoDbClientWrapper<
 		return data;
 	}
 
+	/**
+	 * Validates `data` against `options.schema`, closed over this wrapper's
+	 * `options.schema` and `options.options.enableDebug` — callers only need to
+	 * supply `data` (and, for partial updates, `skipMissingProperties`).
+	 *
+	 * Self-contained: mirrors {@link validateSchema}'s logic directly instead of
+	 * calling it, so this wrapper's validation does not depend on that export.
+	 *
+	 * @param data The data to validate against `options.schema`.
+	 * @param config.skipMissingProperties Validates against
+	 *   `options.schema.partial()` instead (every field optional) — use for
+	 *   partial updates where `data` is not expected to carry every field.
+	 *   Defaults to `false`.
+	 * @throws {CustomException} Thrown with the flattened issue messages when
+	 *   validation fails.
+	 * @returns The parsed, validated data.
+	 */
+	async function validate(
+		data: Partial<TType>,
+		config?: { skipMissingProperties?: boolean },
+	): Promise<Partial<TType>> {
+		const enableDebug = options?.options?.enableDebug;
+		const resolvedSchema: ZodObject = config?.skipMissingProperties
+			? options.schema.partial()
+			: options.schema;
+
+		if (enableDebug) {
+			consoleLog({
+				context: validate.name,
+				message: config?.skipMissingProperties
+					? 'Validating against schema.partial()'
+					: 'Validating against schema',
+				data,
+			});
+		}
+
+		const validationResult = await resolvedSchema.safeParseAsync(data);
+
+		if (!validationResult.success) {
+			const errorMessages = validationResult.error.issues.map((issue) => {
+				const path = issue.path.join('.');
+				return `${path ? `${path}: ` : ''}${issue.message}`;
+			});
+			if (enableDebug) {
+				consoleLog({
+					context: validate.name,
+					message: 'Validation failed',
+					data: errorMessages,
+				});
+			}
+			throw new CustomException(errorMessages);
+		}
+
+		if (enableDebug) {
+			consoleLog({
+				context: validate.name,
+				message: 'Validation succeeded',
+				data: validationResult.data,
+			});
+		}
+
+		return validationResult.data as Partial<TType>;
+	}
+
 	return {
 		/**
 		 * Creates a new item in the DynamoDB table (`PutCommand`).
@@ -287,7 +378,7 @@ export function initDynamoDbClientWrapper<
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
-			await validateSchema({ schema: options.schema, data });
+			await validate(data);
 
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
 				new PutCommand({
@@ -717,11 +808,7 @@ export function initDynamoDbClientWrapper<
 				});
 			}
 
-			await validateSchema({
-				schema: options.schema,
-				data,
-				skipMissingProperties: true,
-			});
+			await validate(data, { skipMissingProperties: true });
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
