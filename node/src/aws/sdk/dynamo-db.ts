@@ -197,6 +197,12 @@ export function initDynamoDbClientWrapper<
 	const primaryKeyName =
 		options?.compositePrimaryKeyOptions?.primaryKeyName || 'id';
 
+	/**
+	 * Resolved partition-key generation strategy — see
+	 * `options.compositePrimaryKeyOptions.primaryKeyIdType`'s doc for what each
+	 * value does. Defaults to `'timestampUuid'` when unset. Read by
+	 * {@link mapSchemaPrimaryKey}.
+	 */
 	const primaryKeyIdType =
 		options.compositePrimaryKeyOptions?.primaryKeyIdType || 'timestampUuid';
 
