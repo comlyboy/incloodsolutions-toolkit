@@ -56,7 +56,7 @@ export class CustomException extends Error {
 
 		super(normalized.message, {
 			...options,
-			cause: options?.cause ?? normalized.cause,
+			cause: options?.cause || normalized.cause,
 		});
 
 		this.name = this.constructor.name;
@@ -128,10 +128,7 @@ export class CustomException extends Error {
 			};
 
 			return {
-				message:
-					typeof obj.message === 'string'
-						? obj.message
-						: 'An unexpected error occurred.',
+				message: obj.message as string || 'An unexpected error occurred.',
 				status:
 					typeof obj.status === 'number'
 						? obj.status
@@ -143,8 +140,26 @@ export class CustomException extends Error {
 
 		// Everything else
 		return {
-			message: 'An unexpected error occurred.',
+			message: (error as any)?.message || 'An unexpected error occurred.',
 			status: fallbackStatus,
 		};
 	}
 }
+
+// export class CustomException extends Error {
+// 	status: number;
+// 	message: string;
+// 	statusCode: number;
+// 	constructor(message: any, statusCode = 400) {
+// 		super(message);
+// 		this.message = message;
+// 		this.status = statusCode;
+// 		this.statusCode = statusCode;
+// 		this.name = this.constructor.name;
+
+// 		// Maintains proper stack trace (only in V8 environments)
+// 		if (typeof Error.captureStackTrace === 'function') {
+// 			Error.captureStackTrace(this, this.constructor);
+// 		}
+// 	}
+// }
