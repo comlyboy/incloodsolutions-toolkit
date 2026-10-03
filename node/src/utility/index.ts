@@ -441,7 +441,7 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>(
  *
  * @typeParam TBody - Shape of `data.data`.
  * @param res - The Express `Response`.
- * @param data - An {@link IBaseApiResult}; only its `data` field is spread into the body.
+ * @param data - An {@link IBaseApiResult}; spread into the body.
  * @param statusCode - HTTP status code. Defaults to `200`.
  * @returns The Express `Response` (result of `res.status().json()`).
  */
@@ -453,7 +453,7 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(
 	return res.status(statusCode).json({
 		success: statusCode < 400,
 		statusCode,
-		...data.data,
+		...data,
 	});
 }
 
