@@ -21,6 +21,7 @@ declarations.
 
 - [Installation](#installation)
 - [Quick start](#quick-start)
+- [Modular imports (tree-shaking)](#modular-imports-tree-shaking)
 - [Requirements and module formats](#requirements-and-module-formats)
 - [API reference](#api-reference)
   - [Constants](#constants)
@@ -51,13 +52,9 @@ The following libraries are bundled as runtime dependencies and installed automa
 ## Quick start
 
 ```typescript
-import {
-  cloneDeep,
-  transformText,
-  CustomException,
-  EmailValidationSchema,
-  isUUID,
-} from '@incloodsolutions/toolkit';
+import { cloneDeep, transformText } from '@incloodsolutions/toolkit/utility';
+import { CustomException } from '@incloodsolutions/toolkit/error';
+import { EmailValidationSchema, isUUID } from '@incloodsolutions/toolkit/validator';
 
 // Deep clone any structured value
 const copy = cloneDeep({ company: 'Inclood', tags: ['a', 'b'] });
@@ -75,29 +72,52 @@ isUUID('9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'); // true
 throw new CustomException('User not found', 404);
 ```
 
+## Modular imports (tree-shaking)
+
+**There is no package-root import.** `import ... from '@incloodsolutions/toolkit'` does not
+resolve — you must import a specific subpath, so nothing can pull the whole package (axios,
+handlebars, libphonenumber-js, the entire `validator` re-export, …) by accident. Each module
+is published as its own subpath:
+
+| Subpath | Contents |
+| ------- | -------- |
+| `.../constant` | `ResponseMessageEnum` |
+| `.../error` | `CustomException` |
+| `.../utility` | ~20 helpers — text formatting, ID/date generation, deep clone, object sanitising, phone parsing, XML/JSON, Handlebars, HTTP, logging, Google Sheet fetch |
+| `.../validator` | Ready-made Zod schemas plus every predicate from the `validator` package |
+| `.../interface` | Shared base interfaces, `AppEnvironmentEnum`, and helper types |
+
+```typescript
+import { cloneDeep } from '@incloodsolutions/toolkit/utility';
+import { CustomException } from '@incloodsolutions/toolkit/error';
+```
+
+Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`.
+
 ## Requirements and module formats
 
 | Item              | Value                                              |
 | ----------------- | ------------------------------------------------- |
 | Node.js           | 18 or newer (uses `structuredClone`, `Array.at`) |
-| Module formats    | ESM (`dist/index.js`) and CommonJS (`dist/index.cjs`) |
-| Type declarations | a single bundled `dist/index.d.ts` |
+| Module formats    | ESM and CommonJS, per subpath (see [Modular imports](#modular-imports-tree-shaking)) |
+| Type declarations | one `.d.ts` per subpath |
 | Side effects      | None (`"sideEffects": false`, tree-shakeable)    |
 
 ```typescript
 // ESM
-import { generateNanoid } from '@incloodsolutions/toolkit';
+import { generateNanoid } from '@incloodsolutions/toolkit/utility';
 
 // CommonJS
-const { generateNanoid } = require('@incloodsolutions/toolkit');
+const { generateNanoid } = require('@incloodsolutions/toolkit/utility');
 ```
 
 ---
 
 ## API reference
 
-Everything is exported from the package root. The sections below group exports by source
-module.
+Every export lives under its module's subpath (see
+[Modular imports](#modular-imports-tree-shaking)) — there is no package-root import. The
+sections below group exports by source module / subpath.
 
 ### Constants
 
@@ -111,7 +131,8 @@ duplicated (e.g. `WRONG_PASSWORD` and `INVALID_CREDENTIALS`) so call sites stay 
 specific while showing one message.
 
 ```typescript
-import { CustomException, ResponseMessageEnum } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
+import { ResponseMessageEnum } from '@incloodsolutions/toolkit/constant';
 
 throw new CustomException(ResponseMessageEnum.USER_NOT_FOUND, 404);
 return { message: ResponseMessageEnum.UPDATE_SUCCESS, data };
@@ -128,7 +149,7 @@ or an error-like object) into a consistent shape, preserves the original stack t
 with different frameworks.
 
 ```typescript
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 throw new CustomException('Unauthorized access', 401);
 
@@ -178,7 +199,7 @@ Constructor: `new CustomException(error, statusCode?, options?)` where `error` i
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint. No auth — the sheet must be shared as "Anyone with the link can view". |
 
 ```typescript
-import { sanitizeObject, transformText, generateRandomId } from '@incloodsolutions/toolkit';
+import { sanitizeObject, transformText, generateRandomId } from '@incloodsolutions/toolkit/utility';
 
 sanitizeObject({ data: { name: 'Ada', middleName: '', age: null } });
 // => { name: 'Ada' }
@@ -234,7 +255,7 @@ import {
   EmailValidationSchema,
   PasswordValidationSchema,
   PageSizeValidationSchema,
-} from '@incloodsolutions/toolkit';
+} from '@incloodsolutions/toolkit/validator';
 
 const SignInSchema = z.object({
   email: EmailValidationSchema,
@@ -254,7 +275,7 @@ ISO-standard checks (`isISO31661Alpha2`, `isISO4217`, `isISO6391`, and so on). T
 `validator` type namespace is re-exported as `ValidatorTypes`.
 
 ```typescript
-import { isStrongPassword, normalizeEmail } from '@incloodsolutions/toolkit';
+import { isStrongPassword, normalizeEmail } from '@incloodsolutions/toolkit/validator';
 
 isStrongPassword('Sup3r$ecret'); // true
 normalizeEmail('Dev@Inclood.IO'); // "dev@inclood.io"
@@ -285,8 +306,8 @@ Reusable building blocks for domain models and API contracts.
 | `SortOrderType` | `'ascending' \| 'descending'` |
 
 ```typescript
-import type { IBaseId, IBaseCreator } from '@incloodsolutions/toolkit';
-import { AppEnvironmentEnum } from '@incloodsolutions/toolkit';
+import type { IBaseId, IBaseCreator } from '@incloodsolutions/toolkit/interface';
+import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
 
 interface User extends IBaseId, IBaseCreator {
   email: string;
@@ -301,7 +322,7 @@ const env = AppEnvironmentEnum.PRODUCTION;
 
 ```bash
 npm install        # install dependencies
-npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
+npm run build      # tsup: one ESM + CJS + .d.ts bundle per subpath entry
 npm run lint       # eslint --fix
 npm run format     # prettier --write
 npm test           # vitest run — behaviour tests for every export (test/toolkit.spec.ts)
@@ -313,22 +334,27 @@ npm run package    # build, then npm pack a tarball
 `axios` is mocked (so `sendHttpRequest`, `sendMessageToTelegram`, and `fetchGoogleSheet`
 never hit the network); everything else runs for real. Its header comment lists the
 utilities that are currently buggy — the tests pin the current behaviour so a fix will make
-the "known bug" cases fail on purpose.
+the "known bug" cases fail on purpose. [`test/esm-bundle.spec.ts`](./test/esm-bundle.spec.ts)
+guards that every subpath entry builds, loads as ESM, and stays isolated from its siblings.
 
 > The whole build is `tsup` (`dts: true` in
-> [`../shared/tsup-base.config.ts`](../shared/tsup-base.config.ts)). It emits `dist/index.js`
-> (ESM), `dist/index.cjs` (CommonJS), and one bundled `dist/index.d.ts`. Pinned to
-> `typescript@^6` — that is the version tsup's declaration bundler supports.
+> [`../shared/tsup-base.config.ts`](../shared/tsup-base.config.ts)), pinned to
+> `typescript@^6`. There is **no root export** and no `main`/`module`/`types` fields —
+> every module is a `./*` subpath in `exports` (see
+> [Modular imports](#modular-imports-tree-shaking)), configured by the `entry` map in
+> `tsup.config.ts` and `exports` + `typesVersions` in `package.json`. The `index` bundle is
+> still built as the test aggregation point but is not reachable by the package name.
 
 Source layout:
 
 | Path                  | Contents                                      |
 | --------------------- | -------------------------------------------- |
+| `src/constant/`       | `ResponseMessageEnum`                        |
 | `src/error/`          | `CustomException`                            |
 | `src/utility/`        | General-purpose helper functions            |
 | `src/validator/`      | Zod schemas and re-exported `validator` API |
 | `src/interface/`      | Shared interfaces, enums, and types         |
-| `src/index.ts`        | Barrel file re-exporting every module       |
+| `src/index.ts`        | Internal barrel re-exporting every module, used by tests — not published as a subpath |
 
 ## Publishing
 

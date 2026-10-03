@@ -25,9 +25,15 @@ Packages:
 
 ## @incloodsolutions/toolkit
 
-Framework-agnostic. Entry point: `src/index.ts` → `constant`, `error`, `utility`,
-`validator`, `interface`. Runtime deps: `axios`, `handlebars`, `libphonenumber-js`,
-`nanoid`, `validator`, `xml2js`, `zod`.
+Framework-agnostic. **No package-root export** — `@incloodsolutions/toolkit` alone does not
+resolve; import a subpath. Internal barrel at `src/index.ts` (`constant`, `error`,
+`utility`, `validator`, `interface`) is used by tests only. Runtime deps: `axios`,
+`handlebars`, `libphonenumber-js`, `nanoid`, `validator`, `xml2js`, `zod`.
+
+Published as tree-shakeable subpaths — one build per module, each with its own ESM + CJS +
+`.d.ts`, mirroring the source folder: `@incloodsolutions/toolkit/{constant, error, utility,
+validator, interface}`. Configured in `toolkit/tsup.config.ts` (`entry` map) and
+`toolkit/package.json` (`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### Constants — `src/constant/index.ts`
 
