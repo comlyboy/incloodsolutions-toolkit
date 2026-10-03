@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.16",
+	"version": "0.0.17",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"sideEffects": false,
@@ -181,7 +181,7 @@
 		"ts-node": "^10.9.2",
 		"tsconfig-paths": "^4.2.0",
 		"tsup": "^8.5.1",
-		"typescript": "^7.0.2",
+		"typescript": "^6.0.3",
 		"typescript-eslint": "^8.71.0",
 		"unplugin-swc": "^2.0.0",
 		"vitest": "^5.0.3"
