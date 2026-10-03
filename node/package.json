@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.17",
+	"version": "0.0.18",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"sideEffects": false,
