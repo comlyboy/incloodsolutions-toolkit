@@ -141,7 +141,9 @@ export async function validateSchema<TData>({
  *   configuration; not currently read by any method.
  * @param options.translationConfig - `TranslateConfig` passed to
  *   `DynamoDBDocumentClient.from` (e.g. `marshallOptions`/`unmarshallOptions`,
- *   such as `removeUndefinedValues`).
+ *   such as `removeUndefinedValues`). `marshallOptions.removeUndefinedValues`
+ *   defaults to `true` so optional fields left `undefined` don't throw; pass
+ *   `false` explicitly to restore the strict behaviour.
  * @param options.options - Wrapper-wide runtime options (debug logging, etc.).
  *
  * @returns An object exposing `put`, `query`, `getOne`, `getMany`,
@@ -811,7 +813,13 @@ export function initDynamoDbClientWrapper<
 	/** The underlying document client every method sends commands through. */
 	const dynamoDbClientInstance = DynamoDBDocumentClient.from(
 		new DynamoDBClient(options?.config),
-		options?.translationConfig,
+		{
+			...options?.translationConfig,
+			marshallOptions: {
+				removeUndefinedValues: true,
+				...options?.translationConfig?.marshallOptions,
+			},
+		},
 	);
 
 	/**

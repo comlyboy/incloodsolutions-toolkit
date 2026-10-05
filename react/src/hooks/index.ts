@@ -3,7 +3,7 @@
  *
  * Re-exports:
  * - The purpose-built hooks in this folder: {@link useKeyEvent},
- *   {@link usePageMetadata}, {@link useCustomNavigation}.
+ *   {@link usePageMetadata}.
  * - The **entire `usehooks-ts` API** (`export * from 'usehooks-ts'`).
  * - A curated slice of `react-use`. Where a `react-use` hook name collides with
  *   `usehooks-ts`, it is re-exported here with a `2` suffix

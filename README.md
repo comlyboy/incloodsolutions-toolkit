@@ -27,6 +27,7 @@ Repository: <https://github.com/comlyboy/incloodsolutions-toolkit>
 | Build a React app                                        | [`react/README.md`](./react/README.md)          |
 | Build an Angular app                                     | [`angular/README.md`](./angular/README.md)      |
 | Define AWS infrastructure with CDK                       | [`devkit/README.md`](./devkit/README.md)        |
+| Check the (unimplemented) MCP package's intended API      | [`mcp/README.md`](./mcp/README.md)              |
 
 [`docs/AI-INDEX.md`](./docs/AI-INDEX.md) is a single flat index of **every** public export
 (name, kind, signature, one-line description, source path). It is the fastest way for a
@@ -44,6 +45,7 @@ does it live?".
 | `@incloodsolutions/react-toolkit` | [`react/`](./react) | [link](https://www.npmjs.com/package/@incloodsolutions/react-toolkit) | React 18+ | Active, small surface |
 | `@incloodsolutions/devkit` | [`devkit/`](./devkit) | [link](https://www.npmjs.com/package/@incloodsolutions/devkit) | Node.js + AWS CDK v2 | Active, AWS CDK constructs only |
 | `@incloodsolutions/angular-toolkit` | [`angular/`](./angular) | [link](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit) | Angular 21+ | Placeholder, not yet functional |
+| `@incloodsolutions/mcp` | [`mcp/`](./mcp) | [link](https://www.npmjs.com/package/@incloodsolutions/mcp) | Any JS/TS (Node 18+) | Placeholder — `src/index.ts` is empty, builds export nothing |
 
 ### `@incloodsolutions/toolkit` — the core
 
@@ -63,7 +65,8 @@ Framework-agnostic building blocks that every other package depends on:
 
 Server-side helpers built on the core:
 
-- AWS SDK v3 wrappers for S3, SES, SNS, and DynamoDB (a document-client CRUD wrapper).
+- AWS SDK v3 wrappers for S3, SES, SNS, SSM Parameter Store, and DynamoDB (a document-client
+  CRUD wrapper with Zod schema validation).
 - Serverless adapters: run an Express or NestJS app as an AWS Lambda or GCP Function handler.
 - MongoDB/Mongoose: cached connection for serverless, schema factory, ObjectId normalisers.
 - Crypto (`crypto-js`, `bcryptjs`), env-var loading without `dotenv`, request logging with
@@ -74,7 +77,7 @@ Server-side helpers built on the core:
 
 A small React layer:
 
-- Hooks: `useKeyEvent`, `usePageMetadata`, `useCustomNavigation` (React Router).
+- Hooks: `useKeyEvent`, `usePageMetadata`.
 - Utilities: `parseClassnames` (clsx + tailwind-merge), `getScreenSize`.
 - Form resolver helpers for `react-hook-form` (zod, joi, class-validator).
 - Re-exports the entire `usehooks-ts` API and a large slice of `react-use`.
@@ -90,6 +93,11 @@ Lambda authorizer variants.
 
 Currently a published placeholder (`StorageService` is an empty injectable). Not ready for
 use.
+
+### `@incloodsolutions/mcp`
+
+Currently a published placeholder — `src/index.ts` is empty, so a build exports nothing.
+The README documents an intended API (mirroring `toolkit/`'s) that is not yet implemented.
 
 ---
 
@@ -114,6 +122,7 @@ incloodsolutions-toolkit/
 ├── react/                # @incloodsolutions/react-toolkit
 ├── devkit/               # @incloodsolutions/devkit
 ├── angular/              # @incloodsolutions/angular-toolkit  (ng-packagr workspace)
+├── mcp/                  # @incloodsolutions/mcp              (placeholder, empty entry point)
 ├── shared/               # tsup base config shared by packages
 └── .github/workflows/    # publish.yml
 ```
@@ -141,11 +150,13 @@ Run it before committing. (For `angular/`, run `npm install` first so Prettier i
 **`tsup`**, emitting ESM (`.js`) and — for the three non-React packages — CommonJS
 (`.cjs`) plus bundled declarations (`.d.ts`, `dts: true`), with source maps.
 
-`toolkit/` and `react/` build a single `src/index.ts` entry to `dist/index.*` and export
-only the package root. `node/` and `devkit/` instead build **one bundle per module (and
-sub-module / construct)** and have **no package-root export** — consumers import a subpath
-(`@incloodsolutions/node-toolkit/mongo`, `@incloodsolutions/devkit/aws-cdk/lambda`) so
-nothing pulls the whole package. Each `tsup.config.ts` `entry` map lines up with the
+`toolkit/`, `node/`, and `devkit/` build **one bundle per module (and sub-module /
+construct)** and have **no package-root export** — consumers import a subpath
+(`@incloodsolutions/toolkit/utility`, `@incloodsolutions/node-toolkit/mongo`,
+`@incloodsolutions/devkit/aws-cdk/lambda`) so nothing pulls the whole package by accident;
+`import from '@incloodsolutions/toolkit'` (or `node-toolkit`/`devkit`) itself does not
+resolve. `react/` is still single-entry — it builds `src/index.ts` to `dist/index.*` and
+exports only the package root. Each `tsup.config.ts` `entry` map lines up with the
 `exports` + `typesVersions` in its `package.json`.
 
 All four are on **TypeScript 6** (`typescript@^6.0.3`) — this is the version tsup's bundled

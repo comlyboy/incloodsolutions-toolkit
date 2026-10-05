@@ -21,9 +21,10 @@ full [`usehooks-ts`](https://usehooks-ts.com) API plus a large slice of
 npm install @incloodsolutions/react-toolkit
 ```
 
-Peer dependencies: `react`, `react-dom`, `react-router-dom`. Bundled: `clsx`,
-`tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`,
-`react-use`.
+Peer dependencies: `react`, `react-dom`. Bundled: `clsx`, `tailwind-merge`,
+`react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`, `react-use`
+(`localforage` and `radix-ui` are also listed as dependencies but are currently unused —
+leftover from the removed `components`/`config`/`constant` modules).
 
 ## Own API
 
@@ -56,20 +57,6 @@ usePageMetadata({
   twitterCardType: 'summary_large_image',
 });
 ```
-
-#### `useCustomNavigation`
-
-A React Router wrapper that returns a single metadata object and a query-aware `navigate`.
-
-```typescript
-const nav = useCustomNavigation((info) => console.log('route changed', info.path), false);
-
-nav.navigate('/users', { queries: { page: 2, tags: ['a', 'b'] }, replace: true });
-// nav.path, nav.query, nav.params, nav.hash, nav.url, nav.fullUrl,
-// nav.state, nav.data (loader), nav.matchedData, nav.navigationType
-```
-
-`onRouteChange` fires only on real route changes (it diffs a function-stripped snapshot).
 
 ### Utilities
 
@@ -110,8 +97,10 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 - **`useCustomReactHookForm` is not exported** — it exists in `src/hooks/useHookForm.ts`
   but is not re-exported by `src/hooks/index.ts`.
-- `getViteConfiguration` (in `src/config`) and the emoji dataset (in `src/constant`) are
-  commented out and export nothing.
+- **`components` (`FormLayoutComponent`) has been removed** — `src/components/` no longer
+  exists, and `src/index.ts` still has a dangling `// export * from './components'` comment.
+  The `useCustomNavigation` hook and the `src/config` (`getViteConfiguration`) and
+  `src/constant` (emoji dataset) modules have likewise been deleted from the package.
 
 ## Development
 

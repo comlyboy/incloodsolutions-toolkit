@@ -252,10 +252,12 @@ no `.` / `main` / `module` / `types`).
 
 ## @incloodsolutions/react-toolkit
 
-React 18+. Entry point: `src/index.ts` → `components`, `hooks`, `types`, `utilities`,
-`validators`. Peer deps: `react`, `react-dom`, `react-router-dom`. Bundled: `clsx`,
+React 18+. Entry point: `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
+(`components` is commented out — the directory has been deleted; `src/config` and
+`src/constant` have been deleted outright). Peer deps: `react`, `react-dom`. Bundled: `clsx`,
 `tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`,
-`react-use`, `localforage`, `radix-ui`.
+`react-use` (`localforage` and `radix-ui` are also declared as dependencies but are
+currently unused, left over from the removed modules).
 
 ### Hooks — `src/hooks/`
 
@@ -263,7 +265,6 @@ React 18+. Entry point: `src/index.ts` → `components`, `hooks`, `types`, `util
 | ------ | --------- | ------- |
 | `useKeyEvent` | `({ combinations: { keys: string[]; matchAll?: boolean }; eventType?: keyof DocumentEventMap; returnedAction: () => void }) => void` | Run an action on a key or key-combination. |
 | `usePageMetadata` | `({ title?; description?; backgroundImageUrl?; backgroundStyle?; ogImage?; twitterCardType? }) => void` | Set document title, description, OG/Twitter meta tags, and optional `body` background; reverts on unmount. |
-| `useCustomNavigation` | `(onRouteChange?: (info: ICurrentNavigationMetadata) => void, enableDebug?: boolean) => ICurrentNavigationMetadata` | React Router wrapper exposing `path`, `query`, `params`, `hash`, `url`, `fullUrl`, `state`, loader `data`, `matchedData`, `navigationType`, and a `navigate(url, { queries, ...NavigateOptions })` that builds the query string. Fires `onRouteChange` on actual route changes. |
 | `useCustomReactHookForm` | `<TSchema>(resolveSchema: TSchema, props?: Omit<UseFormProps<TSchema>, 'resolver'>) => UseFormReturn<TSchema>` | `react-hook-form` `useForm` with `mode: 'all'` and the schema as resolver. **not-exported** — defined in `src/hooks/useHookForm.ts` but `hooks/index.ts` does not re-export it. |
 
 `hooks/index.ts` also re-exports **the entire `usehooks-ts` API**, and a large set of
@@ -292,20 +293,18 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 | `EmailLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ email: email(), password: string().min(6).max(100) })`. |
 | `UsernameLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ username: string().min(2).max(100), password: string().min(6).max(100) })`. |
 
-### Components — `src/components/`
-
-| Symbol | Summary |
-| ------ | ------- |
-| `FormLayoutComponent` | `({ formGroup: UseFormReturn; onSubmit?; onChange?; busy?; className?; children }) => JSX.Element` — a `<form>` (radix `Primitive.form`) wired to a `react-hook-form` `formGroup`, with `space-y-6` styling, `aria-busy`, and `onSubmit` run through `formGroup.handleSubmit`. Named export, reachable from the package root. |
-
 ### Types — `src/types/index.ts`
 
 | Symbol | Summary |
 | ------ | ------- |
 | `ViteModeType` | `'development' \| 'qa' \| 'staging' \| 'production'`. |
 
-`src/config/index.ts` (`getViteConfiguration`) is entirely commented out and not exported.
-`src/constant/index.ts` is ~15k lines of commented-out emoji data and exports nothing.
+**Removed in a later refactor** (kept here for history — do not re-add without the user
+asking): `src/components/` (`FormLayoutComponent`, a radix `Primitive.form` wrapper around
+`react-hook-form`), `src/hooks/useCustomNavigation.ts` (a React Router navigation wrapper),
+`src/config/index.ts` (`getViteConfiguration`), and `src/constant/index.ts` (~15k lines of
+emoji data). `src/index.ts` still has a dangling, commented-out
+`export * from './components'` pointing at the deleted directory.
 
 ---
 

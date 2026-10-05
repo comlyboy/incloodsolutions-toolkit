@@ -30,7 +30,7 @@ import { tsupBaseConfig } from "../shared/tsup-base.config";
 export default defineConfig([
 	{
 		...tsupBaseConfig as unknown as Options,
-		external: [...tsupBaseConfig.external, "react", "react-dom", "react-router-dom"],
+		external: [...tsupBaseConfig.external, "react", "react-dom"],
 		platform: 'browser'
 	}
 ]);
