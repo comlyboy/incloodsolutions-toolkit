@@ -11,7 +11,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import { Types } from 'mongoose';
 import { IsString } from 'class-validator';
 

@@ -373,11 +373,11 @@ export function initDynamoDbClientWrapper<
 			mapSchemaPrimaryKey(data);
 			mapSchemaCreatedDate(data);
 
-			await validate(data);
+			const dataDto = await validate(data);
 
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
 				new PutCommand({
-					Item: { ...data },
+					Item: { ...dataDto },
 					TableName: options.tableName,
 					ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 				}),
@@ -391,7 +391,7 @@ export function initDynamoDbClientWrapper<
 				});
 			}
 
-			return data as TType;
+			return dataDto as TType;
 		},
 
 		/**
@@ -803,7 +803,7 @@ export function initDynamoDbClientWrapper<
 				});
 			}
 
-			await validate(data, { skipMissingProperties: true });
+			const dataDto = await validate(data, { skipMissingProperties: true });
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
@@ -812,8 +812,13 @@ export function initDynamoDbClientWrapper<
 				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 			};
 
-			Object.entries(data).map(([propertyKey, value]) => {
+			Object.entries(dataDto).map(([propertyKey, value]) => {
 				const rawKey = propertyKey;
+				// Value placeholder tokens (`:name`) are a separate namespace from
+				// attribute-name placeholders (`#name`) and must never contain a
+				// `#` — so this is derived from `rawKey`, before `propertyKey` is
+				// possibly rewritten to its `#`-prefixed name placeholder below.
+				const valuePlaceholder = `:${rawKey}`;
 				if (AWS_DYNAMODB_RESERVED_WORDS.includes(propertyKey)) {
 					propertyKey = `#${propertyKey}_`;
 					updateParam.ExpressionAttributeNames = {
@@ -821,7 +826,7 @@ export function initDynamoDbClientWrapper<
 						[propertyKey]: rawKey,
 					};
 				}
-				const filterValue = `${propertyKey} = :${propertyKey}`;
+				const filterValue = `${propertyKey} = ${valuePlaceholder}`;
 				if (updateParam.UpdateExpression) {
 					updateParam.UpdateExpression += `, ${filterValue}`;
 				} else {
@@ -829,7 +834,7 @@ export function initDynamoDbClientWrapper<
 				}
 				updateParam.ExpressionAttributeValues = {
 					...updateParam.ExpressionAttributeValues,
-					[`:${propertyKey}`]: value,
+					[valuePlaceholder]: value,
 				};
 			});
 

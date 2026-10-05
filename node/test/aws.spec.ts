@@ -8,7 +8,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { mockClient } from 'aws-sdk-client-mock';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import { object, string } from 'zod';
 
 import {
@@ -304,6 +304,22 @@ describe('initDynamoDbClientWrapper', () => {
 		expect(input.ExpressionAttributeValues[':modifiedAtDate']).toMatch(
 			/^\d{4}-\d{2}-\d{2}T/,
 		);
+	});
+
+	it('updateOne uses a reserved-word-free value placeholder for a reserved attribute name', async () => {
+		// `name` is in AWS_DYNAMODB_RESERVED_WORDS, so it needs an
+		// ExpressionAttributeNames placeholder (`#name_`) — but the VALUE
+		// placeholder (`:name`) must never carry the `#` prefix, since
+		// DynamoDB rejects `#` inside a value placeholder token.
+		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
+		await table().updateOne({ key: { id: '1' }, data: { name: 'Widget 2' } });
+		const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+		expect(input.ExpressionAttributeNames).toMatchObject({ '#name_': 'name' });
+		expect(input.UpdateExpression).toContain('#name_ = :name');
+		expect(input.ExpressionAttributeValues).toMatchObject({
+			':name': 'Widget 2',
+		});
+		expect(input.ExpressionAttributeValues).not.toHaveProperty(':#name_');
 	});
 });
 

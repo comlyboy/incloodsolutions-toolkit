@@ -7,7 +7,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 const { connect, disconnect } = vi.hoisted(() => ({
 	connect: vi.fn(async () => ({ readyState: 1 })),
