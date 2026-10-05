@@ -59,12 +59,12 @@ import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
 | `.../aws` | everything AWS: Lambda adapter + all SDK wrappers |
 | `.../aws-lambda` | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation` |
 | `.../aws-cli` | `uploadToS3ViaCli` (placeholder) |
-| `.../aws-sdk` | all SDK wrappers (S3, SES, SNS, SSM, DynamoDB, EventBridge) + `validateSchema` |
+| `.../aws-sdk` | all SDK wrappers (S3, SES, SNS, SSM, DynamoDB, EventBridge) |
 | `.../aws-sdk/s3` | `initS3ClientWrapper` |
 | `.../aws-sdk/ses` | `initSesClientWrapper` |
 | `.../aws-sdk/sns` | `initSnsClientWrapper` |
 | `.../aws-sdk/parameter` | `initSsmParameterClientWrapper` |
-| `.../aws-sdk/dynamo-db` | `initDynamoDbClientWrapper`, `validateSchema` |
+| `.../aws-sdk/dynamo-db` | `initDynamoDbClientWrapper` |
 | `.../aws-sdk/event-bridge` | `initEventBridgeClientWrapper` (placeholder) |
 | `.../gcp` | `initGcpFunctionHandler` |
 | `.../mongo` | `initMongooseConnection`, `initMongooseSchema` |
@@ -79,7 +79,7 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | Area | Exports |
 | ---- | ------- |
 | Serverless adapters | `initLambdaFunctionHandler`, `getCurrentLambdaInvocation`, `initGcpFunctionHandler` |
-| AWS SDK wrappers | `initS3ClientWrapper`, `initSesClientWrapper`, `initSnsClientWrapper`, `initSsmParameterClientWrapper`, `initDynamoDbClientWrapper`, `validateSchema` |
+| AWS SDK wrappers | `initS3ClientWrapper`, `initSesClientWrapper`, `initSnsClientWrapper`, `initSsmParameterClientWrapper`, `initDynamoDbClientWrapper` |
 | Config | `initEnvironmentVariables` |
 | MongoDB / Mongoose | `initMongooseConnection`, `initMongooseSchema` |
 | Crypto & hashing | `encryptData`, `decryptData`, `hashWithBcrypt`, `validateHashWithBcrypt` |
@@ -87,7 +87,7 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | IDs | `generateCustomUUID`, `isValidUUID`, `isValidMongoId` |
 | HTTP / API | `apiResult`, `returnApiResponse`, `returnApiOverview`, `getIpAddress`, `reqResLogger`, `encodeUrlComponent`, `decodeUrlComponent` |
 | Logging | `initCustomLogger` |
-| Validation | `validateDataWithClassValidator`, `validateSchema` |
+| Validation | `validateDataWithClassValidator` |
 | Mongo data shaping | `normalizeMongooseData`, `normalizeMongooseData_v2`, `sanitizeObject` |
 | Misc | `generateQrBarcode`, `isNestApplication` |
 | Interfaces / types | `IBaseEnvironmentVariable`, `IBaseApiResult`, `IBaseMongoDocument`, `INestAppInstance`, `MongoIdType`, `SortOrderType` |

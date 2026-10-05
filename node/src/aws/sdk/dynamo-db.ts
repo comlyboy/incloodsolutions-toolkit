@@ -19,7 +19,7 @@ import {
 	UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 
-import { ZodObject } from 'zod/v4';
+import { object, ZodObject } from 'zod/v4';
 import { $ZodIssue, ParseContext } from 'zod/v4/core';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
@@ -36,76 +36,12 @@ import {
 import { generateCustomUUID } from '../../utility';
 
 /**
- * Validates data against a Zod schema.
- *
- * @template TData
- * @param options Validation options.
- * @param options.data Data to validate.
- * @param options.schema The Zod object schema to validate against.
- * @param options.skipMissingProperties Validates against `schema.partial()` instead
- *   (every field optional) — use for partial updates where `data` is not expected
- *   to carry every field.
- * @param options.enableDebug Logs, via `consoleLog`: the data being validated
- *   (and whether it's against the full or `.partial()` schema) before
- *   validating, then either the flattened issue messages on failure or the
- *   parsed data on success. Defaults to `false`.
- *
- * @throws {CustomException}
- * Thrown with the flattened issue messages when validation fails.
- *
- * @returns The parsed, validated data.
+ * Every field optional, for validating partial updates. Zod refuses `.partial()` on a schema that
+ * has refinements (`.refine`/`.superRefine`), so this rebuilds the object from its shape instead.
+ * The refinements are dropped -- they describe a whole item and can't be judged on a partial one.
  */
-export async function validateSchema<TData>({
-	schema,
-	data,
-	skipMissingProperties = false,
-	enableDebug = false,
-}: {
-	data: TData;
-	skipMissingProperties?: boolean;
-	schema: ZodObject;
-	enableDebug?: boolean;
-}): Promise<TData> {
-	const resolvedSchema: ZodObject = skipMissingProperties
-		? schema.partial()
-		: schema;
-
-	if (enableDebug) {
-		consoleLog({
-			context: validateSchema.name,
-			message: skipMissingProperties
-				? 'Validating against schema.partial()'
-				: 'Validating against schema',
-			data,
-		});
-	}
-
-	const validationResult = await resolvedSchema.safeParseAsync(data);
-
-	if (!validationResult.success) {
-		const errorMessages = validationResult.error.issues.map((issue) => {
-			const path = issue.path.join('.');
-			return `${path ? `${path}: ` : ''}${issue.message}`;
-		});
-		if (enableDebug) {
-			consoleLog({
-				context: validateSchema.name,
-				message: 'Validation failed',
-				data: errorMessages,
-			});
-		}
-		throw new CustomException(errorMessages);
-	}
-
-	if (enableDebug) {
-		consoleLog({
-			context: validateSchema.name,
-			message: 'Validation succeeded',
-			data: validationResult.data,
-		});
-	}
-
-	return validationResult.data as TData;
+function toPartialSchema(schema: ZodObject): ZodObject {
+	return object(schema.shape).partial();
 }
 
 /**
@@ -115,7 +51,7 @@ export async function validateSchema<TData>({
  * Takes care of the repetitive parts of talking to DynamoDB directly:
  * - Generates the partition key and stamps `createdAtDate` on {@link put}.
  * - Validates `put`/`updateOne` payloads against a Zod schema via
- *   {@link validateSchema} before any write reaches DynamoDB.
+ *   the wrapper's `validate` before any write reaches DynamoDB.
  * - Escapes attribute names that collide with DynamoDB reserved words in
  *   every generated key condition, filter, and update expression.
  * - Supports `contains`-based text search and attribute projection
@@ -132,7 +68,7 @@ export async function validateSchema<TData>({
  * @param options.tableName - The DynamoDB table name.
  * @param options.schema - Zod object schema describing the item shape.
  *   {@link put} validates `data` against the full `schema`; `updateOne`
- *   validates against `schema.partial()` (see {@link validateSchema}).
+ *   validates against `schema.partial()` .
  * @param options.compositePrimaryKeyOptions - Controls how the partition key
  *   is generated when creating a new item via `put`.
  * @param options.config - `DynamoDBClientConfig` passed straight through to
@@ -879,9 +815,6 @@ export function initDynamoDbClientWrapper<
 	 * `options.schema` and `options.options.enableDebug` — callers only need to
 	 * supply `data` (and, for partial updates, `skipMissingProperties`).
 	 *
-	 * Self-contained: mirrors {@link validateSchema}'s logic directly instead of
-	 * calling it, so this wrapper's validation does not depend on that export.
-	 *
 	 * @param data The data to validate against `options.schema`.
 	 * @param config.skipMissingProperties Validates against
 	 *   `options.schema.partial()` instead (every field optional) — use for
@@ -897,7 +830,7 @@ export function initDynamoDbClientWrapper<
 	): Promise<Partial<TType>> {
 		const enableDebug = options?.options?.enableDebug;
 		const resolvedSchema: ZodObject = config?.skipMissingProperties
-			? options.schema.partial()
+			? toPartialSchema(options.schema)
 			: options.schema;
 
 		if (enableDebug) {
@@ -947,7 +880,7 @@ export function initDynamoDbClientWrapper<
 		 *    `primaryKeyIdType: 'none'` is set).
 		 * 2. {@link mapSchemaCreatedDate} stamps `createdAtDate`.
 		 * 3. The result is validated against `options.schema` via
-		 *    {@link validateSchema} — throws {@link CustomException} and never
+		 *    `validate` — throws {@link CustomException} and never
 		 *    calls DynamoDB if validation fails.
 		 *
 		 * @param data The item to insert. Does not need the partition key or
@@ -1359,7 +1292,7 @@ export function initDynamoDbClientWrapper<
 		 * existing item is left untouched.
 		 *
 		 * `data` is validated against `options.schema.partial()` (every field
-		 * optional) via {@link validateSchema} before the `UpdateExpression` is
+		 * optional) via `validate` before the `UpdateExpression` is
 		 * built — throws {@link CustomException} and never calls DynamoDB if
 		 * validation fails. Each key in `data` becomes one `SET` clause, with
 		 * DynamoDB reserved words rewritten to `ExpressionAttributeNames`

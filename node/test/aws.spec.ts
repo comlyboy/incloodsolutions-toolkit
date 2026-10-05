@@ -46,7 +46,6 @@ import {
 	initSnsClientWrapper,
 	initSsmParameterClientWrapper,
 	uploadToS3ViaCli,
-	validateSchema,
 } from '../src/index';
 
 const s3Mock = mockClient(S3Client);
@@ -355,53 +354,74 @@ describe('initDynamoDbClientWrapper', () => {
 	});
 });
 
-describe('validateSchema', () => {
-	it('returns the parsed data / throws CustomException on failure', async () => {
-		const schema = object({ name: string() }) as never;
+describe('initDynamoDbClientWrapper validation', () => {
+	const make = (enableDebug = false) =>
+		initDynamoDbClientWrapper<{ id: string; name: string; age: string }>({
+			tableName: 'items',
+			schema: object({ name: string(), age: string() }) as never,
+			compositePrimaryKeyOptions: { primaryKeyName: 'id' },
+			options: { enableDebug },
+		});
+
+	it('put throws CustomException on invalid data and never reaches DynamoDB', async () => {
+		ddbMock.on(PutCommand).resolves({});
 		await expect(
-			validateSchema({ schema, data: { name: 'ok' } }),
-		).resolves.toEqual({ name: 'ok' });
-		await expect(
-			validateSchema({ schema, data: { name: 1 } }),
+			make().put({ data: { name: 1, age: 'x' } as never }),
 		).rejects.toBeInstanceOf(CustomException);
+		expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
 	});
 
-	it('skipMissingProperties validates against schema.partial() instead', async () => {
-		const schema = object({ name: string(), age: string() }) as never;
+	it('put rejects a missing required field, updateOne validates against schema.partial() instead', async () => {
+		ddbMock.on(PutCommand).resolves({});
+		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
 		await expect(
-			validateSchema({
-				schema,
-				data: { name: 'ok' },
-				skipMissingProperties: true,
-			}),
-		).resolves.toEqual({ name: 'ok' });
+			make().put({ data: { name: 'ok' } }),
+		).rejects.toBeInstanceOf(CustomException);
 		await expect(
-			validateSchema({ schema, data: { name: 'ok' } }),
+			make().updateOne({ key: { id: '1' }, data: { name: 'ok' } }),
+		).resolves.toBeDefined();
+	});
+
+	it('updateOne works when the schema has refinements (zod cannot .partial() those directly)', async () => {
+		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
+		const refined = initDynamoDbClientWrapper<{
+			id: string;
+			name: string;
+			age: string;
+		}>({
+			tableName: 'items',
+			schema: object({ name: string(), age: string() }).superRefine(
+				() => undefined,
+			) as never,
+			compositePrimaryKeyOptions: { primaryKeyName: 'id' },
+		});
+		await expect(
+			refined.updateOne({ key: { id: '1' }, data: { name: 'ok' } }),
+		).resolves.toBeDefined();
+		await expect(
+			refined.updateOne({ key: { id: '1' }, data: { name: 1 } as never }),
 		).rejects.toBeInstanceOf(CustomException);
 	});
 
 	it('enableDebug logs the attempt and the result via console.log, and stays silent by default', async () => {
-		const schema = object({ name: string() }) as never;
+		ddbMock.on(PutCommand).resolves({});
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
-			await validateSchema({ schema, data: { name: 'ok' } });
+			await make().put({ data: { name: 'ok', age: '1' } });
 			expect(spy).not.toHaveBeenCalled();
 
-			await validateSchema({
-				schema,
-				data: { name: 'ok' },
-				enableDebug: true,
-			});
-			expect(spy).toHaveBeenCalledTimes(2);
-			expect(spy.mock.calls[0][0]).toContain('Validating against schema');
-			expect(spy.mock.calls[1][0]).toContain('Validation succeeded');
+			await make(true).put({ data: { name: 'ok', age: '1' } });
+			const logged = spy.mock.calls.map((call) => String(call[0]));
+			expect(logged.some((line) => line.includes('Validating against schema'))).toBe(true);
+			expect(logged.some((line) => line.includes('Validation succeeded'))).toBe(true);
 
 			spy.mockClear();
 			await expect(
-				validateSchema({ schema, data: { name: 1 }, enableDebug: true }),
+				make(true).put({ data: { name: 1, age: '1' } as never }),
 			).rejects.toBeInstanceOf(CustomException);
-			expect(spy).toHaveBeenCalledTimes(2);
-			expect(spy.mock.calls[1][0]).toContain('Validation failed');
+			expect(
+				spy.mock.calls.some((call) => String(call[0]).includes('Validation failed')),
+			).toBe(true);
 		} finally {
 			spy.mockRestore();
 		}

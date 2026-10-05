@@ -164,7 +164,6 @@ describe('package surface', () => {
 			'initSesClientWrapper',
 			'initSnsClientWrapper',
 			'initDynamoDbClientWrapper',
-			'validateSchema',
 			'encryptData',
 			'decryptData',
 			'hashWithBcrypt',

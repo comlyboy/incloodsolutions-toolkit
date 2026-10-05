@@ -6,7 +6,7 @@
  *
  * Modules (all re-exported from the package root):
  * - `aws`      — serverless Lambda adapter (`initLambdaFunctionHandler`) and AWS SDK v3
- *                wrappers for S3, SES, SNS, and DynamoDB (`init*ClientWrapper`, `validateSchema`).
+ *                wrappers for S3, SES, SNS, and DynamoDB (`init*ClientWrapper`).
  * - `config`   — {@link initEnvironmentVariables}, env-var loading/validation without `dotenv`.
  * - `gcp`      — {@link initGcpFunctionHandler}, the Google Cloud Functions adapter.
  * - `interface`— `IBaseEnvironmentVariable`, `IBaseApiResult`, `IBaseMongoDocument`,

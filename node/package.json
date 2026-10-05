@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/node-toolkit",
-	"version": "0.0.19",
+	"version": "0.0.20",
 	"description": "A toolkit containing utility, helper, config, interfaces for nodejs apps",
 	"type": "module",
 	"sideEffects": false,
@@ -89,21 +89,51 @@
 	},
 	"typesVersions": {
 		"*": {
-			"aws": ["./dist/aws.d.ts"],
-			"aws-lambda": ["./dist/aws-lambda.d.ts"],
-			"aws-cli": ["./dist/aws-cli.d.ts"],
-			"aws-sdk": ["./dist/aws-sdk.d.ts"],
-			"aws-sdk/s3": ["./dist/aws-sdk/s3.d.ts"],
-			"aws-sdk/ses": ["./dist/aws-sdk/ses.d.ts"],
-			"aws-sdk/sns": ["./dist/aws-sdk/sns.d.ts"],
-			"aws-sdk/dynamo-db": ["./dist/aws-sdk/dynamo-db.d.ts"],
-			"aws-sdk/event-bridge": ["./dist/aws-sdk/event-bridge.d.ts"],
-			"aws-sdk/parameter": ["./dist/aws-sdk/parameter.d.ts"],
-			"gcp": ["./dist/gcp.d.ts"],
-			"mongo": ["./dist/mongo.d.ts"],
-			"utility": ["./dist/utility.d.ts"],
-			"config": ["./dist/config.d.ts"],
-			"interface": ["./dist/interface.d.ts"]
+			"aws": [
+				"./dist/aws.d.ts"
+			],
+			"aws-lambda": [
+				"./dist/aws-lambda.d.ts"
+			],
+			"aws-cli": [
+				"./dist/aws-cli.d.ts"
+			],
+			"aws-sdk": [
+				"./dist/aws-sdk.d.ts"
+			],
+			"aws-sdk/s3": [
+				"./dist/aws-sdk/s3.d.ts"
+			],
+			"aws-sdk/ses": [
+				"./dist/aws-sdk/ses.d.ts"
+			],
+			"aws-sdk/sns": [
+				"./dist/aws-sdk/sns.d.ts"
+			],
+			"aws-sdk/dynamo-db": [
+				"./dist/aws-sdk/dynamo-db.d.ts"
+			],
+			"aws-sdk/event-bridge": [
+				"./dist/aws-sdk/event-bridge.d.ts"
+			],
+			"aws-sdk/parameter": [
+				"./dist/aws-sdk/parameter.d.ts"
+			],
+			"gcp": [
+				"./dist/gcp.d.ts"
+			],
+			"mongo": [
+				"./dist/mongo.d.ts"
+			],
+			"utility": [
+				"./dist/utility.d.ts"
+			],
+			"config": [
+				"./dist/config.d.ts"
+			],
+			"interface": [
+				"./dist/interface.d.ts"
+			]
 		}
 	},
 	"engines": {
