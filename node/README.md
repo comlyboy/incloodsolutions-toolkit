@@ -169,8 +169,10 @@ await users.updateOne({ key: { id }, data: { name: 'Ada L.' } });
 await users.delete({ key: { id } });
 ```
 
-The wrapper handles DynamoDB reserved words, projection (`select`), `contains` search
-(`searchTerms`), and automatic pagination when `returnAll` is set.
+The wrapper automatically escapes any of DynamoDB's ~573 reserved words (matched
+case-insensitively) used as an attribute name in `conditions`, `filter`, `searchTerms`, or
+`updateOne`'s `data`, plus projection (`select`), `contains` search (`searchTerms`), and
+automatic pagination when `returnAll` is set.
 
 ### S3, SES, SNS
 

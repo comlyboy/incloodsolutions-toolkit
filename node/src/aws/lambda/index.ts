@@ -15,7 +15,6 @@ import {
 import type Framework from '@codegenie/serverless-express/src/frameworks';
 import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
-
 let lambdaInstance: APIGatewayProxyHandlerV2;
 
 type EventSources =

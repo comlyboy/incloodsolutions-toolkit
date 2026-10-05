@@ -37,7 +37,10 @@ import {
 import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult } from '../interface';
 import { CustomException } from '@incloodsolutions/toolkit/error';
-import { ObjectType, IBaseEnableDebug } from '@incloodsolutions/toolkit/interface';
+import {
+	ObjectType,
+	IBaseEnableDebug,
+} from '@incloodsolutions/toolkit/interface';
 import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
 const { AES, enc, HmacSHA512, SHA512 } = cryptoJs;

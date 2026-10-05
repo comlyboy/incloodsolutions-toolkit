@@ -264,6 +264,38 @@ describe('initDynamoDbClientWrapper', () => {
 		]);
 	});
 
+	it("escapes any of DynamoDB's ~573 reserved words, case-insensitively — not just the old 5-word list", async () => {
+		// `value` and `order` are real DynamoDB reserved words that were NOT in
+		// the old hand-picked 5-word list (`status`, `name`, `names`, `type`,
+		// `types`) — this would have produced a real `ValidationException`
+		// before the list was expanded to the full official set.
+		const wideTable = initDynamoDbClientWrapper<{
+			id: string;
+			Value: string;
+			order: string;
+		}>({
+			tableName: 'items',
+			schema: object({ Value: string(), order: string() }) as never,
+			compositePrimaryKeyOptions: { primaryKeyName: 'id' },
+		});
+		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
+		await wideTable.updateOne({
+			key: { id: '1' },
+			data: { Value: 'x', order: 'y' },
+		});
+		const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
+		// Matching is case-insensitive: `Value` (capitalised) still matches the
+		// lower-cased `value` entry in the reserved-word list.
+		expect(input.ExpressionAttributeNames).toMatchObject({
+			'#Value_': 'Value',
+			'#order_': 'order',
+		});
+		expect(input.ExpressionAttributeValues).toMatchObject({
+			':Value': 'x',
+			':order': 'y',
+		});
+	});
+
 	it('put auto-generates the primary key + createdAtDate and writes the item', async () => {
 		ddbMock.on(PutCommand).resolves({});
 		const result = await table().put({ data: { name: 'Widget' } });
