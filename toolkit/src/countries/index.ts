@@ -1,6 +1,8 @@
 import { countries, ICountry } from './countries';
+import { ITimezone, timezones } from './timezones';
 
 export * from './countries';
+export * from './timezones';
 
 /** The currency a country uses day to day, as returned by {@link getCurrencyByCountryCode}. */
 export interface ICountryCurrency {
@@ -64,24 +66,38 @@ export function getCurrencyByCountryCode(
 }
 
 /**
+ * Looks an IANA timezone up by name, including deprecated aliases such as `"Asia/Calcutta"`.
+ *
+ * @param timezone - IANA timezone name, as in `"Africa/Lagos"`.
+ * @returns The matching {@link ITimezone}, or `undefined` when there is none.
+ *
+ * @example
+ * getTimezone('Africa/Lagos')?.utcOffset; // 60
+ */
+export function getTimezone(timezone: string): ITimezone | undefined {
+	return timezones.find((entry) => entry.name === timezone);
+}
+
+/**
  * Detects the country a user is in from their timezone and locale.
  *
- * Timezones are shared between countries (`Africa/Lagos` is listed for Nigeria, Cameroon, Gabon
- * and others), so the result is resolved in this order:
- * 1. Exactly one country uses `timezone`: that country.
- * 2. Several do: the one matching the locale's region (`en-NG` gives `NG`), else `undefined`.
- * 3. None do: the country of the locale's region, if the locale has one.
+ * Timezones are shared between countries (`Africa/Lagos` is used by Nigeria, Cameroon, Gabon and
+ * others), so the result is resolved in this order:
+ * 1. The locale's region, when that country uses the timezone (`en-CM` on `Africa/Lagos` gives `CM`).
+ * 2. The timezone's main country, which the timezone data lists first (`NG` for `Africa/Lagos`).
+ * 3. For an unknown timezone, the country of the locale's region, if the locale has one.
  *
  * Both inputs default to the runtime's own (`Intl.DateTimeFormat().resolvedOptions()`), so
  * calling it with no arguments detects the current user in a browser or in Node.
  *
  * @param options.timezone - IANA timezone name, as in `"Africa/Lagos"`.
  * @param options.locale - BCP 47 locale tag, as in `"en-NG"`. Only an explicit region is used.
- * @returns The detected {@link ICountry}, or `undefined` when it cannot be told apart.
+ * @returns The detected {@link ICountry}, or `undefined` when nothing matches.
  *
  * @example
  * detectCountry({ timezone: 'America/New_York' })?.alpha2Code; // 'US'
- * detectCountry({ timezone: 'Africa/Lagos', locale: 'en-NG' })?.alpha2Code; // 'NG'
+ * detectCountry({ timezone: 'Africa/Lagos' })?.alpha2Code; // 'NG'
+ * detectCountry({ timezone: 'Africa/Lagos', locale: 'fr-CM' })?.alpha2Code; // 'CM'
  */
 export function detectCountry({
 	timezone,
@@ -101,16 +117,12 @@ export function detectCountry({
 		localeRegion = undefined;
 	}
 
-	const candidates = countries.filter((country) =>
-		country.timezones.includes(resolvedTimezone),
-	);
-	if (candidates.length === 1) {
-		return candidates[0];
-	}
-	if (candidates.length > 1) {
-		return candidates.find((country) => country.alpha2Code === localeRegion);
-	}
-	return localeRegion ? getCountryByCode(localeRegion) : undefined;
+	const timezoneCountries = getTimezone(resolvedTimezone)?.countries ?? [];
+	const countryCode =
+		timezoneCountries.find((code) => code === localeRegion) ??
+		timezoneCountries[0] ??
+		localeRegion;
+	return countryCode ? getCountryByCode(countryCode) : undefined;
 }
 
 /**

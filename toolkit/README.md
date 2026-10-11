@@ -328,14 +328,17 @@ codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/minor u
 | `countries` | `ICountry[]` | The country data. |
 | `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Look up by alpha-2 or alpha-3 code, case-insensitive. |
 | `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency (`code`, `name`, `symbol`, `numericCode`, `minorUnits`, `otherCurrencyCodes`). |
-| `detectCountry` | `({ timezone?, locale? } = {}) => ICountry \| undefined` | Detect the country from timezone and locale (defaults to the runtime's). A timezone shared by several countries is resolved by the locale region, else `undefined`. |
+| `timezones` / `ITimezone` | `ITimezone[]` | 598 IANA timezones (incl. deprecated aliases) with `countries` (main country first), `utcOffset`, `dstOffset` in minutes, `aliasOf`. Built from [countries-and-timezones](https://www.npmjs.com/package/countries-and-timezones). |
+| `getTimezone` | `(timezone: string) => ITimezone \| undefined` | Look up a timezone by IANA name. |
+| `detectCountry` | `({ timezone?, locale? } = {}) => ICountry \| undefined` | Detect the country from timezone and locale (defaults to the runtime's). On a shared timezone the locale region wins if it uses that zone, else the zone's main country (`Africa/Lagos` gives `NG`). |
 | `formatMoney` | `(amountMinor: number, currencyCode: string, locale?: string) => string` | Format a minor-unit amount (kobo, cents) as localised money; JPY and KWD decimals handled from the data. |
 
 ```typescript
 import { detectCountry, formatMoney, getCurrencyByCountryCode } from '@incloodsolutions/toolkit/countries';
 
 getCurrencyByCountryCode('NG')?.symbol; // '₦'
-detectCountry({ timezone: 'Africa/Lagos', locale: 'en-NG' })?.name; // 'Nigeria'
+detectCountry({ timezone: 'Africa/Lagos' })?.name; // 'Nigeria'
+detectCountry({ timezone: 'Africa/Lagos', locale: 'fr-CM' })?.name; // 'Cameroon'
 formatMoney(150050, 'NGN', 'en-NG'); // '₦1,500.50'
 ```
 

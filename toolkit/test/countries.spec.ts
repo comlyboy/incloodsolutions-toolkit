@@ -5,6 +5,7 @@ import {
 	detectCountry,
 	formatMoney,
 	getCountryByCode,
+	getTimezone,
 	getCurrencyByCountryCode,
 } from '../src/countries';
 
@@ -37,13 +38,33 @@ describe('country', () => {
 		expect(detectCountry({ timezone: 'Asia/Kolkata' })?.alpha2Code).toBe('IN');
 	});
 
-	it('detectCountry disambiguates a shared timezone by locale region', () => {
+	it('detectCountry picks the main country of a shared timezone', () => {
+		expect(detectCountry({ timezone: 'Africa/Lagos' })?.alpha2Code).toBe('NG');
 		expect(
-			detectCountry({ timezone: 'Africa/Lagos', locale: 'en-NG' })?.alpha2Code,
+			detectCountry({ timezone: 'Africa/Lagos', locale: 'en' })?.alpha2Code,
 		).toBe('NG');
+	});
+
+	it('detectCountry lets the locale region choose among a shared timezone', () => {
 		expect(
-			detectCountry({ timezone: 'Africa/Lagos', locale: 'en' }),
-		).toBeUndefined();
+			detectCountry({ timezone: 'Africa/Lagos', locale: 'fr-CM' })?.alpha2Code,
+		).toBe('CM');
+		expect(
+			detectCountry({ timezone: 'Europe/Berlin', locale: 'sv-SE' })?.alpha2Code,
+		).toBe('SE');
+	});
+
+	it('detectCountry understands deprecated timezone aliases', () => {
+		expect(detectCountry({ timezone: 'Africa/Douala' })?.alpha2Code).toBe('CM');
+	});
+
+	it('getTimezone returns offsets in minutes, or undefined', () => {
+		expect(getTimezone('Africa/Lagos')).toMatchObject({
+			utcOffset: 60,
+			aliasOf: null,
+		});
+		expect(getTimezone('Africa/Douala')?.aliasOf).toBe('Africa/Lagos');
+		expect(getTimezone('Nowhere/Land')).toBeUndefined();
 	});
 
 	it('detectCountry falls back to the locale region for an unknown timezone', () => {

@@ -160,7 +160,9 @@ The type namespace is re-exported as `ValidatorTypes`.
 | `countries` / `ICountry` | `ICountry[]` | Country data (copied from workinance `shared/src/data/countries.ts`): ISO codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/numeric/minor units. |
 | `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Alpha-2 or alpha-3 lookup, case-insensitive. |
 | `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency. |
-| `detectCountry` | `({ timezone?; locale? } = {}) => ICountry \| undefined` | Timezone first, locale region to break ties (shared zones such as `Africa/Lagos`) or as fallback. Defaults to the runtime's `Intl` values. |
+| `timezones` / `ITimezone` | `ITimezone[]` | 598 IANA timezones incl. deprecated aliases, from the countries-and-timezones package: `countries` (main country first), `utcOffset`/`dstOffset` minutes, `aliasOf`. |
+| `getTimezone` | `(timezone: string) => ITimezone \| undefined` | Lookup by IANA name. |
+| `detectCountry` | `({ timezone?; locale? } = {}) => ICountry \| undefined` | Locale region if it uses the timezone, else the timezone's main country, else the locale region. Defaults to the runtime's `Intl` values. |
 | `formatMoney` | `(amountMinor: number, currencyCode: string, locale?: string) => string` | Minor units to localised money via `Intl.NumberFormat`, decimals from the data. |
 
 ---
