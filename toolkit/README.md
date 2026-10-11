@@ -326,6 +326,7 @@ codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/minor u
 | Symbol | Signature | Summary |
 | ------ | --------- | ------- |
 | `countries` | `ICountry[]` | The country data. |
+| `CountryCodeEnum` / `CurrencyCodeEnum` | enums | Every ISO 3166 alpha-2 country code and ISO 4217 currency code in the data, named after the code (`CountryCodeEnum.NG`, `CurrencyCodeEnum.NGN`). |
 | `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Look up by alpha-2 or alpha-3 code, case-insensitive. |
 | `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency (`code`, `name`, `symbol`, `numericCode`, `minorUnits`, `otherCurrencyCodes`). |
 | `timezones` / `ITimezone` | `ITimezone[]` | 598 IANA timezones (incl. deprecated aliases) with `countries` (main country first), `utcOffset`, `dstOffset` in minutes, `aliasOf`. Built from [countries-and-timezones](https://www.npmjs.com/package/countries-and-timezones). |

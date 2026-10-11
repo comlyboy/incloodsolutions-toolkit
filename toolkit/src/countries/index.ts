@@ -2,6 +2,7 @@ import { countries, ICountry } from './countries';
 import { ITimezone, timezones } from './timezones';
 
 export * from './countries';
+export * from './enums';
 export * from './timezones';
 
 /** The currency a country uses day to day, as returned by {@link getCurrencyByCountryCode}. */

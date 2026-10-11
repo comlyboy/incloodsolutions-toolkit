@@ -158,6 +158,7 @@ The type namespace is re-exported as `ValidatorTypes`.
 | Symbol | Signature | Summary |
 | ------ | --------- | ------- |
 | `countries` / `ICountry` | `ICountry[]` | Country data (copied from workinance `shared/src/data/countries.ts`): ISO codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/numeric/minor units. |
+| `CountryCodeEnum` / `CurrencyCodeEnum` | enums | All alpha-2 country codes and ISO 4217 currency codes in the data, members named after the code (`CountryCodeEnum.NG`, `CurrencyCodeEnum.NGN`). |
 | `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Alpha-2 or alpha-3 lookup, case-insensitive. |
 | `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency. |
 | `timezones` / `ITimezone` | `ITimezone[]` | 598 IANA timezones incl. deprecated aliases, from the countries-and-timezones package: `countries` (main country first), `utcOffset`/`dstOffset` minutes, `aliasOf`. |

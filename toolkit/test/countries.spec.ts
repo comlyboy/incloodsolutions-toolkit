@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	CountryCodeEnum,
 	countries,
+	CurrencyCodeEnum,
 	detectCountry,
 	formatMoney,
 	getCountryByCode,
@@ -17,6 +19,17 @@ describe('country', () => {
 	it('every country has a flag emoji built from its alpha-2 code', () => {
 		expect(countries.every((country) => [...country.flag].length === 2)).toBe(true);
 		expect(getCountryByCode('NG')?.flag).toBe('🇳🇬');
+	});
+
+	it('CountryCodeEnum and CurrencyCodeEnum match the countries data', () => {
+		expect(Object.values(CountryCodeEnum).sort()).toEqual(
+			countries.map((country) => country.alpha2Code).sort(),
+		);
+		expect(Object.values(CurrencyCodeEnum).sort()).toEqual(
+			[...new Set(countries.map((country) => country.currencyCode).filter(Boolean))].sort(),
+		);
+		expect(CountryCodeEnum.NG).toBe('NG');
+		expect(CurrencyCodeEnum.NGN).toBe('NGN');
 	});
 
 	it('getCountryByCode accepts alpha-2 and alpha-3, any case', () => {
