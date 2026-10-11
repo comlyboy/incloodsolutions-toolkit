@@ -17,7 +17,7 @@ export interface ICountryCurrency {
 	/** Decimal places of the smallest unit: 2 for most, 0 for JPY, 3 for KWD. */
 	minorUnits: number | null;
 	/** Other currencies the country also uses officially, as in ["USD"] for Panama. */
-	otherCurrencyCodes: string[];
+	otherCurrencyCodes: readonly string[];
 }
 
 const DEFAULT_MINOR_UNITS = 2;

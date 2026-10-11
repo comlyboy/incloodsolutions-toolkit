@@ -20,7 +20,7 @@ export interface ICountry {
 	 * IANA timezones in use in the country, east to west, as in ["Africa/Lagos"]; several for countries such as
 	 * the US or Russia. Only names are kept: offsets change with daylight saving, so work them out with Intl.
 	 */
-	timezones: string[];
+	timezones: readonly string[];
 	/** ISO 4217 code of the currency in everyday use, as in "NGN". Null where there is no official currency. */
 	currencyCode: string | null;
 	currencyName: string | null;
@@ -34,10 +34,17 @@ export interface ICountry {
 	 */
 	minorUnits: number | null;
 	/** Other currencies the country also uses officially, as in ["USD"] for Panama. */
-	otherCurrencyCodes: string[];
+	otherCurrencyCodes: readonly string[];
 }
 
-export const countries: ICountry[] = [
+/** Identity helper whose `const` type parameter keeps every code as a string literal (and not just `string`). */
+function defineCountries<const TCountries extends readonly ICountry[]>(
+	list: TCountries,
+): TCountries {
+	return list;
+}
+
+const countryList = defineCountries([
 	{
 		name: 'Afghanistan',
 		alpha2Code: 'AF',
@@ -3966,4 +3973,20 @@ export const countries: ICountry[] = [
 		minorUnits: 2,
 		otherCurrencyCodes: [],
 	},
-];
+]);
+
+/** The country data, typed as {@link ICountry}. */
+export const countries: readonly ICountry[] = countryList;
+
+/** Every ISO 3166 alpha-2 code in {@link countries}, as a string-literal union. Derived from the data. */
+export type CountryCode = (typeof countryList)[number]['alpha2Code'];
+
+/** Every ISO 4217 code used by a country in {@link countries}, as a string-literal union. Derived from the data. */
+export type CurrencyCode = CurrencyCodeOf<(typeof countryList)[number]>;
+
+/** Picks an entry's currency code, dropping entries without one (typed `any` here, as `null` widens when `strictNullChecks` is off). */
+type CurrencyCodeOf<TCountry> = TCountry extends { currencyCode: infer TCode }
+	? 0 extends 1 & TCode
+		? never
+		: TCode
+	: never;
