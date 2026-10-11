@@ -30,6 +30,7 @@ declarations.
   - [Validation schemas (Zod)](#validation-schemas-zod)
   - [Validator predicates](#validator-predicates)
   - [Interfaces and types](#interfaces-and-types)
+  - [Countries and money](#countries-and-money)
 - [Development](#development)
 - [Publishing](#publishing)
 - [License](#license)
@@ -86,6 +87,7 @@ is published as its own subpath:
 | `.../utility` | ~20 helpers — text formatting, ID/date generation, deep clone, object sanitising, phone parsing, XML/JSON, Handlebars, HTTP, logging, Google Sheet fetch |
 | `.../validator` | Ready-made Zod schemas plus every predicate from the `validator` package |
 | `.../interface` | Shared base interfaces, `AppEnvironmentEnum`, and helper types |
+| `.../countries` | ISO country data (`countries`, `ICountry`), `detectCountry`, `formatMoney`, `getCurrencyByCountryCode`, `getCountryByCode` |
 
 ```typescript
 import { cloneDeep } from '@incloodsolutions/toolkit/utility';
@@ -316,6 +318,27 @@ interface User extends IBaseId, IBaseCreator {
 const env = AppEnvironmentEnum.PRODUCTION;
 ```
 
+### Countries and money
+
+`@incloodsolutions/toolkit/countries` ships the full country list (name, ISO alpha-2/alpha-3/numeric
+codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/minor units) and helpers derived from it.
+
+| Symbol | Signature | Summary |
+| ------ | --------- | ------- |
+| `countries` | `ICountry[]` | The country data. |
+| `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Look up by alpha-2 or alpha-3 code, case-insensitive. |
+| `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency (`code`, `name`, `symbol`, `numericCode`, `minorUnits`, `otherCurrencyCodes`). |
+| `detectCountry` | `({ timezone?, locale? } = {}) => ICountry \| undefined` | Detect the country from timezone and locale (defaults to the runtime's). A timezone shared by several countries is resolved by the locale region, else `undefined`. |
+| `formatMoney` | `(amountMinor: number, currencyCode: string, locale?: string) => string` | Format a minor-unit amount (kobo, cents) as localised money; JPY and KWD decimals handled from the data. |
+
+```typescript
+import { detectCountry, formatMoney, getCurrencyByCountryCode } from '@incloodsolutions/toolkit/countries';
+
+getCurrencyByCountryCode('NG')?.symbol; // '₦'
+detectCountry({ timezone: 'Africa/Lagos', locale: 'en-NG' })?.name; // 'Nigeria'
+formatMoney(150050, 'NGN', 'en-NG'); // '₦1,500.50'
+```
+
 ---
 
 ## Development
@@ -354,6 +377,7 @@ Source layout:
 | `src/utility/`        | General-purpose helper functions            |
 | `src/validator/`      | Zod schemas and re-exported `validator` API |
 | `src/interface/`      | Shared interfaces, enums, and types         |
+| `src/countries/`      | Country data and country/currency helpers   |
 | `src/index.ts`        | Internal barrel re-exporting every module, used by tests — not published as a subpath |
 
 ## Publishing

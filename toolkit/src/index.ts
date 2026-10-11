@@ -14,6 +14,8 @@
  * - `@incloodsolutions/toolkit/validator` — ready-made Zod schemas plus every predicate from the `validator` package.
  * - `@incloodsolutions/toolkit/interface` — shared base interfaces (`IBaseId`, `IBaseCreator`, ...), `AppEnvironmentEnum`,
  *                 and helper types (`ObjectType`, `SortOrderType`).
+ * - `@incloodsolutions/toolkit/countries`   — ISO country data ({@link countries}, {@link ICountry}) plus
+ *                 {@link detectCountry}, {@link formatMoney}, {@link getCurrencyByCountryCode}.
  *
  * This file is kept only as the internal barrel used by this package's own
  * tests. See `README.md` and `../docs/AI-INDEX.md` for the full catalogue.
@@ -24,3 +26,4 @@ export * from './error';
 export * from './utility';
 export * from './validator';
 export * from './interface';
+export * from './countries';

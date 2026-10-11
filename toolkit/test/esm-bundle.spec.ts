@@ -23,6 +23,7 @@ const SUBPATH_ENTRIES: Record<string, string> = {
 	utility: 'compileHtmlWithHandlebar',
 	validator: 'UuidValidationSchema',
 	interface: '',
+	countries: 'formatMoney',
 };
 
 /** Runtime deps that are CJS-only and must be default-imported, not named. */

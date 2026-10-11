@@ -28,6 +28,7 @@ export default defineConfig([
 			utility: 'src/utility/index.ts',
 			validator: 'src/validator/index.ts',
 			interface: 'src/interface/index.ts',
+			countries: 'src/countries/index.ts',
 		},
 	}
 ]);

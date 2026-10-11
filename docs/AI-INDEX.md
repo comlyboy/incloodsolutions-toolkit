@@ -27,12 +27,12 @@ Packages:
 
 Framework-agnostic. **No package-root export** — `@incloodsolutions/toolkit` alone does not
 resolve; import a subpath. Internal barrel at `src/index.ts` (`constant`, `error`,
-`utility`, `validator`, `interface`) is used by tests only. Runtime deps: `axios`,
+`utility`, `validator`, `interface`, `countries`) is used by tests only. Runtime deps: `axios`,
 `handlebars`, `libphonenumber-js`, `nanoid`, `validator`, `xml2js`, `zod`.
 
 Published as tree-shakeable subpaths — one build per module, each with its own ESM + CJS +
 `.d.ts`, mirroring the source folder: `@incloodsolutions/toolkit/{constant, error, utility,
-validator, interface}`. Configured in `toolkit/tsup.config.ts` (`entry` map) and
+validator, interface, countries}`. Configured in `toolkit/tsup.config.ts` (`entry` map) and
 `toolkit/package.json` (`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### Constants — `src/constant/index.ts`
@@ -152,6 +152,16 @@ The type namespace is re-exported as `ValidatorTypes`.
 | `ExtractValueTypes<TEntity>` | type | union of a type's value types |
 | `ObjectType<TValue = any, TKey extends string \| number \| symbol = string>` | type | `Record<TKey, TValue>` |
 | `SortOrderType` | type | `'ascending' \| 'descending'` |
+
+### Countries and money — `src/countries/index.ts` (subpath `countries`)
+
+| Symbol | Signature | Summary |
+| ------ | --------- | ------- |
+| `countries` / `ICountry` | `ICountry[]` | Country data (copied from workinance `shared/src/data/countries.ts`): ISO codes, flag emoji, phone code, IANA timezones, currency code/name/symbol/numeric/minor units. |
+| `getCountryByCode` | `(countryCode: string) => ICountry \| undefined` | Alpha-2 or alpha-3 lookup, case-insensitive. |
+| `getCurrencyByCountryCode` | `(countryCode: string) => ICountryCurrency \| undefined` | The country's currency. |
+| `detectCountry` | `({ timezone?; locale? } = {}) => ICountry \| undefined` | Timezone first, locale region to break ties (shared zones such as `Africa/Lagos`) or as fallback. Defaults to the runtime's `Intl` values. |
+| `formatMoney` | `(amountMinor: number, currencyCode: string, locale?: string) => string` | Minor units to localised money via `Intl.NumberFormat`, decimals from the data. |
 
 ---
 

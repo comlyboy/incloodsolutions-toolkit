@@ -35,6 +35,11 @@
 			"import": "./dist/interface.js",
 			"require": "./dist/interface.cjs"
 		},
+		"./countries": {
+			"types": "./dist/countries.d.ts",
+			"import": "./dist/countries.js",
+			"require": "./dist/countries.cjs"
+		},
 		"./package.json": "./package.json"
 	},
 		"typesVersions": {
@@ -43,7 +48,8 @@
 			"error": ["./dist/error.d.ts"],
 			"utility": ["./dist/utility.d.ts"],
 			"validator": ["./dist/validator.d.ts"],
-			"interface": ["./dist/interface.d.ts"]
+			"interface": ["./dist/interface.d.ts"],
+			"countries": ["./dist/countries.d.ts"]
 		}
 	},
 	"author": "Inclood Solutions",
