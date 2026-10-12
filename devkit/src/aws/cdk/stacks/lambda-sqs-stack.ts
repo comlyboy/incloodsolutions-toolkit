@@ -6,7 +6,7 @@ import {
 	BaseLambdaLayerConstruct,
 	BaseSqsConstruct,
 } from '../constructs';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import { ILayerVersion } from 'aws-cdk-lib/aws-lambda';
 
 export class BaseLambdaSqsStack extends Stack {

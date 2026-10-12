@@ -8,7 +8,7 @@ import {
 	BaseLambdaConstruct,
 	BaseLambdaLayerConstruct,
 } from '../constructs';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 export class BaseLambdaApiStack extends Stack {
 	constructor(

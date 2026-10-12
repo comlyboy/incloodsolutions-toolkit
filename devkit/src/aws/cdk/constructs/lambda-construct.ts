@@ -8,12 +8,11 @@ import {
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 
-import {
-	detectDuplicateProperties,
-	AppEnvironmentEnum,
-} from '@incloodsolutions/toolkit';
+
 
 import { IBaseCdkConstructProps } from '../../types';
+import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
+import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
 
 /**
  * Props for BaseLambdaConstruct

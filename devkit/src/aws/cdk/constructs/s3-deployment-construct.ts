@@ -11,12 +11,13 @@ import {
 	DistributionProps,
 } from 'aws-cdk-lib/aws-cloudfront';
 
-import { ObjectType, CustomException } from '@incloodsolutions/toolkit';
 
 import { BaseS3Construct } from './s3-construct';
 import { BaseCloudfrontConstruct } from './cloudfront-construct';
 
 import { IBaseCdkConstructProps } from '../../types';
+import { CustomException } from '@incloodsolutions/toolkit/error';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Props for BaseS3DeploymentConstruct

@@ -9,7 +9,7 @@ import {
 	HttpApiProps,
 } from 'aws-cdk-lib/aws-apigatewayv2';
 
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
 /**

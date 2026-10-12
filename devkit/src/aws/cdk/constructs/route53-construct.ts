@@ -16,7 +16,7 @@ import {
 	TxtRecordProps,
 } from 'aws-cdk-lib/aws-route53';
 
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 import { IBaseCdkConstructProps } from '../../types';
 

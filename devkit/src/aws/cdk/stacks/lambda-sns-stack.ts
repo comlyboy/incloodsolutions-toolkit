@@ -6,7 +6,7 @@ import {
 	BaseLambdaLayerConstruct,
 	BaseSnsConstruct,
 } from '../constructs';
-import { CustomException } from '@incloodsolutions/toolkit';
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import { ILayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { TopicProps } from 'aws-cdk-lib/aws-sns';
 

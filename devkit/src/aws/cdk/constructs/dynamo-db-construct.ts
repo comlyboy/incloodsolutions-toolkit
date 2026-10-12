@@ -10,7 +10,7 @@ import {
 	TableProps,
 } from 'aws-cdk-lib/aws-dynamodb';
 
-import { consoleLog } from '@incloodsolutions/toolkit';
+import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
