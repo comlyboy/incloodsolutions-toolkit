@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import {
 	Architecture,
 	Code,
@@ -13,6 +13,7 @@ import {
 import { IBaseCdkConstructProps } from '../../types';
 import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
 import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 /**
  * Props for BaseLambdaConstruct
@@ -26,7 +27,7 @@ interface ILambdaConstructProps extends Omit<
 		readonly lambdaOptions: Partial<FunctionProps>;
 	}>,
 	'appName'
-> {}
+> { }
 
 /**
  * CDK construct for AWS Lambda function
@@ -69,6 +70,21 @@ export class BaseLambdaConstruct extends Construct {
 		 */
 		detectDuplicateProperties({ data: environment });
 
+		const functionName = `${props?.options?.lambdaOptions?.functionName || props?.stackName}`;
+
+		/**
+		 * CloudWatch log group for the Lambda function
+ * - Uses the provided log group if supplied
+ * - Otherwise creates one with stage-based retention
+ */
+		const logGroup =
+			props?.options?.lambdaOptions?.logGroup ||
+			new LogGroup(this, `${id}LogGroup`, {
+				logGroupName: `/aws/lambda/${functionName}`,
+				retention: props.stage === 'production' ? RetentionDays.ONE_MONTH : RetentionDays.ONE_WEEK,
+				removalPolicy: RemovalPolicy.DESTROY,
+			});
+
 		this.function = new Function(this, id, {
 			...props?.options?.lambdaOptions,
 
@@ -76,7 +92,7 @@ export class BaseLambdaConstruct extends Construct {
 			 * Lambda function name
 			 * Defaults to "<stackName>" if not provided
 			 */
-			functionName: `${props?.options?.lambdaOptions?.functionName || props?.stackName}`,
+			functionName,
 
 			/**
 			 * Function description
@@ -109,6 +125,11 @@ export class BaseLambdaConstruct extends Construct {
 			 * Memory allocation (in MB)
 			 */
 			memorySize: props?.options?.lambdaOptions?.memorySize || 1024,
+
+			/**
+			 *
+			 */
+			logGroup,
 
 			/**
 			 * CPU architecture
