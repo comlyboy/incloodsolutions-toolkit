@@ -428,12 +428,12 @@ export function generateCustomUUID({
  *
  * @typeParam TBody - Shape of `data`.
  * @param apiResponse - The {@link IBaseApiResult} to freeze.
- * @returns A `Readonly<IBaseApiResult>` copy.
+ * @returns A `Readonly<IBaseApiResult<TBody>>` copy.
  */
 export function apiResult<TBody extends ObjectType | ObjectType[]>(
 	apiResponse: IBaseApiResult<TBody>,
 ) {
-	return { ...apiResponse } as Readonly<IBaseApiResult>;
+	return { ...apiResponse } as Readonly<IBaseApiResult<TBody>>;
 }
 
 /**
