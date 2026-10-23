@@ -651,7 +651,10 @@ export function reqResLogger({
 	options,
 }: {
 	formats?: string[];
-	options?: Options<any, any>;
+	options?: Options<any, any> & {
+		ignoreRequestIdentity?: boolean;
+		ignoreLambdaInvokeId?: boolean;
+	};
 } = {}) {
 	let requestId = new Date().toUTCString();
 	formats = formats.map((format) =>
@@ -668,7 +671,7 @@ export function reqResLogger({
 		':res[content-length]',
 	];
 
-	if (isLambdaEnvironment()) {
+	if (isLambdaEnvironment() && !options?.ignoreLambdaInvokeId) {
 		const { context, event } = getCurrentLambdaInvocation() as {
 			context: Context;
 			event: APIGatewayProxyEventV2;
@@ -678,7 +681,10 @@ export function reqResLogger({
 		morgan.token('invocationId', () => context?.awsRequestId);
 	}
 
-	morgan.token('id', () => requestId);
+	if (!options?.ignoreRequestIdentity) {
+		morgan.token('id', () => requestId);
+	}
+
 	return morgan(defaultFormats.join(' | '), options);
 }
 
@@ -713,9 +719,9 @@ export async function validateDataWithClassValidator<
 		return errors.flatMap((error) => {
 			const currentConstraints = error.constraints
 				? Object.values(error.constraints).map((constraint) => {
-						const [first, ...rest] = constraint.split(' ');
-						return `'${first}': ${rest.join(' ')}`;
-					})
+					const [first, ...rest] = constraint.split(' ');
+					return `'${first}': ${rest.join(' ')}`;
+				})
 				: [];
 			const childConstraints = error.children?.length
 				? flattenValidationErrors(error.children)
