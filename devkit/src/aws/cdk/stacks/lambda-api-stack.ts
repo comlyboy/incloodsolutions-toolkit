@@ -21,6 +21,7 @@ export class BaseLambdaApiStack extends Stack {
 			};
 			lambdaOptions?: Partial<FunctionProps>;
 			apiGatewayOptions?: {};
+			domainOptions: {};
 		}>,
 	) {
 		const layers: ILayerVersion[] = [];
@@ -29,10 +30,13 @@ export class BaseLambdaApiStack extends Stack {
 
 		super(scope, id, {
 			...props,
-			env: { ...props?.env, region, account },
+			env: {
+				...props?.env,
+				region: props?.env?.region || 'us-east-1',
+				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT
+			},
 			tags: {
-				...props.tags,
-				stackName: props.tags?.stackName,
+				...props.tags || {},
 			},
 			synthesizer:
 				props?.synthesizer ||
@@ -41,7 +45,7 @@ export class BaseLambdaApiStack extends Stack {
 				}),
 		});
 
-		if (props?.stackOptions?.layerOptions) {
+		if (Object.keys(props?.stackOptions?.layerOptions || {}).length) {
 			if (
 				!props.stackOptions?.layerOptions?.name ||
 				!props.stackOptions?.layerOptions?.version

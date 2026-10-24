@@ -1,6 +1,6 @@
 {
 	"name": "@incloodsolutions/devkit",
-	"version": "0.0.10",
+	"version": "0.0.11",
 	"description": "A comprehensive development toolkit for Node.js and TypeScript, providing development utilities, configuration helpers, AWS CDK constructs, stacks, and infrastructure tooling.",
 	"type": "module",
 	"sideEffects": false,
@@ -166,7 +166,7 @@
 	},
 	"dependencies": {
 		"@incloodsolutions/toolkit": "^0.1.15",
-		"aws-cdk-lib": "^2.273.0",
+		"aws-cdk-lib": "^2.274.0",
 		"constructs": "^10.8.1",
 		"tslib": "^2.8.1"
 	},
@@ -178,7 +178,7 @@
 		"ts-node": "^10.9.2",
 		"tsup": "^8.5.1",
 		"typescript": "^6.0.3",
-		"vitest": "^5.0.4"
+		"vitest": "^5.0.5"
 	},
 	"typesVersions": {
 		"*": {
