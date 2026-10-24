@@ -1,6 +1,6 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
 import { FunctionProps, ILayerVersion } from 'aws-cdk-lib/aws-lambda';
-import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
+import { AddRoutesOptions, HttpApiProps, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 
 import { IBaseStackProps } from '../../types';
 import {
@@ -20,7 +20,10 @@ export class BaseLambdaApiStack extends Stack {
 				version: number;
 			};
 			lambdaOptions?: Partial<FunctionProps>;
-			apiGatewayOptions?: {};
+			apiGatewayOptions?: {
+				options?: HttpApiProps;
+				routeOptions?: Partial<AddRoutesOptions>[]
+			};
 			domainOptions: {};
 		}>,
 	) {
@@ -81,12 +84,15 @@ export class BaseLambdaApiStack extends Stack {
 			enableDebug: props?.stackOptions?.enableDebug,
 			options: {
 				gatewayOptions: {
+					...props?.stackOptions?.apiGatewayOptions?.options || {},
 					apiName: props.stackName,
 					corsPreflight: {
+						...props?.stackOptions?.apiGatewayOptions?.options?.corsPreflight || {},
 						allowOrigins: ['*'],
 					},
 				},
 				routeOptions: [
+					...props?.stackOptions?.apiGatewayOptions?.routeOptions || [],
 					{
 						path: '/{proxy+}',
 						methods: [HttpMethod.ANY],
