@@ -23,8 +23,7 @@ export class BaseLambdaLayerStack extends Stack {
 				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT,
 			},
 			tags: {
-				...props.tags || {},
-				stackName: props.tags?.stackName,
+				...props.tags || {}
 			},
 			synthesizer:
 				props?.synthesizer ||
