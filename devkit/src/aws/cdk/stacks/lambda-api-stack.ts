@@ -1,13 +1,17 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
 import { FunctionProps, ILayerVersion } from 'aws-cdk-lib/aws-lambda';
-import { AddRoutesOptions, HttpApiProps, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
+import {
+	AddRoutesOptions,
+	HttpApiProps,
+	HttpMethod,
+} from 'aws-cdk-lib/aws-apigatewayv2';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 
 import { IBaseStackProps } from '../../types';
 import {
 	BaseApiGatewayV2Construct,
 	BaseLambdaConstruct,
-	BaseLambdaLayerConstruct
+	BaseLambdaLayerConstruct,
 } from '../constructs';
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
@@ -23,10 +27,10 @@ export class BaseLambdaApiStack extends Stack {
 			lambdaOptions?: Partial<FunctionProps>;
 			apiGatewayOptions?: {
 				options?: HttpApiProps;
-				routeOptions?: Partial<AddRoutesOptions>[]
+				routeOptions?: Partial<AddRoutesOptions>[];
 			};
 			domainOptions: {};
-			policies?: { principal: 'lambda'; policy: PolicyStatement; }[]
+			policies?: { principal: 'lambda'; policy: PolicyStatement }[];
 		}>,
 	) {
 		const layers: ILayerVersion[] = [];
@@ -38,11 +42,11 @@ export class BaseLambdaApiStack extends Stack {
 			env: {
 				...props?.env,
 				region: props?.env?.region || 'us-east-1',
-				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT
+				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT,
 			},
 			tags: {
-				...props.tags || {},
-				stackName: props?.stackName
+				...(props.tags || {}),
+				stackName: props?.stackName,
 			},
 			synthesizer:
 				props?.synthesizer ||
@@ -77,7 +81,13 @@ export class BaseLambdaApiStack extends Stack {
 				stackName: props.stackName,
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
-					lambdaOptions: { ...props.stackOptions.lambdaOptions, layers: [...props.stackOptions.lambdaOptions.layers || [], ...layers] },
+					lambdaOptions: {
+						...props.stackOptions.lambdaOptions,
+						layers: [
+							...(props.stackOptions.lambdaOptions.layers || []),
+							...layers,
+						],
+					},
 				},
 			},
 		);
@@ -87,15 +97,19 @@ export class BaseLambdaApiStack extends Stack {
 			enableDebug: props?.stackOptions?.enableDebug,
 			options: {
 				gatewayOptions: {
-					...props?.stackOptions?.apiGatewayOptions?.options || {},
-					apiName: props?.stackOptions?.apiGatewayOptions?.options?.apiName || props.stackName,
+					...(props?.stackOptions?.apiGatewayOptions?.options || {}),
+					apiName:
+						props?.stackOptions?.apiGatewayOptions?.options?.apiName ||
+						props.stackName,
 					corsPreflight: {
-						...props?.stackOptions?.apiGatewayOptions?.options?.corsPreflight || {},
-						allowOrigins: props?.stackOptions?.apiGatewayOptions?.options?.corsPreflight.allowOrigins || ['*'],
+						...(props?.stackOptions?.apiGatewayOptions?.options
+							?.corsPreflight || {}),
+						allowOrigins: props?.stackOptions?.apiGatewayOptions?.options
+							?.corsPreflight.allowOrigins || ['*'],
 					},
 				},
 				routeOptions: [
-					...props?.stackOptions?.apiGatewayOptions?.routeOptions || [],
+					...(props?.stackOptions?.apiGatewayOptions?.routeOptions || []),
 					{
 						path: '/{proxy+}',
 						methods: [HttpMethod.ANY],
@@ -104,12 +118,10 @@ export class BaseLambdaApiStack extends Stack {
 			},
 		});
 
-		props.stackOptions.policies?.forEach(policy => {
+		props.stackOptions.policies?.forEach((policy) => {
 			if (policy.principal === 'lambda') {
 				lambdaFunction.addToRolePolicy(policy.policy);
 			}
-
 		});
-
 	}
 }

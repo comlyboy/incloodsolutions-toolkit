@@ -6,8 +6,11 @@
  * from) {@link IBaseCdkConstructProps}.
  */
 
-
-import { IBaseEnableDebug, ObjectType, AppEnvironmentType } from '@incloodsolutions/toolkit/interface';
+import {
+	IBaseEnableDebug,
+	ObjectType,
+	AppEnvironmentType,
+} from '@incloodsolutions/toolkit/interface';
 import { StackProps } from 'aws-cdk-lib';
 
 /**

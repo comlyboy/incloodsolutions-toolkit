@@ -8,8 +8,6 @@ import {
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 
-
-
 import { IBaseCdkConstructProps } from '../../types';
 import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -27,7 +25,7 @@ interface ILambdaConstructProps extends Omit<
 		readonly lambdaOptions: Partial<FunctionProps>;
 	}>,
 	'appName'
-> { }
+> {}
 
 /**
  * CDK construct for AWS Lambda function
@@ -116,11 +114,16 @@ export class BaseLambdaConstruct extends Construct {
 			/**
 			 * CloudWatch log group: the provided one, else one with stage-based retention
 			 */
-			logGroup: props?.options?.lambdaOptions?.logGroup || new LogGroup(this, `${id}LogGroup`, {
-				logGroupName: `/aws/lambda/${functionName}`,
-				retention: props.stage === 'production' ? RetentionDays.ONE_MONTH : RetentionDays.ONE_WEEK,
-				removalPolicy: RemovalPolicy.DESTROY,
-			}),
+			logGroup:
+				props?.options?.lambdaOptions?.logGroup ||
+				new LogGroup(this, `${id}LogGroup`, {
+					logGroupName: `/aws/lambda/${functionName}`,
+					retention:
+						props.stage === 'production'
+							? RetentionDays.ONE_MONTH
+							: RetentionDays.ONE_WEEK,
+					removalPolicy: RemovalPolicy.DESTROY,
+				}),
 
 			/**
 			 * CPU architecture
@@ -133,8 +136,7 @@ export class BaseLambdaConstruct extends Construct {
 			 */
 			code: props?.options?.lambdaOptions?.code || Code.fromAsset('dist'),
 
-			environment
-
+			environment,
 		});
 
 		/**

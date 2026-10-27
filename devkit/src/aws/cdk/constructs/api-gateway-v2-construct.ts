@@ -54,7 +54,8 @@ interface IApiGatewayV2ConstructProps extends Omit<
  */
 export class BaseApiGatewayV2Construct
 	extends Construct
-	implements IBaseConstruct {
+	implements IBaseConstruct
+{
 	/** The created HTTP API instance */
 	readonly api: HttpApi;
 

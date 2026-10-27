@@ -11,7 +11,6 @@ import {
 	DistributionProps,
 } from 'aws-cdk-lib/aws-cloudfront';
 
-
 import { BaseS3Construct } from './s3-construct';
 import { BaseCloudfrontConstruct } from './cloudfront-construct';
 
