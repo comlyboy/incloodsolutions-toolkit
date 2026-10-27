@@ -75,7 +75,7 @@ jobs:
             exit 1
           else
             echo "✅ New version detected. Proceeding to publish."
-            echo "Local: $PACKAGE_NAME@$LOCAL_VERSION vs Published: $PUBLISHED_VERSION"
+            echo "Local: $PACKAGE_NAME@$LOCAL_VERSION vs Published: $PACKAGE_NAME@$PUBLISHED_VERSION"
           fi
 
       - name: Install dependencies
