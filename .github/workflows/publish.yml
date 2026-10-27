@@ -37,24 +37,27 @@ jobs:
 
       - name: Determine working directory
         run: |
+          echo "▶ [1/6] Determining working directory"
+          echo "  Branch: $GITHUB_REF_NAME"
+          echo "  Commit: $GITHUB_SHA"
+          echo "  Triggered by: $GITHUB_ACTOR"
           echo "WORKING_DIRECTORY=${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
-
-      # - name: Install dependencies
-      #   working-directory: ${{ env.WORKING_DIRECTORY }}
-      #   run: |
-      #     echo "** Installing dependencies... **"
-      #     pwd
-      #     npm i
+          echo "✅ Package folder: /${GITHUB_REF_NAME#publish-}"
+          echo "  Node: $(node -v) | npm: $(npm -v)"
 
       - name: Resolve package info
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
+          echo "▶ [2/6] Resolving package info in /$WORKING_DIRECTORY"
           PACKAGE_NAME=$(node -p 'require("./package.json").name')
           LOCAL_VERSION=$(node -p 'require("./package.json").version')
 
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
           echo "LOCAL_VERSION=$LOCAL_VERSION" >> "$GITHUB_ENV"
+          echo "  Package: $PACKAGE_NAME"
+          echo "  Local version: $LOCAL_VERSION"
 
+          echo "  Checking npm registry for the latest published version..."
           PUBLISHED_VERSION=$(npm view "$PACKAGE_NAME" version 2>/dev/null || true)
 
           if [ -z "$PUBLISHED_VERSION" ]; then
@@ -62,9 +65,11 @@ jobs:
           fi
 
           echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_ENV"
+          echo "✅ Published version on npm: $PUBLISHED_VERSION"
 
       - name: Prevent duplicate publish
         run: |
+          echo "▶ [3/6] Checking $PACKAGE_NAME@$LOCAL_VERSION is not already published"
           if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
             echo "❌ Version already exists on npm ($LOCAL_VERSION)"
             exit 1
@@ -76,14 +81,22 @@ jobs:
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "** Installing dependencies for /${{ env.WORKING_DIRECTORY }} folder **"
-          pwd
+          echo "▶ [4/6] Installing dependencies for /${{ env.WORKING_DIRECTORY }} folder"
+          echo "📍 Current directory: $(pwd)"
           npm ci --no-audit --no-fund --quiet
+          echo "✅ Dependencies installed"
 
       - name: Build
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm run build
+        run: |
+          echo "▶ [5/6] Building $PACKAGE_NAME@$LOCAL_VERSION"
+          npm run build
+          echo "✅ Build finished. Output in /$WORKING_DIRECTORY/dist:"
+          ls -1 dist | head -30
 
       - name: Publish to npm
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm publish --access=public --provenance
+        run: |
+          echo "▶ [6/6] Publishing $PACKAGE_NAME@$LOCAL_VERSION to npm (public, with provenance)"
+          npm publish --access=public --provenance
+          echo "🎉 Published $PACKAGE_NAME@$LOCAL_VERSION: https://www.npmjs.com/package/$PACKAGE_NAME/v/$LOCAL_VERSION"
