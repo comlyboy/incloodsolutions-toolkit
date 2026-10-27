@@ -54,8 +54,7 @@ interface IApiGatewayV2ConstructProps extends Omit<
  */
 export class BaseApiGatewayV2Construct
 	extends Construct
-	implements IBaseConstruct
-{
+	implements IBaseConstruct {
 	/** The created HTTP API instance */
 	readonly api: HttpApi;
 
@@ -105,6 +104,7 @@ export class BaseApiGatewayV2Construct
 					'X-Api-Key',
 					'X-Amz-Security-Token',
 					'X-Amz-User-Agent',
+					'business_id',
 					...(props.options?.gatewayOptions?.corsPreflight?.allowHeaders || []),
 				],
 			},

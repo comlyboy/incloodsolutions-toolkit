@@ -56,7 +56,7 @@ export interface IBaseStackProps<
 		 * Deployment stage/environment. Some constructs use it to pick defaults
 		 * (e.g. a longer Lambda timeout in `'production'`) and to set `NODE_ENV`.
 		 */
-		readonly stage?: AppEnvironmentType;
+		readonly stage: AppEnvironmentType;
 	} & TStackOptions &
 		Readonly<Partial<IBaseEnableDebug>>;
 }

@@ -72,19 +72,6 @@ export class BaseLambdaConstruct extends Construct {
 
 		const functionName = `${props?.options?.lambdaOptions?.functionName || props?.stackName}`;
 
-		/**
-		 * CloudWatch log group for the Lambda function
- * - Uses the provided log group if supplied
- * - Otherwise creates one with stage-based retention
- */
-		const logGroup =
-			props?.options?.lambdaOptions?.logGroup ||
-			new LogGroup(this, `${id}LogGroup`, {
-				logGroupName: `/aws/lambda/${functionName}`,
-				retention: props.stage === 'production' ? RetentionDays.ONE_MONTH : RetentionDays.ONE_WEEK,
-				removalPolicy: RemovalPolicy.DESTROY,
-			});
-
 		this.function = new Function(this, id, {
 			...props?.options?.lambdaOptions,
 
@@ -129,7 +116,11 @@ export class BaseLambdaConstruct extends Construct {
 			/**
 			 *
 			 */
-			logGroup,
+			logGroup: props?.options?.lambdaOptions?.logGroup || new LogGroup(this, `${id}LogGroup`, {
+				logGroupName: `/aws/lambda/${functionName}`,
+				retention: props.stage === 'production' ? RetentionDays.ONE_MONTH : RetentionDays.ONE_WEEK,
+				removalPolicy: RemovalPolicy.DESTROY,
+			}),
 
 			/**
 			 * CPU architecture
@@ -145,7 +136,13 @@ export class BaseLambdaConstruct extends Construct {
 			/**
 			 * Final merged environment variables
 			 */
-			environment,
+			environment: {
+				...props.options?.lambdaOptions?.environment,
+				NODE_ENV: props.stage,
+				NODE_OPTIONS: '--enable-source-maps',
+				AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
+			}
+
 		});
 
 		/**

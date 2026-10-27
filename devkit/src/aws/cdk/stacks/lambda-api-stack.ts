@@ -106,7 +106,7 @@ export class BaseLambdaApiStack extends Stack {
 
 		props.stackOptions.policies.forEach(policy => {
 			if (policy.principal === 'lambda') {
-				lambdaFunction.addToRolePolicy(policy.policy)
+				lambdaFunction.addToRolePolicy(policy.policy);
 			}
 
 		});
