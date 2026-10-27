@@ -121,8 +121,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 				 */
 				compatibleRuntimes: [
 					Runtime.NODEJS_22_X,
-					Runtime.NODEJS_24_X,
-					Runtime.NODEJS_LATEST,
+					Runtime.NODEJS_24_X
 				],
 			} as LayerVersionProps);
 		}

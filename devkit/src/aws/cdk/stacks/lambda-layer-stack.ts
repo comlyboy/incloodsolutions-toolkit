@@ -12,7 +12,7 @@ export class BaseLambdaLayerStack extends Stack {
 			readonly layerOptions: Partial<
 				Omit<LayerVersionProps, 'layerVersionName' | 'compatibleArchitectures'>
 			> &
-				Required<Pick<LayerVersionProps, 'layerVersionName'>>;
+			Required<Pick<LayerVersionProps, 'layerVersionName'>>;
 		}>,
 	) {
 		super(scope, id, {
@@ -23,7 +23,8 @@ export class BaseLambdaLayerStack extends Stack {
 				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT,
 			},
 			tags: {
-				...props.tags || {}
+				...props.tags || {},
+				stackName: props?.stackName
 			},
 			synthesizer:
 				props?.synthesizer ||
