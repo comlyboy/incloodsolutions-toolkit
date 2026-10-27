@@ -12,8 +12,8 @@ import {
 
 import { IBaseCdkConstructProps } from '../../types';
 import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
-import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
 
 /**
  * Props for BaseLambdaConstruct
@@ -114,7 +114,7 @@ export class BaseLambdaConstruct extends Construct {
 			memorySize: props?.options?.lambdaOptions?.memorySize || 1024,
 
 			/**
-			 *
+			 * CloudWatch log group: the provided one, else one with stage-based retention
 			 */
 			logGroup: props?.options?.lambdaOptions?.logGroup || new LogGroup(this, `${id}LogGroup`, {
 				logGroupName: `/aws/lambda/${functionName}`,
@@ -133,15 +133,7 @@ export class BaseLambdaConstruct extends Construct {
 			 */
 			code: props?.options?.lambdaOptions?.code || Code.fromAsset('dist'),
 
-			/**
-			 * Final merged environment variables
-			 */
-			environment: {
-				...props.options?.lambdaOptions?.environment,
-				NODE_ENV: props.stage,
-				NODE_OPTIONS: '--enable-source-maps',
-				AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1'
-			}
+			environment
 
 		});
 
