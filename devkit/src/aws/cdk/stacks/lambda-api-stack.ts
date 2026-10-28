@@ -1,5 +1,5 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
-import { FunctionProps, ILayerVersion } from 'aws-cdk-lib/aws-lambda';
+import { FunctionProps } from 'aws-cdk-lib/aws-lambda';
 import {
 	AddRoutesOptions,
 	HttpApiProps,
@@ -20,20 +20,20 @@ export class BaseLambdaApiStack extends Stack {
 		scope: App,
 		id: string,
 		props: IBaseStackProps<{
-			layerOptions?: {
-				name: string;
-				version: number;
+			lambdaOptions?: Partial<FunctionProps> & {
+				readonly extraLayers?: {
+					name: string;
+					version: number;
+				}[]
 			};
-			lambdaOptions?: Partial<FunctionProps>;
 			apiGatewayOptions?: {
 				options?: HttpApiProps;
 				routeOptions?: Partial<AddRoutesOptions>[];
 			};
-			domainOptions: {};
+			domainOptions?: {};
 			policies?: { principal: 'lambda'; policy: PolicyStatement }[];
 		}>,
 	) {
-		const layers: ILayerVersion[] = [];
 		const region = props?.env?.region || 'us-east-1';
 		const account = props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT;
 
@@ -55,11 +55,8 @@ export class BaseLambdaApiStack extends Stack {
 				}),
 		});
 
-		if (Object.keys(props?.stackOptions?.layerOptions || {}).length) {
-			if (
-				!props.stackOptions?.layerOptions?.name ||
-				!props.stackOptions?.layerOptions?.version
-			) {
+		const extraLayers = props?.stackOptions?.lambdaOptions?.extraLayers.map(layer => {
+			if (!layer?.name || !layer?.version) {
 				throw new CustomException(
 					"Invalid layer options provided! Both layer 'name' and 'version' are required.",
 				);
@@ -67,26 +64,23 @@ export class BaseLambdaApiStack extends Stack {
 			const { existingLayer } = new BaseLambdaLayerConstruct(this, 'layer', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
-					fromExistingLayerArn: `arn:aws:lambda:${region}:${account}:layer:${props.stackOptions?.layerOptions?.name}:${props.stackOptions?.layerOptions?.version}`,
+					fromExistingLayerArn: `arn:aws:lambda:${region}:${account}:layer:${layer?.name}:${layer?.version}`,
 				},
 			});
-			layers.push(existingLayer);
-		}
+			return existingLayer;
+		});
 
 		const { function: lambdaFunction } = new BaseLambdaConstruct(
 			this,
 			'lambda',
 			{
 				stage: props.stackOptions?.stage,
-				stackName: props.stackName,
+				stackName: props?.stackName,
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					lambdaOptions: {
-						...props.stackOptions.lambdaOptions,
-						layers: [
-							...(props.stackOptions.lambdaOptions.layers || []),
-							...layers,
-						],
+						...props?.stackOptions?.lambdaOptions,
+						layers: [...props?.stackOptions?.lambdaOptions?.layers, ...extraLayers]
 					},
 				},
 			},
@@ -105,7 +99,7 @@ export class BaseLambdaApiStack extends Stack {
 						...(props?.stackOptions?.apiGatewayOptions?.options
 							?.corsPreflight || {}),
 						allowOrigins: props?.stackOptions?.apiGatewayOptions?.options
-							?.corsPreflight.allowOrigins || ['*'],
+							?.corsPreflight?.allowOrigins || ['*'],
 					},
 				},
 				routeOptions: [
