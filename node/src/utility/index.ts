@@ -661,8 +661,8 @@ export function reqResLogger({
 		format.startsWith(':') ? format : `:${format}`,
 	);
 	const defaultFormats = [
-		':id',
-		...(isLambdaEnvironment() ? [':invocationId'] : []),
+		...(!options?.ignoreRequestIdentity ? [':id'] : []),
+		...(isLambdaEnvironment() && !options?.ignoreLambdaInvokeId ? [':invocationId'] : []),
 		':method',
 		':status',
 		':url',
