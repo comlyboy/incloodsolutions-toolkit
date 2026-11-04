@@ -632,7 +632,6 @@ export function consoleLog({
 	data?: any;
 	options?: {
 		prettify?: boolean;
-		ignoreDate?: boolean;
 	};
 }) {
 	const yellowColor = '\x1b[33m';
@@ -651,7 +650,7 @@ export function consoleLog({
 		: message;
 
 	console.log(
-		`${options?.ignoreDate ? '' : new Date().toUTCString()} - ${logLabel} ${ctx}${logMessage}`,
+		`${logLabel} ${ctx}${logMessage}`,
 		data || '',
 	);
 }
