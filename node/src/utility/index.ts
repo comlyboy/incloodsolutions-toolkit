@@ -27,13 +27,6 @@ import {
 	plainToInstance,
 } from 'class-transformer';
 
-// import {
-// 	consoleLog,
-// 	CustomException,
-// 	IBaseEnableDebug,
-// 	ObjectType,
-// } from '@incloodsolutions/toolkit';
-
 import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult } from '../interface';
 import { CustomException } from '@incloodsolutions/toolkit/error';
@@ -44,40 +37,6 @@ import {
 import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
 const { AES, enc, HmacSHA512, SHA512 } = cryptoJs;
-
-/**
- * Recursively removes "empty" properties (`undefined`, `null`, `''`, or the
- * string `'undefined'`) from an object. Arrays and non-objects pass through
- * unchanged. Mirrors `sanitizeObject` from `@incloodsolutions/toolkit`.
- *
- * @typeParam TData - Shape of the object being sanitised.
- * @param options - Options.
- * @param options.data - The object to sanitise.
- * @param options.keysToRemove - Keys preserved even when empty. Defaults to `[]`.
- * @returns A new object with empty properties removed.
- */
-export function sanitizeObject<TData extends ObjectType = any>({
-	data,
-	keysToRemove = [],
-}: {
-	data: TData;
-	keysToRemove?: (keyof TData)[];
-}): TData {
-	const isInvalidObject =
-		!Object.keys(data).length ||
-		typeof data !== 'object' ||
-		Array.isArray(data);
-	if (isInvalidObject) return data;
-	return Object.fromEntries(
-		Object.entries(data)
-			.filter(
-				([key, value]) =>
-					![undefined, null, '', 'undefined'].includes(value) ||
-					!keysToRemove.includes(key),
-			)
-			.map(([key, value]) => [key, sanitizeObject(value)]),
-	) as TData;
-}
 
 /**
  * Encrypts or hashes a value with `crypto-js`.

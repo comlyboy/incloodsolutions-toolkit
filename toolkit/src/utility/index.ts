@@ -289,17 +289,14 @@ export function parsePhonenumber(
  * // => { name: 'Ada' }
  */
 export function sanitizeObject<TData extends ObjectType = any>({
-	data,
+	data = {} as TData,
 	keysToRemove = [],
 }: {
 	data: TData;
 	keysToRemove?: (keyof TData)[];
 }): TData {
-	const isInvalidObject =
-		!Object.keys(data).length ||
-		typeof data !== 'object' ||
-		Array.isArray(data);
-	if (isInvalidObject) return data;
+	if (!data || typeof data !== 'object' || Array.isArray(data)) return data;
+	if (!Object.keys(data).length) return data;
 	return Object.fromEntries(
 		Object.entries(data)
 			.filter(
