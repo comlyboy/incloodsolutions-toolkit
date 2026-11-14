@@ -159,8 +159,9 @@ export class BaseLambdaApiStack extends Stack {
 				},
 			});
 
-			
+
 		}
+		
 
 		if (props?.stackOptions?.triggersOptions?.sqs && Object.keys(props?.stackOptions?.triggersOptions?.sqs).length) {
 			const { } = new BaseSqsConstruct(this, 'sqs', {
