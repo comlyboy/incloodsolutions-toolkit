@@ -13,9 +13,12 @@ import {
 	BaseEventBridgeConstruct,
 	BaseLambdaConstruct,
 	BaseLambdaLayerConstruct,
+	BaseSnsConstruct,
+	BaseSqsConstruct,
 } from '../constructs';
 import { CustomException } from '@incloodsolutions/toolkit/error';
 import { RuleProps } from 'aws-cdk-lib/aws-events';
+import { TopicProps } from 'aws-cdk-lib/aws-sns';
 
 export class BaseLambdaApiStack extends Stack {
 	constructor(
@@ -33,7 +36,7 @@ export class BaseLambdaApiStack extends Stack {
 					options?: HttpApiProps;
 					routeOptions?: Partial<AddRoutesOptions>[];
 				},
-				sns?: {},
+				sns?: TopicProps,
 				sqs?: {},
 				s3?: {},
 				dynamodb?: {},
@@ -142,12 +145,36 @@ export class BaseLambdaApiStack extends Stack {
 		}
 
 		if (props?.stackOptions?.triggersOptions?.sns && Object.keys(props?.stackOptions?.triggersOptions?.sns).length) {
-
+			const { } = new BaseSnsConstruct(this, 'sns', {
+				enableDebug: props?.stackOptions?.enableDebug,
+				options: {
+					targetFunctions: [lambdaFunction],
+					topicOptions: {
+						...(props?.stackOptions?.triggersOptions?.sns || {}),
+						topicName:
+							props?.stackOptions?.triggersOptions?.sns?.topicName ||
+							props.stackName,
+					},
+				},
+			});
 
 		}
 
 		if (props?.stackOptions?.triggersOptions?.sqs && Object.keys(props?.stackOptions?.triggersOptions?.sqs).length) {
-
+			const { } = new BaseSqsConstruct(this, 'sqs', {
+				enableDebug: props?.stackOptions?.enableDebug,
+				options: {
+					eventSourceMappingOptions: {},
+					queueOptions: {},
+					// targetFunctions: [lambdaFunction],
+					sqsOptions: {
+						...(props?.stackOptions?.triggersOptions?.sqs || {}),
+						queueName:
+							props?.stackOptions?.triggersOptions?.sqs?.queueName ||
+							props.stackName,
+					},
+				},
+			});
 
 		}
 
