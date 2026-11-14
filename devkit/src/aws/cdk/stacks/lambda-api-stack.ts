@@ -169,7 +169,7 @@ export class BaseLambdaApiStack extends Stack {
 					eventSourceMappingOptions: {},
 					queueOptions: {
 						...(props?.stackOptions?.triggersOptions?.sqs || {}),
-							// props?.stackOptions?.triggersOptions?.sqs?.queueName || props.stackName,
+						queueName: props?.stackOptions?.triggersOptions?.sqs?.queueName || props.stackName,
 					},
 
 				},
