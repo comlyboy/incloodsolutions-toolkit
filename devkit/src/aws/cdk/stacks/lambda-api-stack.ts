@@ -10,10 +10,12 @@ import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { IBaseStackProps } from '../../types';
 import {
 	BaseApiGatewayV2Construct,
+	BaseEventBridgeConstruct,
 	BaseLambdaConstruct,
 	BaseLambdaLayerConstruct,
 } from '../constructs';
 import { CustomException } from '@incloodsolutions/toolkit/error';
+import { RuleProps } from 'aws-cdk-lib/aws-events';
 
 export class BaseLambdaApiStack extends Stack {
 	constructor(
@@ -26,11 +28,17 @@ export class BaseLambdaApiStack extends Stack {
 					version: number;
 				}[]
 			};
-			apiGatewayOptions?: {
-				options?: HttpApiProps;
-				routeOptions?: Partial<AddRoutesOptions>[];
-			};
-			domainOptions?: {};
+			triggersOptions?: {
+				apiGateway?: {
+					options?: HttpApiProps;
+					routeOptions?: Partial<AddRoutesOptions>[];
+				},
+				sns?: {},
+				sqs?: {},
+				s3?: {},
+				dynamodb?: {},
+				eventBridge?: RuleProps,
+			}
 			policies?: { principal: 'lambda'; policy: PolicyStatement }[];
 		}>,
 	) {
@@ -54,6 +62,7 @@ export class BaseLambdaApiStack extends Stack {
 					bucketPrefix: `functions/${props.stackOptions?.stage}/`,
 				}),
 		});
+
 
 		const extraLayers = props?.stackOptions?.lambdaOptions?.extraLayers.map(layer => {
 			if (!layer?.name || !layer?.version) {
@@ -86,36 +95,72 @@ export class BaseLambdaApiStack extends Stack {
 			},
 		);
 
-		new BaseApiGatewayV2Construct(this, 'apiGateway', {
-			handlerFunctions: [lambdaFunction],
-			enableDebug: props?.stackOptions?.enableDebug,
-			options: {
-				gatewayOptions: {
-					...(props?.stackOptions?.apiGatewayOptions?.options || {}),
-					apiName:
-						props?.stackOptions?.apiGatewayOptions?.options?.apiName ||
-						props.stackName,
-					corsPreflight: {
-						...(props?.stackOptions?.apiGatewayOptions?.options
-							?.corsPreflight || {}),
-						allowOrigins: props?.stackOptions?.apiGatewayOptions?.options
-							?.corsPreflight?.allowOrigins || ['*'],
+		if (props?.stackOptions?.triggersOptions?.apiGateway && Object.keys(props?.stackOptions?.triggersOptions?.apiGateway).length) {
+			new BaseApiGatewayV2Construct(this, 'apiGateway', {
+				handlerFunctions: [lambdaFunction],
+				enableDebug: props?.stackOptions?.enableDebug,
+				options: {
+					gatewayOptions: {
+						...(props?.stackOptions?.triggersOptions?.apiGateway?.options || {}),
+						apiName:
+							props?.stackOptions?.triggersOptions?.apiGateway?.options?.apiName ||
+							props.stackName,
+						corsPreflight: {
+							...(props?.stackOptions?.triggersOptions?.apiGateway?.options
+								?.corsPreflight || {}),
+							allowOrigins: props?.stackOptions?.triggersOptions?.apiGateway?.options
+								?.corsPreflight?.allowOrigins || ['*'],
+						},
+					},
+					routeOptions: [
+						...(props?.stackOptions?.triggersOptions?.apiGateway?.routeOptions || []),
+						{
+							path: '/{proxy+}',
+							methods: [HttpMethod.ANY],
+						},
+					],
+				},
+			});
+
+		}
+
+		if (props?.stackOptions?.triggersOptions?.eventBridge && Object.keys(props?.stackOptions?.triggersOptions?.eventBridge).length) {
+
+			const { } = new BaseEventBridgeConstruct(this, 'eventBridge', {
+				enableDebug: props?.stackOptions?.enableDebug,
+				options: {
+					targetFunctions: [lambdaFunction],
+					eventBridgeOptions: {
+						...(props?.stackOptions?.triggersOptions?.eventBridge || {}),
+						ruleName:
+							props?.stackOptions?.triggersOptions?.eventBridge?.ruleName ||
+							props.stackName,
 					},
 				},
-				routeOptions: [
-					...(props?.stackOptions?.apiGatewayOptions?.routeOptions || []),
-					{
-						path: '/{proxy+}',
-						methods: [HttpMethod.ANY],
-					},
-				],
-			},
-		});
+			});
+
+		}
+
+		if (props?.stackOptions?.triggersOptions?.sns && Object.keys(props?.stackOptions?.triggersOptions?.sns).length) {
+
+
+		}
+
+		if (props?.stackOptions?.triggersOptions?.sqs && Object.keys(props?.stackOptions?.triggersOptions?.sqs).length) {
+
+
+		}
+
+		if (props?.stackOptions?.triggersOptions?.s3 && Object.keys(props?.stackOptions?.triggersOptions?.s3).length) {
+
+
+		}
 
 		props.stackOptions.policies?.forEach((policy) => {
 			if (policy.principal === 'lambda') {
 				lambdaFunction.addToRolePolicy(policy.policy);
 			}
 		});
+
 	}
 }

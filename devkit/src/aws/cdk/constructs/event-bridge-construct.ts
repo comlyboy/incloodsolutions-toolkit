@@ -21,8 +21,8 @@ interface IEventBridgeConstructProps extends Omit<
 		/** EventBridge rule configuration */
 		readonly eventBridgeOptions: RuleProps;
 	}>,
-	'appName' | 'stage' | 'stackName'
-> {}
+	'appName' | 'stackName'
+> { }
 
 /**
  * CDK construct for EventBridge rule
@@ -62,6 +62,7 @@ export class BaseEventBridgeConstruct extends Construct {
 				this.eventSchedule.addTarget(
 					/**
 					 * Lambda target integration
+					 * Note: Each target function is added to the rule as a separate target, allowing multiple functions to be triggered by the same rule.
 					 */
 					new LambdaFunction(targetFunction),
 				);
@@ -71,6 +72,8 @@ export class BaseEventBridgeConstruct extends Construct {
 		/**
 		 * Apply removal policy (useful for non-production environments)
 		 */
+		// if (props?.stage !== 'production') {
+		// }
 		this.eventSchedule.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
 		/**

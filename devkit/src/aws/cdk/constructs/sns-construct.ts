@@ -59,6 +59,7 @@ export class BaseSnsConstruct extends Construct {
 				this.topic.addSubscription(
 					/**
 					 * Lambda subscription target
+					 * Note: Each target function is added to the topic as a separate subscription, allowing multiple functions to receive messages from the same topic.
 					 */
 					new LambdaSubscription(targetFunction),
 				);
