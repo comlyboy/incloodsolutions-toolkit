@@ -116,7 +116,7 @@ export class BaseLambdaConstruct extends Construct {
 			 */
 			logGroup:
 				props?.options?.lambdaOptions?.logGroup ||
-				new LogGroup(this, `${id}LogGroup`, {
+				new LogGroup(this, `${id}-logGroup`, {
 					logGroupName: `/aws/lambda/${functionName}`,
 					retention:
 						props.stage === 'production'
