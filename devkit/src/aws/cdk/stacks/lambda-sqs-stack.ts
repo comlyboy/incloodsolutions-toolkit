@@ -9,7 +9,21 @@ import {
 import { CustomException } from '@incloodsolutions/toolkit/error';
 import { ILayerVersion } from 'aws-cdk-lib/aws-lambda';
 
+/**
+ * A Lambda function that consumes messages from an SQS queue, in one stack.
+ *
+ * Creates a {@link BaseLambdaConstruct} and a {@link BaseSqsConstruct} queue that targets it.
+ * An existing layer can be attached with `layerOptions` (`name` and `version`). The region
+ * defaults to `us-east-1` and the account to `CDK_DEFAULT_ACCOUNT`.
+ */
 export class BaseLambdaSqsStack extends Stack {
+	/**
+	 * @param scope The CDK app.
+	 * @param id Unique stack identifier.
+	 * @param props Stack configuration: `stackName`, `env`, `tags`, `synthesizer` and
+	 *   `stackOptions` (`stage`, `enableDebug`, `layerOptions`, `lambdaOptions`).
+	 * @throws {CustomException} When `layerOptions` is set without both `name` and `version`.
+	 */
 	constructor(
 		scope: App,
 		id: string,

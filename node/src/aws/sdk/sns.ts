@@ -11,7 +11,8 @@ import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Initialize an Amazon SNS (Simple Notification Service) client wrapper
- * @param config SNS client configuration
+ * @param params - Wrapper parameters.
+ * @param params.config SNS client configuration
  * @returns Object containing methods for SNS operations
  */
 export function initSnsClientWrapper({ config }: { config: SNSClientConfig }) {

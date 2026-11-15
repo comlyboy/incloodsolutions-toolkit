@@ -3,21 +3,18 @@ import type { Express, Request, Response } from 'express';
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
 /**
- * Runs an Express or NestJS application as a Google Cloud Functions HTTP handler.
- *
- * On the first invocation the underlying Express instance is resolved (calling
- * `app.init()` for a NestJS app) and cached; subsequent invocations reuse it.
+ * Runs an Express application as a Google Cloud Functions HTTP handler by passing the
+ * request and response straight to the app.
  *
  * @param params - Handler parameters.
- * @param params.app - An Express application, or a NestJS app instance
- *   (detected via `getHttpAdapter`).
+ * @param params.app - The Express application.
  * @param params.request - The Cloud Functions `Request`.
  * @param params.response - The Cloud Functions `Response`.
  * @returns The result of dispatching the request through Express.
  * @throws {CustomException} When `app` is not provided.
  *
  * @example
- * import { initGcpFunctionHandler } from '@incloodsolutions/node-toolkit';
+ * import { initGcpFunctionHandler } from '@incloodsolutions/node-toolkit/gcp';
  * import { app } from './app';
  *
  * export const api = (request, response) => initGcpFunctionHandler({ app, request, response });

@@ -28,24 +28,27 @@ type EventSources =
 	| 'AWS_SELF_MANAGED_KAFKA';
 
 /**
- * Initializes and returns a serverless Lambda handler for an Express application
+ * Runs an Express application as an AWS Lambda handler, using `@codegenie/serverless-express`.
  *
- * @template TEvent - Type of the event
- * @template TCallback - Type of the callback
+ * The first call builds the serverless-express handler and caches it, so warm invocations reuse
+ * it. `context.callbackWaitsForEmptyEventLoop` is set to `false` so the function returns as soon
+ * as the response is ready.
  *
- * @param {Object} params - Initialization parameters
- * @param {Express} params.app - Express application instance
- * @param {TEvent} params.event - Lambda event object
- * @param {Context} params.context - Lambda execution context
- * @param {TCallback} params.callback - Lambda callback function
- * @param {Object} [params.options] - Optional configuration for serverlessExpress and logging
- * @param {Object} [params.options.loggerOptions] - Logger configuration
- * @param {ConstructorOptions} [params.options.loggerOptions.powertools] - Powertools logger options
- * @param {Object} [params.options.eventOptions] - Event source configuration
- * @param {Object} [params.options.eventOptions.eventSource] - Custom getRequest/getResponse handlers
- * @param {Record<EventSources, string>} [params.options.eventOptions.eventSourceRoutes] - Routes by event source
+ * @typeParam TEvent - The Lambda event: API Gateway v2, SNS, SQS or EventBridge.
  *
- * @returns {Promise<any>} - The result of invoking the serverless Express handler
+ * @param params - Handler parameters.
+ * @param params.app - The Express application.
+ * @param params.event - The Lambda event.
+ * @param params.context - The Lambda execution context.
+ * @param params.options - Optional serverless-express configuration.
+ * @param params.options.eventOptions - Passed to serverless-express: custom `eventSource`
+ *   `getRequest`/`getResponse`, `eventSourceRoutes` (a route per event source), binary settings,
+ *   `respondWithErrors` and so on.
+ *
+ * @returns The result of invoking the serverless-express handler.
+ *
+ * @example
+ * export const handler = (event, context) => initLambdaFunctionHandler({ app, event, context });
  */
 export async function initLambdaFunctionHandler<
 	TEvent extends

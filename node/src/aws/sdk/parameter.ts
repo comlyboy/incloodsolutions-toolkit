@@ -8,7 +8,8 @@ import {
 
 /**
  * Initialize an AWS Systems Manager (SSM) Parameter Store client wrapper
- * @param config Optional SSM client configuration
+ * @param params - Wrapper parameters.
+ * @param params.config Optional SSM client configuration. The region defaults to `us-east-1`.
  * @returns Object containing methods for reading parameters
  */
 export function initSsmParameterClientWrapper({

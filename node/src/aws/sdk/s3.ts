@@ -9,8 +9,9 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 /**
  * Initialize an S3 client wrapper with bucket configuration
- * @param bucketName The name of the S3 bucket to interact with
- * @param config Optional S3 client configuration
+ * @param params - Wrapper parameters.
+ * @param params.bucketName The name of the S3 bucket to interact with
+ * @param params.config Optional S3 client configuration
  * @returns Object containing methods for S3 operations
  */
 export function initS3ClientWrapper({

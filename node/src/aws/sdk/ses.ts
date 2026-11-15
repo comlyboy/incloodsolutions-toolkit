@@ -6,8 +6,9 @@ import {
 
 /**
  * Initialize an Amazon SES (Simple Email Service) client wrapper
- * @param sourceEmail The email address to send emails from
- * @param config Optional SES client configuration
+ * @param params - Wrapper parameters.
+ * @param params.sourceEmail The email address to send emails from
+ * @param params.config Optional SES client configuration
  * @returns Object containing methods for email operations
  */
 export function initSesClientWrapper({

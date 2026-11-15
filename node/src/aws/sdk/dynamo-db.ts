@@ -48,25 +48,25 @@ function toPartialSchema(schema: ZodObject): ZodObject {
  * the AWS SDK v3 `DynamoDBDocumentClient`.
  *
  * Takes care of the repetitive parts of talking to DynamoDB directly:
- * - Generates the partition key and stamps `createdAtDate` on {@link put}.
+ * - Generates the partition key and stamps `createdAtDate` on `put`.
  * - Validates `put`/`updateOne` payloads against a Zod schema via
  *   the wrapper's `validate` before any write reaches DynamoDB.
  * - Escapes attribute names that collide with DynamoDB reserved words in
  *   every generated key condition, filter, and update expression.
  * - Supports `contains`-based text search and attribute projection
- *   (`select`) in {@link query}.
- * - Transparently follows pagination in {@link query} (while `returnAll` is
- *   set) and in {@link getMany}.
+ *   (`select`) in `query`.
+ * - Transparently follows pagination in `query` (while `returnAll` is
+ *   set) and in `getMany`.
  * - Optionally logs every command's input and consumed capacity via
  *   `consoleLog` when `options.options.enableDebug` is `true`.
  *
  * @template TType - Shape of one item in the table.
  * @template TTableIndexType - Union of the table's secondary index names,
- *   used to type {@link query}'s `indexName` parameter.
+ *   used to type `query`'s `indexName` parameter.
  * @param options - Wrapper configuration.
  * @param options.tableName - The DynamoDB table name.
  * @param options.schema - Zod object schema describing the item shape.
- *   {@link put} validates `data` against the full `schema`; `updateOne`
+ *   `put` validates `data` against the full `schema`; `updateOne`
  *   validates against `schema.partial()` .
  * @param options.compositePrimaryKeyOptions - Controls how the partition key
  *   is generated when creating a new item via `put`.
@@ -1196,7 +1196,7 @@ export function initDynamoDbClientWrapper<
 		 * (`BatchGetCommand`).
 		 *
 		 * Always follows `UnprocessedKeys` until DynamoDB has returned every
-		 * requested item (or failed to find it) — unlike {@link query}, there is
+		 * requested item (or failed to find it) — unlike `query`, there is
 		 * currently no way to fetch only a single page here.
 		 *
 		 * @param keys The items' primary keys (and sort keys, if the table has one).
@@ -1295,7 +1295,7 @@ export function initDynamoDbClientWrapper<
 		 * built — throws {@link CustomException} and never calls DynamoDB if
 		 * validation fails. Each key in `data` becomes one `SET` clause, with
 		 * DynamoDB reserved words rewritten to `ExpressionAttributeNames`
-		 * placeholders the same way {@link query} does.
+		 * placeholders the same way `query` does.
 		 *
 		 * @param key The primary key (and sort key, if the table has one) of the
 		 *   item to update.

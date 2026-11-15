@@ -739,6 +739,23 @@ export async function fetchGoogleSheet({
 	return sendHttpRequest<string>({ url: url.toString() });
 }
 
+/**
+ * Parses CSV text into an array of row objects, using `csv-parse`.
+ *
+ * The first row is the header. Empty lines are skipped and cells are trimmed. By default an
+ * empty cell becomes `null`, `true`/`false` (any case) become booleans, and everything else stays
+ * a string. Pass `options.cast` to replace that.
+ *
+ * @typeParam TSchema - Shape of each parsed row.
+ * @param params - Parse parameters.
+ * @param params.csv - The CSV content.
+ * @param params.options - `csv-parse` options, merged over the defaults above.
+ * @returns The parsed rows.
+ *
+ * @example
+ * const csv = await fetchGoogleSheet({ sheetId: '1AbC' });
+ * const rows = parseCsv<{ name: string; age: number }>({ csv, options: {} });
+ */
 export function parseCsv<TSchema>({
 	csv,
 	options,

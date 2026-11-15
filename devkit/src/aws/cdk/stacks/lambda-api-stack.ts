@@ -22,7 +22,33 @@ import {
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
 
+/**
+ * A Lambda function plus the triggers and permissions it needs, in one stack.
+ *
+ * Always creates a {@link BaseLambdaConstruct}. Each key present in
+ * `stackOptions.triggersOptions` adds one more resource wired to that function:
+ * - `apiGateway`: an HTTP API ({@link BaseApiGatewayV2Construct}) with the given routes plus a
+ *   catch-all `/{proxy+}` route for any method. CORS allows all origins unless set.
+ * - `eventBridge`, `sns`, `sqs`: a rule, topic or queue that invokes the function. Each is named
+ *   after `stackName` unless a name is given.
+ * - `s3`: a bucket the function can read and write, and that is allowed to invoke it.
+ * - `dynamodb`: a table.
+ *
+ * Layers published by another stack are attached with `stackOptions.lambdaOptions.extraLayers`
+ * (`name` and `version`, resolved to an ARN in this stack's account and region).
+ * `stackOptions.policies` adds IAM statements to the function's role.
+ *
+ * The region defaults to `us-east-1` and the account to `CDK_DEFAULT_ACCOUNT`. Assets go to a
+ * `functions/<stage>/` prefix unless a `synthesizer` is passed.
+ */
 export class BaseLambdaApiStack extends Stack {
+	/**
+	 * @param scope The CDK app.
+	 * @param id Unique stack identifier.
+	 * @param props Stack configuration: `stackName`, `env`, `tags`, `synthesizer` and
+	 *   `stackOptions` (`stage`, `enableDebug`, `lambdaOptions`, `triggersOptions`, `policies`).
+	 * @throws {CustomException} When an entry in `extraLayers` is missing its `name` or `version`.
+	 */
 	constructor(
 		scope: App,
 		id: string,
@@ -69,13 +95,13 @@ export class BaseLambdaApiStack extends Stack {
 		});
 
 
-		const extraLayers = props?.stackOptions?.lambdaOptions?.extraLayers.map(layer => {
+		const extraLayers = (props?.stackOptions?.lambdaOptions?.extraLayers || []).map((layer, layerIndex) => {
 			if (!layer?.name || !layer?.version) {
 				throw new CustomException(
 					"Invalid layer options provided! Both layer 'name' and 'version' are required.",
 				);
 			}
-			const { existingLayer } = new BaseLambdaLayerConstruct(this, 'layer', {
+			const { existingLayer } = new BaseLambdaLayerConstruct(this, `layer${layerIndex}`, {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					fromExistingLayerArn: `arn:aws:lambda:${region}:${account}:layer:${layer?.name}:${layer?.version}`,
@@ -94,7 +120,7 @@ export class BaseLambdaApiStack extends Stack {
 				options: {
 					lambdaOptions: {
 						...props?.stackOptions?.lambdaOptions,
-						layers: [...props?.stackOptions?.lambdaOptions?.layers, ...extraLayers]
+						layers: [...(props?.stackOptions?.lambdaOptions?.layers || []), ...extraLayers]
 					},
 				},
 			},
@@ -138,8 +164,8 @@ export class BaseLambdaApiStack extends Stack {
 						ruleName:
 							props?.stackOptions?.triggersOptions?.eventBridge?.ruleName ||
 							props.stackName,
-					},
-				},
+					}
+				}
 			});
 
 

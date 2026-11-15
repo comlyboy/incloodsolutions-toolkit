@@ -9,6 +9,7 @@ export * from './timezones';
 export interface ICountryCurrency {
 	/** ISO 4217 code, as in "NGN". */
 	code: string;
+	/** Currency name, as in "Nigerian Naira". */
 	name: string | null;
 	/** As in "₦", "$", "Ksh". */
 	symbol: string | null;

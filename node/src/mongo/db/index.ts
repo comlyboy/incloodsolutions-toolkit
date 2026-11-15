@@ -20,14 +20,17 @@ if (!cachedConnection) {
  * Initializes a singleton Mongoose connection that is cached globally to
  * support environments like serverless functions or Lambda.
  *
- * @param {Object} [params] - Optional parameters for connecting to MongoDB.
- * @param {string} [params.url] - MongoDB connection URI. Defaults to `process.env.MONGO_DATABASE_URL`.
- * @param {Object} [params.options] - Unused. Reserved for future config merging.
- * @param {ConnectOptions} [params.connectionOptions] - Connection options passed directly to Mongoose.
- * @param {boolean} [params.enableDebug] - Enables Mongoose debug mode for verbose logging.
+ * A healthy cached connection is reused. Otherwise it connects, retrying on failure.
  *
- * @returns {Promise<{ closeConnection: () => Promise<void>, connection: Connection }>}
- * An object containing the active `connection` and a method `closeConnection` to close it.
+ * @param params - Optional parameters for connecting to MongoDB.
+ * @param params.url - MongoDB connection URI. Defaults to `process.env.MONGO_DATABASE_URL`.
+ * @param params.options - Retry and logging options.
+ * @param params.options.retries - Connection attempts before giving up. Defaults to `5`.
+ * @param params.options.retryDelayMs - Wait between attempts, in milliseconds. Defaults to `5000`.
+ * @param params.options.enableDebug - Enables Mongoose debug mode and logs each step. Defaults to `false`.
+ * @param params.connectionOptions - Connection options passed directly to Mongoose.
+ *
+ * @returns An object containing the active `connection` and a method `closeConnection` to close it.
  *
  * @throws {CustomException} When connection fails or disconnection throws an error.
  */

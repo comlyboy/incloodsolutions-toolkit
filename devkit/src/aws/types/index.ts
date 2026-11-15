@@ -54,6 +54,10 @@ export interface IBaseCdkConstructProps<
 export interface IBaseStackProps<
 	TStackOptions extends ObjectType = any,
 > extends StackProps {
+	/**
+	 * Options for the stack's resources. Always includes `stage` and `enableDebug`; each stack adds
+	 * its own (`TStackOptions`), for example `lambdaOptions` or `layerOptions`.
+	 */
 	readonly stackOptions: {
 		/**
 		 * Deployment stage/environment. Some constructs use it to pick defaults
