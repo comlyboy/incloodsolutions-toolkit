@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { Bucket, BucketProps } from 'aws-cdk-lib/aws-s3';
+import { Bucket, BucketAttributes, BucketProps, IBucket } from 'aws-cdk-lib/aws-s3';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -14,9 +14,18 @@ interface IS3DeploymentConstructProps extends Omit<
 	IBaseCdkConstructProps<{
 		/** Configuration options for the S3 bucket */
 		readonly bucketOptions?: BucketProps;
+
+		/**Import an existing bucket by name */
+		readonly fromExistingBucketName?: string;
+
+		/** Import an existing bucket by ARN */
+		readonly fromExistingBucketArn?: string;
+
+		/** Import an existing layer using attributes */
+		readonly fromExistingBucketAttribute?: BucketAttributes;
 	}>,
 	'appName' | 'stackName'
-> {}
+> { }
 
 /**
  * CDK construct for S3 bucket
@@ -29,6 +38,8 @@ interface IS3DeploymentConstructProps extends Omit<
 export class BaseS3Construct extends Construct {
 	/** The created S3 bucket instance */
 	readonly bucket: Bucket;
+	/** Reference to an existing S3 bucket (if imported) */
+	readonly existingBucket: IBucket;
 
 	/**
 	 * @param scope Parent construct
@@ -42,16 +53,38 @@ export class BaseS3Construct extends Construct {
 	) {
 		super(scope, id);
 
-		this.bucket = new Bucket(this, id, {
-			...props.options?.bucketOptions,
+		if (props.options?.fromExistingBucketName) {
+			this.existingBucket = Bucket.fromBucketName(
+				this,
+				`${id}-Name`,
+				props.options.fromExistingBucketName,
+			);
+		} else if (props.options?.fromExistingBucketArn) {
+			this.existingBucket = Bucket.fromBucketArn(
+				this,
+				`${id}-Arn`,
+				props.options.fromExistingBucketArn,
+			);
+		} else if (props.options?.fromExistingBucketAttribute) {
+			this.existingBucket = Bucket.fromBucketAttributes(
+				this,
+				`${id}-Attribute`,
+				props.options.fromExistingBucketAttribute,
+			);
+		} else {
+			// If no existing bucket is provided, create a new one
+			this.bucket = new Bucket(this, id, {
+				...props.options?.bucketOptions,
 
-			/**
-			 * Removal policy applied to the bucket
-			 * Defaults to DESTROY if not explicitly defined
-			 */
-			removalPolicy:
-				props.options?.bucketOptions?.removalPolicy || RemovalPolicy.DESTROY,
-		});
+				/**
+				 * Removal policy applied to the bucket
+				 * Defaults to DESTROY if not explicitly defined
+				 */
+				removalPolicy:
+					props.options?.bucketOptions?.removalPolicy || RemovalPolicy.DESTROY,
+			});
+		}
+
 
 		/**
 		 * CloudFormation output exposing the S3 bucket ARN
