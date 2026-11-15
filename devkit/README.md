@@ -105,7 +105,7 @@ Ready-made `Stack` subclasses that wire a few constructs together. Props are bas
 
 | Stack | Source file | Wires together |
 | ----- | ----------- | --------------- |
-| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any method). |
+| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` plus optional triggers: HTTP API (`BaseApiGatewayV2Construct`, with a `/{proxy+}` catch-all route), EventBridge rule, SNS topic, SQS queue, S3 bucket, DynamoDB table. Imported layers via `lambdaOptions.extraLayers`; extra IAM statements via `policies`. |
 | `BaseLambdaLayerStack` | `lambda-layer-stack.ts` | A standalone `BaseLambdaLayerConstruct` — publishes a Lambda layer on its own, with a dedicated asset bucket (`DefaultStackSynthesizer({ bucketPrefix: 'layer/' })`) so other stacks can import it by ARN. |
 
 ```typescript

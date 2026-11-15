@@ -373,7 +373,7 @@ Each is a `Stack` subclass, `(scope, id, props)` where `props` is based on
 `IBaseStackProps<TStackOptions>`, that wires a few `Base*` constructs together.
 | Symbol | Source file | Wires together |
 | ------ | ----------- | --------------- |
-| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer via ARN) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any HTTP method). |
+| `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` plus optional `triggersOptions`: HTTP API (`BaseApiGatewayV2Construct`, with a `/{proxy+}` catch-all route), EventBridge rule, SNS topic, SQS queue, S3 bucket, DynamoDB table. Imported layers via `lambdaOptions.extraLayers` (ARN from `name` + `version`); extra IAM statements via `policies`. |
 | `BaseLambdaLayerStack` | `lambda-layer-stack.ts` | Standalone `BaseLambdaLayerConstruct`, published with its own asset bucket (`DefaultStackSynthesizer({ bucketPrefix: 'layer/' })`) so other stacks can import the layer by ARN. Defaults `env.region` to `us-east-1`. |
 
 ### Types — `src/aws/types/index.ts`
