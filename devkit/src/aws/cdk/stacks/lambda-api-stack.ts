@@ -1,12 +1,10 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
 import { FunctionProps } from 'aws-cdk-lib/aws-lambda';
 import { AddRoutesOptions, HttpApiProps, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { RuleProps } from 'aws-cdk-lib/aws-events';
 import { TopicProps } from 'aws-cdk-lib/aws-sns';
 import { QueueProps } from 'aws-cdk-lib/aws-sqs';
-import { BucketAttributes, BucketProps } from 'aws-cdk-lib/aws-s3';
-import { GlobalSecondaryIndexProps, LocalSecondaryIndexProps, TableAttributes, TableProps } from 'aws-cdk-lib/aws-dynamodb';
 
 import { IBaseStackProps } from '../../types';
 import {
@@ -18,6 +16,8 @@ import {
 	BaseS3Construct,
 	BaseSnsConstruct,
 	BaseSqsConstruct,
+	IBucketCdkConstructProps,
+	IDynamoDbCdkConstructProps,
 } from '../constructs';
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
@@ -40,38 +40,8 @@ export class BaseLambdaApiStack extends Stack {
 				},
 				sns?: TopicProps,
 				sqs?: QueueProps,
-				s3?: {
-					/** Configuration options for the S3 bucket */
-					readonly bucketOptions?: BucketProps;
-
-					/** Import an existing bucket by ARN */
-					readonly fromExistingBucketArn?: string;
-
-					/**Import an existing bucket by name */
-					readonly fromExistingBucketName?: string;
-
-					/** Import an existing layer using attributes */
-					readonly fromExistingBucketAttribute?: BucketAttributes;
-				},
-				dynamodb?: {
-					/** Configuration for creating a new table */
-					readonly tableOptions?: TableProps;
-
-					/** Import an existing table by ARN */
-					readonly fromExistingTableArn?: string;
-
-					/** Import an existing table by name */
-					readonly fromExistingTableName?: string;
-
-					/** Import an existing table using attributes */
-					readonly fromExistingTableAttributes?: TableAttributes;
-
-					/** Global Secondary Index definitions */
-					readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
-
-					/** Local Secondary Index definitions */
-					readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
-				},
+				s3?: IBucketCdkConstructProps;
+				dynamodb?: IDynamoDbCdkConstructProps;
 				eventBridge?: RuleProps,
 			}
 			policies?: { principal: 'lambda'; policy: PolicyStatement }[];
@@ -172,6 +142,7 @@ export class BaseLambdaApiStack extends Stack {
 				},
 			});
 
+
 		}
 
 		if (props?.stackOptions?.triggersOptions?.sns && Object.keys(props?.stackOptions?.triggersOptions?.sns).length) {
@@ -202,16 +173,28 @@ export class BaseLambdaApiStack extends Stack {
 					},
 				},
 			});
-
 		}
 
 		if (props?.stackOptions?.triggersOptions?.s3 && Object.keys(props?.stackOptions?.triggersOptions?.s3).length) {
-			const { } = new BaseS3Construct(this, 's3', {
+			const { bucket, existingBucket } = new BaseS3Construct(this, 's3', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					...(props?.stackOptions?.triggersOptions?.s3 || {}),
 				},
 			});
+
+			if (bucket) {
+				bucket.grantReadWrite(lambdaFunction);
+			} else {
+				existingBucket.grantReadWrite(lambdaFunction);
+			}
+
+			lambdaFunction.addPermission('allowS3Invoke', {
+				principal: new ServicePrincipal('s3.amazonaws.com'),
+				sourceArn: bucket.bucketArn,
+				// sourceAccount: Stack.of(this).account,
+			});
+
 		}
 
 		if (props?.stackOptions?.triggersOptions?.dynamodb && Object.keys(props?.stackOptions?.triggersOptions?.dynamodb).length) {

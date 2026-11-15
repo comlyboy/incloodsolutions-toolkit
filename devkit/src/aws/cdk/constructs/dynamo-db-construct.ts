@@ -22,6 +22,34 @@ import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
  * - Importing an existing table (by name, ARN, or attributes)
  * - Defining Global Secondary Indexes (GSI) and Local Secondary Indexes (LSI)
  */
+export interface IDynamoDbCdkConstructProps {
+  /** Configuration for creating a new table */
+  readonly tableOptions?: TableProps;
+
+  /** Import an existing table by ARN */
+  readonly fromExistingTableArn?: string;
+
+  /** Import an existing table by name */
+  readonly fromExistingTableName?: string;
+
+  /** Import an existing table using attributes */
+  readonly fromExistingTableAttributes?: TableAttributes;
+
+  /** Global Secondary Index definitions */
+  readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
+
+  /** Local Secondary Index definitions */
+  readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
+}
+
+/**
+ * Props for BaseDynamoDBConstruct
+ *
+ * Provides configuration for:
+ * - Creating a new DynamoDB table
+ * - Importing an existing table (by name, ARN, or attributes)
+ * - Defining Global Secondary Indexes (GSI) and Local Secondary Indexes (LSI)
+ */
 interface IDynamoDBConstructProps extends Omit<
 	IBaseCdkConstructProps<{
 		/** Configuration for creating a new table */

@@ -4,26 +4,36 @@ import { Bucket, BucketAttributes, BucketProps, IBucket } from 'aws-cdk-lib/aws-
 
 import { IBaseCdkConstructProps } from '../../types';
 
+
+/**
+ * Props for BaseS3Construct
+ *
+ * Provides configuration for:
+ * - Creating a new S3 bucket
+ * - Importing an existing bucket (by name, ARN, or attributes)
+ */
+export interface IBucketCdkConstructProps {
+	/** Configuration options for the S3 bucket */
+	readonly bucketOptions?: BucketProps;
+
+	/** Import an existing bucket by ARN */
+	readonly fromExistingBucketArn?: string;
+
+	/**Import an existing bucket by name */
+	readonly fromExistingBucketName?: string;
+
+	/** Import an existing layer using attributes */
+	readonly fromExistingBucketAttribute?: BucketAttributes;
+}
+
 /**
  * Props for BaseS3Construct
  *
  * Provides configuration for creating an S3 bucket
  * with optional overrides for bucket properties.
  */
-interface IS3DeploymentConstructProps extends Omit<
-	IBaseCdkConstructProps<{
-		/** Configuration options for the S3 bucket */
-		readonly bucketOptions?: BucketProps;
-
-		/**Import an existing bucket by name */
-		readonly fromExistingBucketName?: string;
-
-		/** Import an existing bucket by ARN */
-		readonly fromExistingBucketArn?: string;
-
-		/** Import an existing layer using attributes */
-		readonly fromExistingBucketAttribute?: BucketAttributes;
-	}>,
+interface IS3ConstructProps extends Omit<
+	IBaseCdkConstructProps<IBucketCdkConstructProps>,
 	'appName' | 'stackName'
 > { }
 
@@ -49,7 +59,7 @@ export class BaseS3Construct extends Construct {
 	constructor(
 		scope: Construct,
 		id: string,
-		props: IS3DeploymentConstructProps,
+		props: IS3ConstructProps,
 	) {
 		super(scope, id);
 
