@@ -1,5 +1,4 @@
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { joiResolver } from '@hookform/resolvers/joi';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldValues, Resolver } from 'react-hook-form';
 import { email, object, string } from 'zod';
@@ -34,21 +33,6 @@ export function classValidatorCustomResolver<
 	TSchema extends FieldValues = ObjectType,
 >(schema: TSchema, {}: {}) {
 	return classValidatorResolver(schema) as Resolver<TSchema>;
-}
-
-/**
- * Wraps a Joi schema as a `react-hook-form` resolver (`@hookform/resolvers/joi`).
- *
- * @typeParam TSchema - The form values shape.
- * @param schema - A Joi schema.
- * @param _ - Reserved options object; currently unused, pass `{}`.
- * @returns A `Resolver<TSchema>`.
- */
-export function joiCustomResolver<TSchema extends FieldValues = ObjectType>(
-	schema: TSchema,
-	{}: {},
-) {
-	return joiResolver(schema as any) as Resolver<TSchema>;
 }
 
 /**

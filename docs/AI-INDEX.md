@@ -266,7 +266,7 @@ no `.` / `main` / `module` / `types`).
 React 18+. **No package-root export**: `@incloodsolutions/react-toolkit` alone does not resolve; import a subpath (`/hooks`, `/utilities`, `/validators`, `/types`), each built as its own ESM bundle + `.d.ts` (configured in `react/tsup.config.ts` and `react/package.json` `exports` + `typesVersions`). The internal barrel `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
 (`components` is commented out — the directory has been deleted; `src/config` and
 `src/constant` have been deleted outright). Peer deps: `react`, `react-dom`. Bundled: `clsx`,
-`tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`,
+`tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `zod`, `usehooks-ts`,
 `react-use` (`localforage` and `radix-ui` are also declared as dependencies but are
 currently unused, left over from the removed modules).
 
@@ -300,7 +300,6 @@ with a `2` suffix: `useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHove
 | ------ | --------- | ------- |
 | `zodCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver` | Wrap a Zod schema as a `react-hook-form` resolver. |
 | `classValidatorCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver<TSchema>` | Wrap a class-validator DTO as a resolver. |
-| `joiCustomResolver` | `<TSchema>(schema: TSchema, _: {}) => Resolver<TSchema>` | Wrap a Joi schema as a resolver. |
 | `EmailLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ email: email(), password: string().min(6).max(100) })`. |
 | `UsernameLoginValidationSchema` | `() => ZodObject` | Factory for `z.object({ username: string().min(2).max(100), password: string().min(6).max(100) })`. |
 

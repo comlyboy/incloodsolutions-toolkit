@@ -22,7 +22,7 @@ npm install @incloodsolutions/react-toolkit
 ```
 
 Peer dependencies: `react`, `react-dom`. Bundled: `clsx`, `tailwind-merge`,
-`react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`, `react-use`
+`react-hook-form`, `@hookform/resolvers`, `zod`, `usehooks-ts`, `react-use`
 (`localforage` and `radix-ui` are also listed as dependencies but are currently unused —
 leftover from the removed `components`/`config`/`constant` modules).
 
@@ -86,7 +86,7 @@ getScreenSize(); // 'mobile' (<768) | 'tablet' (<1024) | 'desktop'
 ### `react-hook-form` resolver helpers
 
 ```typescript
-import { zodCustomResolver, joiCustomResolver, classValidatorCustomResolver } from '@incloodsolutions/react-toolkit/validators';
+import { zodCustomResolver, classValidatorCustomResolver } from '@incloodsolutions/react-toolkit/validators';
 import { useForm } from 'react-hook-form';
 
 const form = useForm({ resolver: zodCustomResolver(MySchema, {}) });
@@ -137,7 +137,7 @@ dependency left external. `tsup.config.ts` `entry` lines up with `exports` + `ty
 | ------- | -------- |
 | `.../hooks` | `useKeyEvent`, `usePageMetadata`, `useCustomReactHookForm`, all of `usehooks-ts`, and a slice of `react-use` |
 | `.../utilities` | `parseClassnames`, `getScreenSize` |
-| `.../validators` | `zodCustomResolver`, `joiCustomResolver`, `classValidatorCustomResolver`, the login schemas |
+| `.../validators` | `zodCustomResolver`, `classValidatorCustomResolver`, the login schemas |
 | `.../types` | `ViteModeType` |
 
 ## License

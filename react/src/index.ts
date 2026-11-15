@@ -13,7 +13,7 @@
  *                 **plus all of `usehooks-ts`** and a curated slice of `react-use`
  *                 (colliding names get a `2` suffix).
  * - `utilities` — {@link parseClassnames} (clsx + tailwind-merge), {@link getScreenSize}.
- * - `validators`— `react-hook-form` resolver wrappers for Zod / Joi / class-validator.
+ * - `validators`— `react-hook-form` resolver wrappers for Zod / class-validator.
  * - `types`     — {@link ViteModeType}.
  *
  * `components` (`FormLayoutComponent`) has been removed; the line below is a dangling

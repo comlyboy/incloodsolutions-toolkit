@@ -12,7 +12,7 @@ import {
  *
  * @typeParam TFieldValues - The form values shape.
  * @param resolver - A resolver to hand to `useForm({ resolver })` -- build one from a schema with
- *   `zodCustomResolver`/`joiCustomResolver`/`classValidatorCustomResolver` (`../validators`), or
+ *   `zodCustomResolver`/`classValidatorCustomResolver` (`../validators`), or
  *   with `@hookform/resolvers` directly.
  * @param props - Any `UseFormProps` except `resolver`. `mode` defaults to `'all'` but can be
  *   overridden here.

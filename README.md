@@ -79,7 +79,7 @@ A small React layer:
 
 - Hooks: `useKeyEvent`, `usePageMetadata`.
 - Utilities: `parseClassnames` (clsx + tailwind-merge), `getScreenSize`.
-- Form resolver helpers for `react-hook-form` (zod, joi, class-validator).
+- Form resolver helpers for `react-hook-form` (zod, class-validator).
 - Re-exports the entire `usehooks-ts` API and a large slice of `react-use`.
 
 ### `@incloodsolutions/devkit`
