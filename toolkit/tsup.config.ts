@@ -15,7 +15,6 @@ import { tsupBaseConfig } from "../shared/tsup-base.config";
 export default defineConfig([
 	{
 		...tsupBaseConfig as unknown as Options,
-		noExternal: ['uuid'],
 		// Keep every dependency external (axios, handlebars, zod, …) — never
 		// bundle them. See `test/esm-bundle.spec.ts`.
 		skipNodeModulesBundle: true,

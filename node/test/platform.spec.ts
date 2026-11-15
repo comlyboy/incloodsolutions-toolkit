@@ -167,7 +167,6 @@ describe('package surface', () => {
 			'encryptData',
 			'decryptData',
 			'hashWithBcrypt',
-			'generateCustomUUID',
 			'generateQrBarcode',
 			'normalizeMongooseData',
 			'reqResLogger',

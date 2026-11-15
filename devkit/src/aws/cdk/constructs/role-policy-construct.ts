@@ -17,7 +17,7 @@ import { IBaseCdkConstructProps } from '../../types';
  * - IAM role creation
  * - Inline policy statements
  */
-interface IDynamoDBConstructProps extends Omit<
+interface IRolePolicyConstructProps extends Omit<
 	IBaseCdkConstructProps<{
 		/** IAM Role configuration options */
 		readonly roleOptions: RoleProps;
@@ -50,7 +50,7 @@ export class BaseRolePolicyConstruct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for role and policies
 	 */
-	constructor(scope: Construct, id: string, props: IDynamoDBConstructProps) {
+	constructor(scope: Construct, id: string, props: IRolePolicyConstructProps) {
 		super(scope, id);
 
 		this.role = new Role(this, id, {

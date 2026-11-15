@@ -15,6 +15,7 @@ import {
 import { ObjectType } from '../interface';
 import { CustomException } from '../error';
 import { nanoid } from 'nanoid';
+import { v4 as uuidv4, v7 as uuidv7, validate as uuidValidate } from 'uuid';
 import { OptionsWithColumns, parse } from 'csv-parse/sync';
 
 /**
@@ -185,6 +186,50 @@ export function containsUUID(input: string): boolean {
 		/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
 	);
 	return matches && matches.length > 0;
+}
+
+/**
+ * Checks whether a string is a valid UUID, using the `uuid` package's validator.
+ *
+ * @param uuid - The string to test.
+ * @returns `true` when the string is a well-formed UUID.
+ *
+ * @example
+ * isValidUUID(generateCustomUUID()); // true
+ * isValidUUID('not-a-uuid');         // false
+ */
+export function isValidUUID(uuid: string) {
+	return uuidValidate(uuid);
+}
+
+/**
+ * Generates a UUID with optional formatting tweaks.
+ *
+ * @param options - Options.
+ * @param options.version - UUID version to generate, `4` or `7`. Defaults to `7`
+ *   (time-ordered, better for database keys).
+ * @param options.symbol - When set, every `-` in the UUID is replaced with this string.
+ *   An empty or whitespace-only string is ignored and the dashes are kept.
+ * @param options.asUpperCase - Return the UUID upper-cased. Defaults to `false`.
+ * @returns The generated UUID string.
+ *
+ * @example
+ * generateCustomUUID();                              // "0190a1b2-..." (v7)
+ * generateCustomUUID({ version: 4, asUpperCase: true });
+ * generateCustomUUID({ symbol: '_' });               // "0190a1b2_..."
+ */
+export function generateCustomUUID({
+	asUpperCase = false,
+	symbol,
+	version = 7,
+}: {
+	asUpperCase?: boolean;
+	symbol?: string;
+	version?: 4 | 7;
+} = {}): string {
+	let uuid = version === 4 ? uuidv4() : uuidv7();
+	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
+	return asUpperCase ? uuid.toUpperCase() : uuid;
 }
 
 /**

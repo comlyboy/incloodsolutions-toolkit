@@ -28,7 +28,7 @@ Packages:
 Framework-agnostic. **No package-root export** — `@incloodsolutions/toolkit` alone does not
 resolve; import a subpath. Internal barrel at `src/index.ts` (`constant`, `error`,
 `utility`, `validator`, `interface`, `countries`) is used by tests only. Runtime deps: `axios`,
-`handlebars`, `libphonenumber-js`, `nanoid`, `validator`, `xml2js`, `zod`.
+`csv-parse`, `handlebars`, `libphonenumber-js`, `nanoid`, `uuid`, `validator`, `xml2js`, `zod`.
 
 Published as tree-shakeable subpaths — one build per module, each with its own ESM + CJS +
 `.d.ts`, mirroring the source folder: `@incloodsolutions/toolkit/{constant, error, utility,
@@ -57,6 +57,8 @@ validator, interface, countries}`. Configured in `toolkit/tsup.config.ts` (`entr
 | `generateNanoid` | `(size?: number) => string` | `nanoid` wrapper, default length 10. |
 | `transformText` | `({ text: string; trim?: boolean; format?: 'uppercase' \| 'lowercase' \| 'titlecase' \| 'capitalize' \| 'kebab' }) => string` | Reformats a string. |
 | `containsUUID` | `(input: string) => boolean` | True if the string contains a v1–v5 UUID. |
+| `isValidUUID` | `(uuid: string) => boolean` | `uuid` package validation. Moved here from node-toolkit. |
+| `generateCustomUUID` | `({ asUpperCase?: boolean; symbol?: string; version?: 4 \| 7 }) => string` | UUID (v7 default); optionally replace `-` and upper-case. Moved here from node-toolkit. |
 | `sendHttpRequest` | `<TResponse, TBody>(options: AxiosRequestConfig<TBody>) => Promise<TResponse>` | Axios call resolving to `response.data`; rethrows a normalised error object. |
 | `parsePhonenumber` | `(phoneNumber: string, options?: { throwUnfound?: boolean; defaultCountry?: CountryCode; defaultCallingCode?: string; extract?: boolean }) => PhoneNumber \| undefined` | Parse with `libphonenumber-js`; prefixes `+`. `undefined` on failure unless `throwUnfound`. |
 | `sanitizeObject` | `<TData>({ data: TData; keysToRemove?: (keyof TData)[] }) => TData` | Recursively drops `undefined`, `null`, `''`, `'undefined'` values. |
@@ -174,7 +176,7 @@ Node.js. **No package-root export** — `@incloodsolutions/node-toolkit` alone d
 resolve; import a subpath. Modules: `aws`, `config`, `gcp`, `interface`, `mongo`,
 `utility` (internal barrel still at `src/index.ts` for tests). Depends on
 `@incloodsolutions/toolkit` plus AWS SDK v3, `bcryptjs`, `bwip-js`, `class-transformer`,
-`class-validator`, `crypto-js`, `handlebars`, `morgan`, `uuid`, `zod`. `express` and
+`class-validator`, `crypto-js`, `handlebars`, `morgan`, `zod`. `express` and
 `mongoose` are used in types and must be available in the host app.
 
 Published as tree-shakeable subpaths — one build per module and sub-module, each with its
@@ -234,12 +236,9 @@ no `.` / `main` / `module` / `types`).
 | `writeFileToLambda` | `({ filePath?: string; file: string \| ArrayBufferView \| File }) => Promise<string>` | Write into Lambda `/tmp`; throws outside Lambda. |
 | `readFileFromLambda` | `(fileName: string) => Promise<Buffer>` | Read from Lambda `/tmp`. |
 | `isLambdaEnvironment` | `() => boolean` | True when `LAMBDA_TASK_ROOT` + `AWS_LAMBDA_FUNCTION_NAME` are set. |
-| `isValidUUID` | `(uuid: string) => boolean` | `uuid` package validation. |
-| `generateCustomUUID` | `({ asUpperCase?: boolean; symbol?: string; version?: 4 \| 7 }) => string` | UUID (v7 default); optionally replace `-` and upper-case. |
 | `apiResult` | `<TBody>(apiResponse: IBaseApiResult<TBody>) => Readonly<IBaseApiResult>` | Freeze/normalise an API result object. |
 | `returnApiResponse` | `<TBody>(res: express.Response, data: IBaseApiResult<TBody>, statusCode = 200) => Response` | Send `{ success, statusCode, ...data.data }`. |
 | `returnApiOverview` | `({ name; docsUrl?; primaryColor?; description? }) => string` | HTML "API overview" landing page string. |
-| `encodeUrlComponent` / `decodeUrlComponent` | as core | URL component encode/decode. |
 | `isValidMongoId` | `(data: string \| object \| ObjectId) => boolean` | Strict Mongo ObjectId check. |
 | `initCustomLogger` | `(context?: string) => { log, info, debug, error }` | Timestamped console logger. |
 | `reqResLogger` | `({ formats?: string[]; options?: morgan.Options }) => RequestHandler` | `morgan` middleware with request-id and Lambda invocation-id tokens. |

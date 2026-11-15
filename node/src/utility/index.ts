@@ -13,7 +13,6 @@ import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
-import { v7 as uuidv7, v4 as uuidv4, validate as uuidValidate } from 'uuid';
 import {
 	isIP,
 	isMongoId,
@@ -341,45 +340,6 @@ export function isLambdaEnvironment() {
 }
 
 /**
- * Checks whether a string is a valid UUID, using the `uuid` package's validator.
- *
- * @param uuid - The string to test.
- * @returns `true` when the string is a well-formed UUID.
- */
-export function isValidUUID(uuid: string) {
-	return uuidValidate(uuid);
-}
-
-/**
- * Generates a UUID with optional formatting tweaks.
- *
- * @param options - Options.
- * @param options.version - UUID version to generate, `4` or `7`. Defaults to `7`
- *   (time-ordered, better for database keys).
- * @param options.symbol - When set, every `-` in the UUID is replaced with this string.
- * @param options.asUpperCase - Return the UUID upper-cased. Defaults to `false`.
- * @returns The generated UUID string.
- *
- * @example
- * generateCustomUUID();                              // "0190a1b2-..." (v7)
- * generateCustomUUID({ version: 4, asUpperCase: true });
- * generateCustomUUID({ symbol: '' });                // dashes stripped
- */
-export function generateCustomUUID({
-	asUpperCase = false,
-	symbol,
-	version = 7,
-}: {
-	asUpperCase?: boolean;
-	symbol?: string;
-	version?: 4 | 7;
-} = {}): string {
-	let uuid = version === 4 ? uuidv4() : uuidv7();
-	uuid = symbol && symbol.trim() ? uuid.replace(/-/g, symbol) : uuid;
-	return asUpperCase ? uuid.toUpperCase() : uuid;
-}
-
-/**
  * Returns a shallow, read-only copy of an API result object.
  *
  * A light normalisation helper for building `{ data, message, error }` payloads
@@ -420,20 +380,6 @@ export function returnApiResponse<TBody extends ObjectType | ObjectType[]>(
 }
 
 /**
- * URL-encodes a value (strings directly, everything else `JSON.stringify`-ed
- * first). Round-trips with {@link decodeUrlComponent}.
- *
- * @typeParam TData - Type of the value being encoded.
- * @param data - The value to encode.
- * @returns The percent-encoded string.
- */
-export function encodeUrlComponent<TData = any>(data: TData) {
-	return encodeURIComponent(
-		typeof data === 'string' ? data : JSON.stringify(data),
-	);
-}
-
-/**
  * Checks if a string is a valid MongoDB ObjectId.
  *
  * @param data - The string to validate.
@@ -452,17 +398,6 @@ export function isValidMongoId(data: string | ObjectType | ObjectId): boolean {
 		return true;
 	}
 	return false;
-}
-
-/**
- * Decodes a string produced by {@link encodeUrlComponent} and `JSON.parse`-s it.
- *
- * @typeParam TType - Expected type of the decoded value.
- * @param data - The percent-encoded, JSON string.
- * @returns The parsed value typed as `TType`.
- */
-export function decodeUrlComponent<TType>(data: string) {
-	return JSON.parse(decodeURIComponent(data)) as TType;
 }
 
 /**

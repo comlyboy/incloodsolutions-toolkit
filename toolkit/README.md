@@ -184,6 +184,8 @@ Constructor: `new CustomException(error, statusCode?, options?)` where `error` i
 | `generateNanoid` | `(size?: number) => string` | Wraps `nanoid`. Default length `10`. |
 | `transformText` | `({ text: string; trim?: boolean; format?: 'uppercase' \| 'lowercase' \| 'titlecase' \| 'capitalize' \| 'kebab' }) => string` | Reformats a string. `capitalize` upper-cases every word; `titlecase` upper-cases only the first letter; `kebab` replaces whitespace with hyphens. |
 | `containsUUID` | `(input: string) => boolean` | Returns `true` when the string contains a v1–v5 UUID. |
+| `isValidUUID` | `(uuid: string) => boolean` | Returns `true` when the string is a well-formed UUID (`uuid` package validator). |
+| `generateCustomUUID` | `({ asUpperCase?: boolean; symbol?: string; version?: 4 \| 7 }) => string` | UUID, v7 (time-ordered) by default; optionally replace `-` with a symbol and upper-case. |
 | `sendHttpRequest` | `<TResponse, TBody>(options: AxiosRequestConfig<TBody>) => Promise<TResponse>` | Thin Axios wrapper that resolves to `response.data` and rethrows a normalized `{ ...errorBody, message }`. |
 | `parsePhonenumber` | `(phoneNumber: string, options?: { throwUnfound?: boolean; defaultCountry?: CountryCode; defaultCallingCode?: string; extract?: boolean }) => PhoneNumber \| undefined` | Parses via `libphonenumber-js`, prefixing `+` when missing. Returns `undefined` on failure unless `throwUnfound` is set. |
 | `sanitizeObject` | `<TData>({ data: TData; keysToRemove?: (keyof TData)[] }) => TData` | Recursively strips properties whose value is `undefined`, `null`, `''`, or the string `'undefined'`. |

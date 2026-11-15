@@ -78,6 +78,7 @@ import {
 	encodeUrlComponent,
 	fetchGoogleSheet,
 	generateDateInNumber,
+	generateCustomUUID,
 	generateISODate,
 	generateNanoid,
 	generateRandomId,
@@ -88,6 +89,7 @@ import {
 	isSlug,
 	isStrongPassword,
 	isUUID,
+	isValidUUID,
 	isURL,
 	jsonToXml,
 	normalizeEmail,
@@ -321,6 +323,33 @@ describe('generateNanoid', () => {
 
 	it('produces distinct values', () => {
 		expect(generateNanoid()).not.toBe(generateNanoid());
+	});
+});
+
+describe('isValidUUID / generateCustomUUID', () => {
+	it('isValidUUID accepts a real UUID and rejects other strings', () => {
+		expect(isValidUUID(generateCustomUUID())).toBe(true);
+		expect(isValidUUID('not-a-uuid')).toBe(false);
+	});
+
+	it('generateCustomUUID: v7 by default, lowercase, dash-separated', () => {
+		const id = generateCustomUUID();
+		expect(isValidUUID(id)).toBe(true);
+		expect(id).toBe(id.toLowerCase());
+		expect(id).toContain('-');
+		expect(id[14]).toBe('7');
+	});
+
+	it('generateCustomUUID options: version, casing, symbol', () => {
+		const v4 = generateCustomUUID({ version: 4 });
+		expect(isValidUUID(v4)).toBe(true);
+		expect(v4[14]).toBe('4');
+		const upper = generateCustomUUID({ asUpperCase: true });
+		expect(upper).toBe(upper.toUpperCase());
+		expect(generateCustomUUID({ symbol: '_' }).replace(/_/g, '-')).toMatch(
+			/^[0-9a-f-]{36}$/,
+		);
+		expect(generateCustomUUID({ symbol: '' })).toContain('-');
 	});
 });
 
@@ -939,6 +968,8 @@ describe('public API surface', () => {
 			'transformText',
 			'generateNanoid',
 			'containsUUID',
+			'isValidUUID',
+			'generateCustomUUID',
 			'sendHttpRequest',
 			'parsePhonenumber',
 			'sanitizeObject',

@@ -30,11 +30,8 @@ import { existsSync, readFileSync } from 'fs';
 
 import {
 	apiResult,
-	decodeUrlComponent,
 	decryptData,
-	encodeUrlComponent,
 	encryptData,
-	generateCustomUUID,
 	generateQrBarcode,
 	getIpAddress,
 	hashWithBcrypt,
@@ -42,7 +39,6 @@ import {
 	isLambdaEnvironment,
 	isNestApplication,
 	isValidMongoId,
-	isValidUUID,
 	normalizeMongooseData,
 	normalizeMongooseData_v2,
 	reqResLogger,
@@ -250,33 +246,6 @@ describe('Lambda /tmp filesystem helpers', () => {
 	});
 });
 
-describe('UUID helpers', () => {
-	it('isValidUUID', () => {
-		expect(isValidUUID(generateCustomUUID())).toBe(true);
-		expect(isValidUUID('not-a-uuid')).toBe(false);
-	});
-
-	it('generateCustomUUID: v7 by default, lowercase, dash-separated', () => {
-		const id = generateCustomUUID();
-		expect(isValidUUID(id)).toBe(true);
-		expect(id).toBe(id.toLowerCase());
-		expect(id).toContain('-');
-	});
-
-	it('generateCustomUUID options: version, casing, symbol', () => {
-		expect(isValidUUID(generateCustomUUID({ version: 4 }))).toBe(true);
-		const upper = generateCustomUUID({ asUpperCase: true });
-		expect(upper).toBe(upper.toUpperCase());
-		expect(generateCustomUUID({ symbol: '_' }).replace(/_/g, '-')).toMatch(
-			/^[0-9a-f-]{36}$/,
-		);
-		// NOTE: `symbol: ''` is a no-op — the guard is `symbol && symbol.trim()`,
-		// which is falsy for the empty string, so the dashes are kept. (The
-		// "dashes stripped" JSDoc example is misleading.)
-		expect(generateCustomUUID({ symbol: '' })).toContain('-');
-	});
-});
-
 describe('API response helpers', () => {
 	it('apiResult returns a shallow copy', () => {
 		const input = { data: { x: 1 }, message: 'ok' };
@@ -312,21 +281,6 @@ describe('API response helpers', () => {
 		expect(html).toContain('Orders API');
 		expect(html).toContain('handles orders');
 		expect(html).toContain('https://docs.example/orders');
-	});
-});
-
-describe('encodeUrlComponent / decodeUrlComponent', () => {
-	it('round-trips structured data', () => {
-		const value = { q: 'a b', tags: ['x', 'y'] };
-		expect(decodeUrlComponent(encodeUrlComponent(value))).toEqual(value);
-	});
-
-	it('encodes a plain string directly', () => {
-		expect(encodeUrlComponent('a b/c')).toBe('a%20b%2Fc');
-	});
-
-	it('cannot round-trip a bare string (decode always JSON.parses)', () => {
-		expect(() => decodeUrlComponent(encodeUrlComponent('hello'))).toThrow();
 	});
 });
 

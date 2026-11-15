@@ -22,8 +22,8 @@ npm install @incloodsolutions/node-toolkit
 ```
 
 Requires Node.js 22+. AWS SDK v3 clients, `@codegenie/serverless-express`, `mongoose`,
-`bcryptjs`, `crypto-js`, `class-validator`, `class-transformer`, `morgan`, `bwip-js`, and
-`uuid` are installed as dependencies. Every dependency is kept **external** (not bundled) so
+`bcryptjs`, `crypto-js`, `class-validator`, `class-transformer`, `morgan`, and `bwip-js` are
+installed as dependencies. Every dependency is kept **external** (not bundled) so
 the ESM build stays loadable — bundling `mongoose` would pull the MongoDB driver's dynamic
 `require()` calls into the bundle and break ESM consumers.
 
@@ -49,7 +49,7 @@ import { initLambdaFunctionHandler } from '@incloodsolutions/node-toolkit/aws-la
 import { initS3ClientWrapper } from '@incloodsolutions/node-toolkit/aws-sdk/s3';
 import { initGcpFunctionHandler } from '@incloodsolutions/node-toolkit/gcp';
 import { initMongooseConnection, initMongooseSchema } from '@incloodsolutions/node-toolkit/mongo';
-import { encryptData, generateCustomUUID } from '@incloodsolutions/node-toolkit/utility';
+import { encryptData } from '@incloodsolutions/node-toolkit/utility';
 import { initEnvironmentVariables } from '@incloodsolutions/node-toolkit/config';
 import type { IBaseApiResult } from '@incloodsolutions/node-toolkit/interface';
 ```
@@ -84,8 +84,8 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 | MongoDB / Mongoose | `initMongooseConnection`, `initMongooseSchema` |
 | Crypto & hashing | `encryptData`, `decryptData`, `hashWithBcrypt`, `validateHashWithBcrypt` |
 | Lambda filesystem | `writeFileToLambda`, `readFileFromLambda`, `isLambdaEnvironment` |
-| IDs | `generateCustomUUID`, `isValidUUID`, `isValidMongoId` |
-| HTTP / API | `apiResult`, `returnApiResponse`, `returnApiOverview`, `getIpAddress`, `reqResLogger`, `encodeUrlComponent`, `decodeUrlComponent` |
+| IDs | `isValidMongoId` (UUID and nanoid helpers live in `@incloodsolutions/toolkit/utility`) |
+| HTTP / API | `apiResult`, `returnApiResponse`, `returnApiOverview`, `getIpAddress`, `reqResLogger` |
 | Logging | `initCustomLogger` |
 | Validation | `validateDataWithClassValidator` |
 | Mongo data shaping | `normalizeMongooseData`, `normalizeMongooseData_v2`, `sanitizeObject` |
@@ -211,7 +211,6 @@ The connection is cached on `global` and reused across warm Lambda invocations.
 import {
   encryptData, decryptData,
   hashWithBcrypt, validateHashWithBcrypt,
-  generateCustomUUID,
 } from '@incloodsolutions/node-toolkit/utility';
 
 const token = encryptData({ data: { userId: 1 }, secret: process.env.SECRET, type: 'aes256' });
@@ -219,9 +218,10 @@ const payload = decryptData<{ userId: number }>({ hashedData: token, secret: pro
 
 const hash = await hashWithBcrypt('password', 10);
 const ok = await validateHashWithBcrypt('password', hash);
-
-const id = generateCustomUUID({ version: 7, asUpperCase: true });
 ```
+
+UUIDs (`generateCustomUUID`, `isValidUUID`), `generateNanoid` and `containsUUID` live in
+`@incloodsolutions/toolkit/utility`, not here.
 
 ### API responses and logging
 
