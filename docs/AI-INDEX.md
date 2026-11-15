@@ -333,7 +333,7 @@ construct (`lambda`, `dynamo-db`, `s3`, `api-gateway`, `api-gateway-v2`,
 `api-gateway-websocket`, `cloudfront`, `cloudwatch`, `event-bridge`, `lambda-authorizer`,
 `lambda-authorizer-v2`, `lambda-layer`, `role-policy`, `route53`, `s3-deployment`, `sns`,
 `sqs`, `vpc`), `@incloodsolutions/devkit/aws-cdk/stacks/<name>` for every stack (`lambda-api`,
-`lambda-layer`, `lambda-sns`, `lambda-sqs`), and `@incloodsolutions/devkit/aws-types`, with the
+`lambda-layer`), and `@incloodsolutions/devkit/aws-types`, with the
 `-construct`/`-stack` suffix dropped. Deliberately **no** `aws-cdk`, `aws-cdk/constructs`,
 or `aws-cdk/stacks` barrel subpath — each would re-bundle every construct or every stack
 into one artifact, defeating tree-shaking; `@incloodsolutions/devkit/aws` remains the sole
@@ -371,15 +371,10 @@ is based on `IBaseCdkConstructProps`, applies opinionated defaults, and emits a 
 
 Each is a `Stack` subclass, `(scope, id, props)` where `props` is based on
 `IBaseStackProps<TStackOptions>`, that wires a few `Base*` constructs together.
-Naming was inconsistent (`LambdaApiStack`/`LambdaSqsStack` had no `Base` prefix,
-`BaseLambdaSnsStack` did) — the user has since unified all three to `Base*`.
-
 | Symbol | Source file | Wires together |
 | ------ | ----------- | --------------- |
 | `BaseLambdaApiStack` | `lambda-api-stack.ts` | `BaseLambdaConstruct` (+ optional imported layer via ARN) behind `BaseApiGatewayV2Construct` (`/{proxy+}`, any HTTP method). |
 | `BaseLambdaLayerStack` | `lambda-layer-stack.ts` | Standalone `BaseLambdaLayerConstruct`, published with its own asset bucket (`DefaultStackSynthesizer({ bucketPrefix: 'layer/' })`) so other stacks can import the layer by ARN. Defaults `env.region` to `us-east-1`. |
-| `BaseLambdaSnsStack` | `lambda-sns-stack.ts` | `BaseLambdaConstruct` subscribed to a `BaseSnsConstruct` topic. |
-| `BaseLambdaSqsStack` | `lambda-sqs-stack.ts` | `BaseLambdaConstruct` as the target of a `BaseSqsConstruct` queue. |
 
 ### Types — `src/aws/types/index.ts`
 

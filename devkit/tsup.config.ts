@@ -7,8 +7,8 @@ import { tsupBaseConfig } from "../shared/tsup-base.config";
  * consumer imports only what they use. Subpaths mirror the source folder under
  * `aws-cdk/`, e.g. `@incloodsolutions/devkit/aws-cdk/constructs/lambda` →
  * `src/aws/cdk/constructs/lambda-construct.ts` and
- * `@incloodsolutions/devkit/aws-cdk/stacks/lambda-sns` →
- * `src/aws/cdk/stacks/lambda-sns-stack.ts`.
+ * `@incloodsolutions/devkit/aws-cdk/stacks/lambda-api` →
+ * `src/aws/cdk/stacks/lambda-api-stack.ts`.
  *
  * Deliberately NO `aws-cdk`, `aws-cdk/constructs`, or `aws-cdk/stacks` barrel
  * entry — each of those would point at an `index.ts` that re-exports every
@@ -41,7 +41,7 @@ const constructs = [
 	"vpc",
 ] as const;
 
-const stacks = ["lambda-api", "lambda-layer", "lambda-sns", "lambda-sqs"] as const;
+const stacks = ["lambda-api", "lambda-layer"] as const;
 
 export default defineConfig([
 	{

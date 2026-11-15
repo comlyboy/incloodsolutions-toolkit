@@ -43,8 +43,6 @@ const CONSTRUCTS: Record<string, string> = {
 const STACKS: Record<string, string> = {
 	'lambda-api': 'BaseLambdaApiStack',
 	'lambda-layer': 'BaseLambdaLayerStack',
-	'lambda-sns': 'BaseLambdaSnsStack',
-	'lambda-sqs': 'BaseLambdaSqsStack',
 };
 
 const SUBPATH_ENTRIES: Record<string, string> = {
@@ -128,9 +126,8 @@ suite('published subpath entries', () => {
 	});
 
 	it('a single stack entry does not pull in the others', () => {
-		const src = readFileSync(dist('aws-cdk/stacks/lambda-sns'), 'utf8');
-		expect(src).toContain('BaseLambdaSnsStack');
+		const src = readFileSync(dist('aws-cdk/stacks/lambda-layer'), 'utf8');
+		expect(src).toContain('BaseLambdaLayerStack');
 		expect(src).not.toContain('BaseLambdaApiStack');
-		expect(src).not.toContain('BaseLambdaSqsStack');
 	});
 });

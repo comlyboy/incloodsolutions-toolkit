@@ -13,8 +13,7 @@
  *   WebSocket API Gateway, both Lambda authorizer variants, DynamoDB, S3, S3-to-CloudFront
  *   static-site deployment, CloudFront, CloudWatch log group, SNS, SQS, EventBridge, VPC, IAM
  *   role/policy, Route53);
- * - the `Base*Stack` stacks in `aws/cdk/stacks/` (Lambda + API, Lambda layer, Lambda + SNS,
- *   Lambda + SQS);
+ * - the `Base*Stack` stacks in `aws/cdk/stacks/` (Lambda with triggers, Lambda layer);
  * - the shared types {@link IBaseConstruct}, {@link IBaseCdkConstructProps} and
  *   {@link IBaseStackProps}.
  *
