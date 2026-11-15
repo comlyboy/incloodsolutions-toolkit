@@ -3,19 +3,17 @@
  *
  * Re-exports:
  * - The purpose-built hooks in this folder: {@link useKeyEvent},
- *   {@link usePageMetadata}.
+ *   {@link usePageMetadata}, {@link useCustomReactHookForm}.
  * - The **entire `usehooks-ts` API** (`export * from 'usehooks-ts'`).
  * - A curated slice of `react-use`. Where a `react-use` hook name collides with
  *   `usehooks-ts`, it is re-exported here with a `2` suffix
  *   (`useBoolean2`, `useCopyToClipboard2`, `useCounter2`, `useHover2`,
  *   `useInterval2`); all other `react-use` hooks keep their original names.
- *
- * `useCustomReactHookForm` (in `./useHookForm`) is intentionally **not** part of
- * this barrel.
  */
 
 export * from './useKeyEvent';
 export * from './usePageMetadata';
+export * from './useHookForm';
 
 export * from 'usehooks-ts';
 

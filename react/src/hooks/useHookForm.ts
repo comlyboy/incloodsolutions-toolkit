@@ -1,34 +1,40 @@
 import {
-	Resolver,
 	useForm,
-	UseFormProps,
-	UseFormReturn,
+	type FieldValues,
+	type Resolver,
+	type UseFormProps,
+	type UseFormReturn,
 } from 'react-hook-form';
 
-import { ObjectType } from '@incloodsolutions/toolkit/interface';
-
 /**
- * Thin wrapper around `react-hook-form`'s `useForm` that wires a resolver and
- * defaults the validation `mode` to `'all'` (validate on change, blur, and submit).
+ * Thin wrapper around `react-hook-form`'s `useForm` that requires a `resolver` and defaults the
+ * validation `mode` to `'all'` (validate on blur, on change, and on submit).
  *
- * @typeParam TSchema - The form values shape.
- * @param resolveSchema - A resolver (or schema treated as one) passed straight to
- *   `useForm({ resolver })`. Pair with the `*CustomResolver` helpers in
- *   `../validators` when starting from a Zod/Joi/class-validator schema.
- * @param props - Any `UseFormProps` except `resolver`. `mode` defaults to `'all'`
- *   but can be overridden here.
- * @returns The `UseFormReturn<TSchema>` object.
- *
- * @remarks Currently not re-exported from the package entry point; import from
- *   this module directly if needed.
+ * @typeParam TFieldValues - The form values shape.
+ * @param resolver - A resolver to hand to `useForm({ resolver })` -- build one from a schema with
+ *   `zodCustomResolver`/`joiCustomResolver`/`classValidatorCustomResolver` (`../validators`), or
+ *   with `@hookform/resolvers` directly.
+ * @param props - Any `UseFormProps` except `resolver`. `mode` defaults to `'all'` but can be
+ *   overridden here.
+ * @returns The `UseFormReturn<TFieldValues>` object.
  */
-export function useCustomReactHookForm<TSchema extends ObjectType>(
-	resolveSchema: TSchema,
-	props?: Omit<UseFormProps<TSchema>, 'resolver'>,
-) {
-	return useForm({
-		mode: props?.mode || 'all',
-		...(props as UseFormProps),
-		resolver: resolveSchema as unknown as Resolver<ObjectType, any, TSchema>,
-	}) as unknown as UseFormReturn<TSchema, any, TSchema>;
+export function useCustomReactHookForm<
+	TFieldValues extends FieldValues = FieldValues,
+	TContext = unknown,
+	TTransformedValues = TFieldValues,
+>(
+	resolver: Resolver<TFieldValues, TContext, TTransformedValues>,
+	{
+		mode = 'all',
+		...props
+	}: Omit<
+		UseFormProps<TFieldValues, TContext, TTransformedValues>,
+		'resolver'
+	> = {},
+): UseFormReturn<TFieldValues, TContext, TTransformedValues> {
+	return useForm<TFieldValues, TContext, TTransformedValues>({
+		mode,
+		...props,
+		resolver,
+	});
 }

@@ -58,6 +58,20 @@ usePageMetadata({
 });
 ```
 
+#### `useCustomReactHookForm`
+
+`react-hook-form`'s `useForm`, but `resolver` is a required first argument and `mode` defaults
+to `'all'` (validate on blur, change, and submit) unless overridden.
+
+```typescript
+import { useCustomReactHookForm } from '@incloodsolutions/react-toolkit/hooks';
+import { zodCustomResolver } from '@incloodsolutions/react-toolkit/validators';
+
+const form = useCustomReactHookForm(zodCustomResolver(MySchema, {}), {
+  defaultValues: { name: '' },
+});
+```
+
 ### Utilities
 
 ```typescript
@@ -95,8 +109,6 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 ## Known limitations in the current release
 
-- **`useCustomReactHookForm` is not exported** — it exists in `src/hooks/useHookForm.ts`
-  but is not re-exported by `src/hooks/index.ts`.
 - **`components` (`FormLayoutComponent`) has been removed** — `src/components/` no longer
   exists, and `src/index.ts` still has a dangling `// export * from './components'` comment.
   The `useCustomNavigation` hook and the `src/config` (`getViteConfiguration`) and
@@ -123,7 +135,7 @@ dependency left external. `tsup.config.ts` `entry` lines up with `exports` + `ty
 
 | Subpath | Contents |
 | ------- | -------- |
-| `.../hooks` | `useKeyEvent`, `usePageMetadata`, all of `usehooks-ts`, and a slice of `react-use` |
+| `.../hooks` | `useKeyEvent`, `usePageMetadata`, `useCustomReactHookForm`, all of `usehooks-ts`, and a slice of `react-use` |
 | `.../utilities` | `parseClassnames`, `getScreenSize` |
 | `.../validators` | `zodCustomResolver`, `joiCustomResolver`, `classValidatorCustomResolver`, the login schemas |
 | `.../types` | `ViteModeType` |

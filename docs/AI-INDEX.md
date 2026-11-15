@@ -276,7 +276,7 @@ currently unused, left over from the removed modules).
 | ------ | --------- | ------- |
 | `useKeyEvent` | `({ combinations: { keys: string[]; matchAll?: boolean }; eventType?: keyof DocumentEventMap; returnedAction: () => void }) => void` | Run an action on a key or key-combination. |
 | `usePageMetadata` | `({ title?; description?; backgroundImageUrl?; backgroundStyle?; ogImage?; twitterCardType? }) => void` | Set document title, description, OG/Twitter meta tags, and optional `body` background; reverts on unmount. |
-| `useCustomReactHookForm` | `<TSchema>(resolveSchema: TSchema, props?: Omit<UseFormProps<TSchema>, 'resolver'>) => UseFormReturn<TSchema>` | `react-hook-form` `useForm` with `mode: 'all'` and the schema as resolver. **not-exported** — defined in `src/hooks/useHookForm.ts` but `hooks/index.ts` does not re-export it. |
+| `useCustomReactHookForm` | `<TFieldValues, TContext, TTransformedValues>(resolver: Resolver<TFieldValues, TContext, TTransformedValues>, props?: Omit<UseFormProps<TFieldValues, TContext, TTransformedValues>, 'resolver'>) => UseFormReturn<TFieldValues, TContext, TTransformedValues>` | `react-hook-form` `useForm` with `mode: 'all'` by default and a required `resolver`. Defined in `src/hooks/useHookForm.ts`, re-exported from `hooks/index.ts`. |
 
 `hooks/index.ts` also re-exports **the entire `usehooks-ts` API**, and a large set of
 `react-use` hooks. Names that collide with `usehooks-ts` are re-exported from `react-use`
