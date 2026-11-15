@@ -263,7 +263,7 @@ no `.` / `main` / `module` / `types`).
 
 ## @incloodsolutions/react-toolkit
 
-React 18+. Entry point: `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
+React 18+. **No package-root export**: `@incloodsolutions/react-toolkit` alone does not resolve; import a subpath (`/hooks`, `/utilities`, `/validators`, `/types`), each built as its own ESM bundle + `.d.ts` (configured in `react/tsup.config.ts` and `react/package.json` `exports` + `typesVersions`). The internal barrel `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
 (`components` is commented out — the directory has been deleted; `src/config` and
 `src/constant` have been deleted outright). Peer deps: `react`, `react-dom`. Bundled: `clsx`,
 `tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `joi`, `zod`, `usehooks-ts`,

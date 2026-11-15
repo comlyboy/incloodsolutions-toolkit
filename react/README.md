@@ -35,7 +35,7 @@ leftover from the removed `components`/`config`/`constant` modules).
 Run an action when a key or key-combination is pressed.
 
 ```typescript
-import { useKeyEvent } from '@incloodsolutions/react-toolkit';
+import { useKeyEvent } from '@incloodsolutions/react-toolkit/hooks';
 
 useKeyEvent({
   combinations: { keys: ['Control', 's'], matchAll: true },
@@ -61,7 +61,7 @@ usePageMetadata({
 ### Utilities
 
 ```typescript
-import { parseClassnames, getScreenSize } from '@incloodsolutions/react-toolkit';
+import { parseClassnames, getScreenSize } from '@incloodsolutions/react-toolkit/utilities';
 
 parseClassnames('px-2 py-1', condition && 'bg-red-500', { hidden: !open });
 // clsx + tailwind-merge: later Tailwind classes win
@@ -72,7 +72,7 @@ getScreenSize(); // 'mobile' (<768) | 'tablet' (<1024) | 'desktop'
 ### `react-hook-form` resolver helpers
 
 ```typescript
-import { zodCustomResolver, joiCustomResolver, classValidatorCustomResolver } from '@incloodsolutions/react-toolkit';
+import { zodCustomResolver, joiCustomResolver, classValidatorCustomResolver } from '@incloodsolutions/react-toolkit/validators';
 import { useForm } from 'react-hook-form';
 
 const form = useForm({ resolver: zodCustomResolver(MySchema, {}) });
@@ -80,7 +80,7 @@ const form = useForm({ resolver: zodCustomResolver(MySchema, {}) });
 
 ## Re-exported hook libraries
 
-`import ... from '@incloodsolutions/react-toolkit'` also gives you:
+`import ... from '@incloodsolutions/react-toolkit/hooks'` also gives you:
 
 - **All of `usehooks-ts`** — `useDebounceValue`, `useLocalStorage`, `useMediaQuery`,
   `useOnClickOutside`, `useEventListener`, `useIntersectionObserver`, `useCopyToClipboard`,
@@ -106,16 +106,27 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 
 ```bash
 npm install
-npm run build    # tsup: bundles ESM + a single dist/index.d.ts
+npm run build    # tsup: one ESM bundle + .d.ts per subpath
 npm run format   # prettier --write over src/**/*.{ts,tsx} (tabs, single quotes)
 npm run lint     # eslint --fix
 npm test         # jest
 npm run package  # build, then npm pack a tarball
 ```
 
-The build has a single `src/index.ts` entry: `dist/` contains just `index.js` (ESM) and a
-bundled `index.d.ts`, matching the other packages. Deep imports (`.../dist/hooks/...`) are
-no longer emitted — everything is reachable from the package root.
+## Modular imports (tree-shaking)
+
+There is **no package-root export**: `import ... from '@incloodsolutions/react-toolkit'` does
+not resolve. Import the module you need, so you never pull all of `usehooks-ts` and
+`react-use` by accident. The build emits one ESM bundle (and `.d.ts`) per module, with every
+dependency left external. `tsup.config.ts` `entry` lines up with `exports` + `typesVersions` in
+`package.json`.
+
+| Subpath | Contents |
+| ------- | -------- |
+| `.../hooks` | `useKeyEvent`, `usePageMetadata`, all of `usehooks-ts`, and a slice of `react-use` |
+| `.../utilities` | `parseClassnames`, `getScreenSize` |
+| `.../validators` | `zodCustomResolver`, `joiCustomResolver`, `classValidatorCustomResolver`, the login schemas |
+| `.../types` | `ViteModeType` |
 
 ## License
 

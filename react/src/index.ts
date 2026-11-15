@@ -4,7 +4,11 @@
  * `@incloodsolutions/react-toolkit` — a thin React layer over
  * `@incloodsolutions/toolkit`.
  *
- * Modules (all re-exported from the package root):
+ * This barrel is **not** published: there is no package-root export. Import each module from its
+ * own subpath instead (`@incloodsolutions/react-toolkit/hooks`, `.../utilities`, `.../validators`,
+ * `.../types`).
+ *
+ * Modules:
  * - `hooks`     — {@link useKeyEvent}, {@link usePageMetadata},
  *                 **plus all of `usehooks-ts`** and a curated slice of `react-use`
  *                 (colliding names get a `2` suffix).

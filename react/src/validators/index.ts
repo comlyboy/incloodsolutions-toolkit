@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FieldValues, Resolver } from 'react-hook-form';
 import { email, object, string } from 'zod';
 
-import { ObjectType } from '@incloodsolutions/toolkit';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Wraps a Zod schema as a `react-hook-form` resolver (`@hookform/resolvers/zod`).

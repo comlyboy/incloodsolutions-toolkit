@@ -155,8 +155,8 @@ construct)** and have **no package-root export** — consumers import a subpath
 (`@incloodsolutions/toolkit/utility`, `@incloodsolutions/node-toolkit/mongo`,
 `@incloodsolutions/devkit/aws-cdk/lambda`) so nothing pulls the whole package by accident;
 `import from '@incloodsolutions/toolkit'` (or `node-toolkit`/`devkit`) itself does not
-resolve. `react/` is still single-entry — it builds `src/index.ts` to `dist/index.*` and
-exports only the package root. Each `tsup.config.ts` `entry` map lines up with the
+resolve. `react/` works the same way (`@incloodsolutions/react-toolkit/hooks`, `/utilities`,
+`/validators`, `/types`), but is ESM-only. Each `tsup.config.ts` `entry` map lines up with the
 `exports` + `typesVersions` in its `package.json`.
 
 All four are on **TypeScript 6** (`typescript@^6.0.3`) — this is the version tsup's bundled

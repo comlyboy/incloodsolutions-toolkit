@@ -5,7 +5,7 @@ import {
 	UseFormReturn,
 } from 'react-hook-form';
 
-import { ObjectType } from '@incloodsolutions/toolkit';
+import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * Thin wrapper around `react-hook-form`'s `useForm` that wires a resolver and
