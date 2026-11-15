@@ -28,7 +28,7 @@ Packages:
 Framework-agnostic. **No package-root export** — `@incloodsolutions/toolkit` alone does not
 resolve; import a subpath. Internal barrel at `src/index.ts` (`constant`, `error`,
 `utility`, `validator`, `interface`, `countries`) is used by tests only. Runtime deps: `axios`,
-`csv-parse`, `handlebars`, `libphonenumber-js`, `nanoid`, `uuid`, `validator`, `xml2js`, `zod`.
+`csv-parse`, `handlebars`, `libphonenumber-js`, `nanoid`, `validator`, `xml2js`, `zod`. `uuid` is ESM-only, so it is a devDependency and is bundled into the build.
 
 Published as tree-shakeable subpaths — one build per module, each with its own ESM + CJS +
 `.d.ts`, mirroring the source folder: `@incloodsolutions/toolkit/{constant, error, utility,

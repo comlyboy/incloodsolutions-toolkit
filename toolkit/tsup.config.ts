@@ -15,6 +15,9 @@ import { tsupBaseConfig } from "../shared/tsup-base.config";
 export default defineConfig([
 	{
 		...tsupBaseConfig as unknown as Options,
+		// `uuid` (>= 12) is ESM-only, so a CJS consumer on Node < 22.12 cannot
+		// `require()` it. Bundle it so `dist/*.cjs` stays loadable everywhere.
+		noExternal: ['uuid'],
 		// Keep every dependency external (axios, handlebars, zod, …) — never
 		// bundle them. See `test/esm-bundle.spec.ts`.
 		skipNodeModulesBundle: true,
