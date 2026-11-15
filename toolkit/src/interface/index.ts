@@ -162,7 +162,8 @@ export interface IBaseErrorResponse extends IBaseTimestamp {
 }
 
 /**
- * The set of deployment environments an application can run in.
+ * The set of deployment environments an application can run in, as a frozen object (not a
+ * TypeScript `enum`). Use `AppEnvironmentEnum.PRODUCTION` as a value and `AppEnvironmentEnum` as a type.
  *
  * Values are the lowercase environment names, suitable for use directly as
  * `NODE_ENV` or a deploy `stage`.
@@ -170,20 +171,20 @@ export interface IBaseErrorResponse extends IBaseTimestamp {
  * @example
  * if (env === AppEnvironmentEnum.PRODUCTION) { enableStrictMode(); }
  */
-export enum AppEnvironmentEnum {
+export const AppEnvironmentEnum = {
 	/** Quality-assurance environment. */
-	QA = 'qa',
+	QA: 'qa',
 	/** Automated-test environment. */
-	TEST = 'test',
+	TEST: 'test',
 	/** Developer's local machine. */
-	LOCAL = 'local',
+	LOCAL: 'local',
 	/** Pre-production staging environment. */
-	STAGING = 'staging',
+	STAGING: 'staging',
 	/** Live production environment. */
-	PRODUCTION = 'production',
+	PRODUCTION: 'production',
 	/** Shared development environment. */
-	DEVELOPMENT = 'development',
-}
+	DEVELOPMENT: 'development',
+} as const;
 
 /**
  * String-literal union of every {@link AppEnvironmentEnum} value
@@ -192,7 +193,7 @@ export enum AppEnvironmentEnum {
  * Use this where a plain string is expected but you still want the values
  * constrained, e.g. a config schema or a CDK construct's `stage` prop.
  */
-export type AppEnvironmentType = `${AppEnvironmentEnum}`;
+export type AppEnvironmentType = (typeof AppEnvironmentEnum)[keyof typeof AppEnvironmentEnum];;
 
 /**
  * The union of all value types of `TEntity`.

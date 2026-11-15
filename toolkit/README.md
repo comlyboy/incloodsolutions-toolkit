@@ -125,7 +125,7 @@ sections below group exports by source module / subpath.
 
 #### `ResponseMessageEnum`
 
-A string enum of standard, user-facing response and error messages. **Each member's value
+A frozen object (`as const`, not a TypeScript `enum`) of standard, user-facing response and error messages. The name is also a type: the union of all the message strings. **Each member's value
 is the message text itself**, so members can be returned to a client or thrown directly.
 Members are grouped by concern: General, CRUD, Authentication, Authorization, User,
 Password, Email, Status, Files, and Pagination / Search. Some values are intentionally
@@ -299,12 +299,12 @@ Reusable building blocks for domain models and API contracts.
 `IBaseCreator<TCreator, TType>` (creation metadata), `IBaseEditor<TModifier, TType>`
 (last-modified metadata), `IBaseEnableDebug`, `IBaseErrorResponse` (standard HTTP error body).
 
-**Enums and types**
+**Constants and types** (`AppEnvironmentEnum` is a frozen object, not a TypeScript `enum`)
 
 | Name | Description |
 | ---- | ----------- |
 | `AppEnvironmentEnum` | `QA`, `TEST`, `LOCAL`, `STAGING`, `PRODUCTION`, `DEVELOPMENT` |
-| `AppEnvironmentType` | String-literal union of `AppEnvironmentEnum` values |
+| `AppEnvironmentType` | String-literal union of `AppEnvironmentEnum` values (same as the `AppEnvironmentEnum` type) |
 | `ObjectType<TValue, TKey>` | `Record<TKey, TValue>` with permissive defaults |
 | `ExtractValueTypes<TEntity>` | Union of a type's value types |
 | `SortOrderType` | `'ascending' \| 'descending'` |
@@ -382,7 +382,7 @@ Source layout:
 | `src/error/`          | `CustomException`                            |
 | `src/utility/`        | General-purpose helper functions            |
 | `src/validator/`      | Zod schemas and re-exported `validator` API |
-| `src/interface/`      | Shared interfaces, enums, and types         |
+| `src/interface/`      | Shared interfaces, constants, and types         |
 | `src/countries/`      | Country data and country/currency helpers   |
 | `src/index.ts`        | Internal barrel re-exporting every module, used by tests — not published as a subpath |
 

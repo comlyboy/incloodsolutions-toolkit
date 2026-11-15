@@ -39,7 +39,7 @@ validator, interface, countries}`. Configured in `toolkit/tsup.config.ts` (`entr
 
 | Symbol | Kind | Summary |
 | ------ | ---- | ------- |
-| `ResponseMessageEnum` | string enum | Standard user-facing response/error messages; **each member's value is the message string**, so it can be returned or thrown directly (`throw new CustomException(ResponseMessageEnum.USER_NOT_FOUND, 404)`). ~60 members grouped by concern: General, CRUD, Authentication, Authorization, User, Password, Email, Status, Files, Pagination / Search. Some values are deliberately duplicated (e.g. `WRONG_PASSWORD` / `INVALID_CREDENTIALS`). |
+| `ResponseMessageEnum` | const object + type | Standard user-facing response/error messages; **each member's value is the message string**, so it can be returned or thrown directly (`throw new CustomException(ResponseMessageEnum.USER_NOT_FOUND, 404)`). ~60 members grouped by concern: General, CRUD, Authentication, Authorization, User, Password, Email, Status, Files, Pagination / Search. Some values are deliberately duplicated (e.g. `WRONG_PASSWORD` / `INVALID_CREDENTIALS`). |
 
 ### Errors — `src/error/index.ts`
 
@@ -125,7 +125,7 @@ ISO-standard checks (`isISO31661Alpha2`, `isISO31661Alpha3`, `isISO4217`, `isISO
 `isLocale`, `isTime`, `isLatLong`, `isPort`, `isMACAddress`, `isMD5`, `isHash`, and more).
 The type namespace is re-exported as `ValidatorTypes`.
 
-### Interfaces, enums, and types — `src/interface/index.ts`
+### Interfaces, constants, and types — `src/interface/index.ts`
 
 | Symbol | Kind | Shape / summary |
 | ------ | ---- | --------------- |
@@ -149,7 +149,7 @@ The type namespace is re-exported as `ValidatorTypes`.
 | `IBaseEditor<TModifier, TType = string>` | interface | last-modified metadata: `lastModifiedAtDate?`, `lastModifiedByUserId?`, `lastModifiedBy?` |
 | `IBaseEnableDebug` | interface | `{ enableDebug: boolean }` |
 | `IBaseErrorResponse` | interface | extends `IBaseTimestamp`; `{ path, method, message, success?, statusCode }` |
-| `AppEnvironmentEnum` | enum | `QA`, `TEST`, `LOCAL`, `STAGING`, `PRODUCTION`, `DEVELOPMENT` |
+| `AppEnvironmentEnum` | const object + type | `QA`, `TEST`, `LOCAL`, `STAGING`, `PRODUCTION`, `DEVELOPMENT` |
 | `AppEnvironmentType` | type | string-literal union of `AppEnvironmentEnum` values |
 | `ExtractValueTypes<TEntity>` | type | union of a type's value types |
 | `ObjectType<TValue = any, TKey extends string \| number \| symbol = string>` | type | `Record<TKey, TValue>` |
