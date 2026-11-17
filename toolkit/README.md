@@ -199,8 +199,9 @@ Constructor: `new CustomException(error, statusCode?, options?)` where `error` i
 | `jsonToXml` | `<TData>(dataObject: TData, options: BuilderOptions) => Promise<string>` | Builds an XML string from an object with `xml2js`. |
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Walks an object and throws a `CustomException` if the same dotted key path appears twice. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compiles and renders a Handlebars template. |
-| `consoleLog` | `({ context: string; message: string; data?: any; options?: { prettify?: boolean; ignoreDate?: boolean } }) => void` | Formatted `console.log` with optional ANSI colour and timestamp. |
+| `consoleLog` | `({ context: string; message: string; data?: any; options?: { prettify?: boolean } }) => void` | Formatted `console.log` (`LOG [context] message`, payload as a second argument) with optional ANSI colour. |
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint. No auth — the sheet must be shared as "Anyone with the link can view". |
+| `isDispasableEmail` | `(email: string, options?: { trustedDomains?: string[]; enableDebug?: boolean }) => Promise<boolean>` | `true` when the email's domain (or a parent domain) is on the community `disposable-email-domains` blocklist, downloaded on each call. Well-known providers (gmail, outlook, protonmail, ...) and `options.trustedDomains` skip the download and return `false`. Returns `false` for a missing or domain-less address. Throws if the blocklist cannot be downloaded. |
 
 ```typescript
 import { sanitizeObject, transformText, generateRandomId } from '@incloodsolutions/toolkit/utility';

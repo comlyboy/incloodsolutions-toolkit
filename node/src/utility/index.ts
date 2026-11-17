@@ -358,8 +358,8 @@ export function apiResult<TBody extends ObjectType | ObjectType[]>(
 /**
  * Sends a JSON API response through an Express `Response`.
  *
- * The body is `{ success, statusCode, ...data.data }`, where `success` is
- * `statusCode < 400`.
+ * The body is `{ success, statusCode, ...data }`, so `data` and `message` from the
+ * {@link IBaseApiResult} appear in it as they are. `success` is `statusCode < 400`.
  *
  * @typeParam TBody - Shape of `data.data`.
  * @param res - The Express `Response`.

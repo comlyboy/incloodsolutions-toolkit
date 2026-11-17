@@ -112,6 +112,72 @@ describe('BaseLambdaConstruct', () => {
 	});
 });
 
+describe('BaseLambdaConstruct environment defaults', () => {
+	it('always sets NODE_ENV, NODE_OPTIONS and connection reuse, keeping the caller variables', () => {
+		const s = stack();
+		new BaseLambdaConstruct(s, 'L', {
+			stackName: 's',
+			stage: 'staging',
+			options: {
+				lambdaOptions: {
+					code: Code.fromInline('x'),
+					environment: { TABLE_NAME: 'orders' },
+				},
+			},
+		});
+		Template.fromStack(s).hasResourceProperties('AWS::Lambda::Function', {
+			Environment: {
+				Variables: {
+					TABLE_NAME: 'orders',
+					NODE_ENV: 'staging',
+					NODE_OPTIONS: '--enable-source-maps',
+					AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+				},
+			},
+		});
+	});
+
+	it('does not let the caller override the default variables', () => {
+		const s = stack();
+		new BaseLambdaConstruct(s, 'L', {
+			stackName: 's',
+			stage: 'production',
+			options: {
+				lambdaOptions: {
+					code: Code.fromInline('x'),
+					environment: { NODE_ENV: 'development' },
+				},
+			},
+		});
+		Template.fromStack(s).hasResourceProperties('AWS::Lambda::Function', {
+			Environment: { Variables: { NODE_ENV: 'production' } },
+		});
+	});
+
+	it('creates a log group with two-week retention in production, one week otherwise', () => {
+		const prod = stack();
+		new BaseLambdaConstruct(prod, 'L', {
+			stackName: 'orders',
+			stage: 'production',
+			options: { lambdaOptions: { code: Code.fromInline('x') } },
+		});
+		Template.fromStack(prod).hasResourceProperties('AWS::Logs::LogGroup', {
+			LogGroupName: '/aws/lambda/orders',
+			RetentionInDays: 14,
+		});
+
+		const dev = stack();
+		new BaseLambdaConstruct(dev, 'L', {
+			stackName: 'orders',
+			stage: 'qa',
+			options: { lambdaOptions: { code: Code.fromInline('x') } },
+		});
+		Template.fromStack(dev).hasResourceProperties('AWS::Logs::LogGroup', {
+			RetentionInDays: 7,
+		});
+	});
+});
+
 describe('BaseLambdaLayerConstruct', () => {
 	it('creates a LayerVersion', () => {
 		const s = stack();
@@ -348,6 +414,21 @@ describe('BaseApiGatewayV2Construct', () => {
 		} as never);
 		expect(c.api).toBeDefined();
 		Template.fromStack(s).resourceCountIs('AWS::ApiGatewayV2::Api', 1);
+	});
+
+	it('appends caller CORS headers to the defaults', () => {
+		const s = stack();
+		new BaseApiGatewayV2Construct(s, 'HttpApi', {
+			handlerFunctions: [fn(s)],
+			options: {
+				gatewayOptions: { corsPreflight: { allowHeaders: ['X-Custom'] } },
+				routeOptions: [],
+			},
+		} as never);
+		const apis = Template.fromStack(s).findResources('AWS::ApiGatewayV2::Api');
+		const headers: string[] = Object.values(apis)[0].Properties.CorsConfiguration.AllowHeaders;
+		expect(headers).toContain('X-Custom');
+		expect(headers).toContain('Authorization');
 	});
 
 	it('throws when no handler functions are supplied', () => {

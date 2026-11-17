@@ -72,8 +72,9 @@ validator, interface, countries}`. Configured in `toolkit/tsup.config.ts` (`entr
 | `jsonToXml` | `<TData>(dataObject: TData, options: BuilderOptions) => Promise<string>` | Build XML from object (`xml2js`). |
 | `detectDuplicateProperties` | `<TObject>({ data: TObject; parentKey?: string }) => void` | Throws `CustomException` if a dotted key path repeats. |
 | `compileHtmlWithHandlebar` | `<TData>({ data: TData; htmlString: string; compileOptions?: CompileOptions; runtimeOptions?: RuntimeOptions }) => string` | Compile + render a Handlebars template. |
-| `consoleLog` | `({ context: string; message: string; data?: any; options?: { prettify?: boolean; ignoreDate?: boolean } }) => void` | Formatted `console.log` with optional colour/timestamp. |
+| `consoleLog` | `({ context: string; message: string; data?: any; options?: { prettify?: boolean } }) => void` | Formatted `console.log` (`LOG [context] message`, payload as a second argument) with optional ANSI colour. |
 | `fetchGoogleSheet` | `({ sheetId: string; gid?: string }) => Promise<string>` | Fetches a public Google Sheet as raw CSV text via its `/export` endpoint (`sendHttpRequest<string>` under the hood — the `text/csv` response is never JSON-parsed). No authentication — the sheet must be shared as "Anyone with the link can view"; `gid` selects a specific tab, otherwise the default sheet is exported. A private sheet returns an HTML sign-in page with status `200` rather than failing. |
+| `isDispasableEmail` | `(email: string, options?: { trustedDomains?: string[]; enableDebug?: boolean }) => Promise<boolean>` | `true` when the email's domain (or a parent domain) is on the community `disposable-email-domains` blocklist, downloaded on each call. Well-known providers (gmail, outlook, protonmail, ...) and `options.trustedDomains` skip the download and return `false`. Returns `false` for a missing or domain-less address. Throws if the blocklist cannot be downloaded. |
 
 ### Validation schemas (Zod) — `src/validator/index.ts`
 

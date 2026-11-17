@@ -881,11 +881,15 @@ export function initDynamoDbClientWrapper<
 		 * 3. The result is validated against `options.schema` via
 		 *    `validate` — throws {@link CustomException} and never
 		 *    calls DynamoDB if validation fails.
+		 * 4. The validated (parsed) item is written. Zod drops keys the schema
+		 *    does not declare, so the partition key and `createdAtDate` are put
+		 *    back if the schema did not declare them. Other undeclared keys are
+		 *    dropped.
 		 *
 		 * @param data The item to insert. Does not need the partition key or
 		 *   `createdAtDate` set — both are generated/stamped here.
-		 * @returns `data`, after the partition key and `createdAtDate` have been
-		 *   added to it (the same object `put` mutated, not a fresh read-back).
+		 * @returns The item that was written: the validated data plus the
+		 *   partition key and `createdAtDate` (not a fresh read-back).
 		 */
 		put: async ({ data }: { data: Partial<TType> }) => {
 			mapSchemaPrimaryKey(data);
@@ -893,9 +897,16 @@ export function initDynamoDbClientWrapper<
 
 			const dataDto = await validate(data);
 
+			const item: Partial<TType> = { ...dataDto };
+			for (const systemField of [primaryKeyName, 'createdAtDate']) {
+				if (item[systemField] === undefined && data[systemField] !== undefined) {
+					(item as any)[systemField] = data[systemField];
+				}
+			}
+
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
 				new PutCommand({
-					Item: { ...dataDto },
+					Item: item,
 					TableName: options.tableName,
 					ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
 				}),
@@ -909,7 +920,7 @@ export function initDynamoDbClientWrapper<
 				});
 			}
 
-			return dataDto as TType;
+			return item as TType;
 		},
 
 		/**

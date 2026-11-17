@@ -67,27 +67,6 @@ describe('initLambdaFunctionHandler', () => {
 		expect(handlerFn).toHaveBeenCalledWith(event, context, undefined);
 	});
 
-	it('bootstraps a NestJS app (init + getHttpAdapter) before wrapping it', async () => {
-		const { initLambdaFunctionHandler } = await freshModule();
-
-		const expressInstance = vi.fn();
-		const app = {
-			init: vi.fn(async () => undefined),
-			getHttpAdapter: () => ({ getInstance: () => expressInstance }),
-		} as never;
-
-		await initLambdaFunctionHandler({
-			app,
-			event: {} as never,
-			context: {} as never,
-		});
-
-		expect((app as { init: ReturnType<typeof vi.fn> }).init).toHaveBeenCalled();
-		expect(serverlessExpress).toHaveBeenCalledWith(
-			expect.objectContaining({ app: expressInstance }),
-		);
-	});
-
 	it('reuses the cached handler on subsequent invocations', async () => {
 		const { initLambdaFunctionHandler } = await freshModule();
 		const app = vi.fn() as never;

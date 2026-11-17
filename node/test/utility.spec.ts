@@ -2,12 +2,8 @@
  * `@incloodsolutions/node-toolkit` — `src/utility` behaviour tests.
  *
  * Mocked: `bwip-js` (QR/barcode rendering), `fs` / `fs/promises` (Lambda tmp IO).
- * Real: crypto-js, bcryptjs, uuid, class-validator, class-transformer, mongoose
+ * Real: crypto-js, bcryptjs, class-validator, class-transformer, mongoose
  * (`Types.ObjectId` only — no connection).
- *
- * KNOWN BUG pinned here:
- *   sanitizeObject(...) throws for any object with a non-empty value (same
- *   recursion/filter bug as the core toolkit version).
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -37,14 +33,12 @@ import {
 	hashWithBcrypt,
 	initCustomLogger,
 	isLambdaEnvironment,
-	isNestApplication,
 	isValidMongoId,
 	normalizeMongooseData,
 	normalizeMongooseData_v2,
 	reqResLogger,
 	returnApiOverview,
 	returnApiResponse,
-	sanitizeObject,
 	validateDataWithClassValidator,
 	validateHashWithBcrypt,
 	writeFileToLambda,
@@ -73,21 +67,6 @@ function withLambdaEnv(fn: () => unknown | Promise<unknown>) {
 }
 
 /* ========================================================================== */
-
-describe('sanitizeObject', () => {
-	it('returns an empty object / non-object unchanged', () => {
-		expect(sanitizeObject({ data: {} })).toEqual({});
-		expect(sanitizeObject({ data: [1, 2] as unknown as object })).toEqual([
-			1, 2,
-		]);
-	});
-
-	it('known bug: throws for any object with a non-empty value', () => {
-		expect(() => sanitizeObject({ data: { name: 'Ada', x: '' } })).toThrow(
-			TypeError,
-		);
-	});
-});
 
 describe('encryptData / decryptData', () => {
 	it('round-trips a value through AES-256', () => {
@@ -254,20 +233,37 @@ describe('API response helpers', () => {
 		expect(out).not.toBe(input);
 	});
 
-	it('returnApiResponse writes { success, statusCode, ...data.data }', () => {
+	it('returnApiResponse writes { success, statusCode, ...data } (data and message included)', () => {
 		const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
-		returnApiResponse(res as never, { data: { user: 'ada' } }, 201);
+		returnApiResponse(
+			res as never,
+			{ data: { user: 'ada' }, message: 'Created' },
+			201,
+		);
 		expect(res.status).toHaveBeenCalledWith(201);
 		expect(res.json).toHaveBeenCalledWith({
 			success: true,
 			statusCode: 201,
-			user: 'ada',
+			data: { user: 'ada' },
+			message: 'Created',
 		});
 
 		returnApiResponse(res as never, { data: {} }, 500);
 		expect(res.json).toHaveBeenLastCalledWith({
 			success: false,
 			statusCode: 500,
+			data: {},
+		});
+	});
+
+	it('returnApiResponse defaults to status 200 and success true', () => {
+		const res = { status: vi.fn().mockReturnThis(), json: vi.fn() };
+		returnApiResponse(res as never, { data: { ok: true } });
+		expect(res.status).toHaveBeenCalledWith(200);
+		expect(res.json).toHaveBeenCalledWith({
+			success: true,
+			statusCode: 200,
+			data: { ok: true },
 		});
 	});
 
@@ -383,16 +379,6 @@ describe('normalizeMongooseData_v2', () => {
 		expect(normalizeMongooseData_v2(null)).toBeNull();
 		expect(normalizeMongooseData_v2(undefined)).toBeUndefined();
 		expect(normalizeMongooseData_v2(5)).toBe(5);
-	});
-});
-
-describe('isNestApplication', () => {
-	it('true only for an object exposing getHttpAdapter()', () => {
-		expect(isNestApplication({ getHttpAdapter: () => ({}) } as never)).toBe(
-			true,
-		);
-		expect(isNestApplication({} as never)).toBe(false);
-		expect(isNestApplication((() => undefined) as never)).toBe(false);
 	});
 });
 

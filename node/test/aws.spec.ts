@@ -301,9 +301,21 @@ describe('initDynamoDbClientWrapper', () => {
 		expect(result.name).toBe('Widget');
 		expect(typeof result.id).toBe('string');
 		expect(result.createdAtDate).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-		expect(ddbMock.commandCalls(PutCommand)[0].args[0].input.TableName).toBe(
-			'items',
-		);
+		const input = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+		expect(input.TableName).toBe('items');
+		// The schema only declares `name`; the generated key and date must still be written.
+		expect(input.Item).toMatchObject({
+			name: 'Widget',
+			id: result.id,
+			createdAtDate: result.createdAtDate,
+		});
+	});
+
+	it('put drops fields the schema does not declare', async () => {
+		ddbMock.on(PutCommand).resolves({});
+		await table().put({ data: { name: 'Widget', extra: 'x' } as never });
+		const input = ddbMock.commandCalls(PutCommand)[0].args[0].input;
+		expect(input.Item).not.toHaveProperty('extra');
 	});
 
 	it('put validates against the Zod schema and never calls PutCommand on failure', async () => {
@@ -327,14 +339,14 @@ describe('initDynamoDbClientWrapper', () => {
 		await expect(table().delete({ key: { id: '1' } })).resolves.toBe(true);
 	});
 
-	it('updateOne stamps modifiedAtDate and includes it in the UpdateExpression', async () => {
+	it('updateOne does not stamp modifiedAtDate while mapSchemaModifiedDate is disabled', async () => {
+		// `mapSchemaModifiedDate` is commented out in dynamo-db.ts. When it is
+		// re-enabled, flip this test to expect `modifiedAtDate` in the
+		// UpdateExpression and an ISO date in ExpressionAttributeValues.
 		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
 		await table().updateOne({ key: { id: '1' }, data: { name: 'Widget 2' } });
 		const input = ddbMock.commandCalls(UpdateCommand)[0].args[0].input;
-		expect(input.UpdateExpression).toContain('modifiedAtDate');
-		expect(input.ExpressionAttributeValues[':modifiedAtDate']).toMatch(
-			/^\d{4}-\d{2}-\d{2}T/,
-		);
+		expect(input.UpdateExpression).not.toContain('modifiedAtDate');
 	});
 
 	it('updateOne uses a reserved-word-free value placeholder for a reserved attribute name', async () => {

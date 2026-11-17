@@ -82,6 +82,7 @@ import {
 	generateISODate,
 	generateNanoid,
 	generateRandomId,
+	isDispasableEmail,
 	isEmail,
 	isIsoDate,
 	isJSON,
@@ -656,34 +657,131 @@ describe('compileHtmlWithHandlebar', () => {
 });
 
 describe('consoleLog', () => {
-	it('writes "<date> - LOG [context] message" plus the payload', () => {
+	it('writes "LOG [context] message" and passes the payload as a second argument', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
 			consoleLog({ context: 'Auth', message: 'signed in', data: { id: 1 } });
 			expect(spy).toHaveBeenCalledTimes(1);
 			const [line, payload] = spy.mock.calls[0];
-			expect(line).toContain('LOG [Auth] signed in');
-			expect(line).toMatch(/GMT/); // default UTC date prefix
+			expect(line).toBe('LOG [Auth] signed in');
 			expect(payload).toEqual({ id: 1 });
 		} finally {
 			spy.mockRestore();
 		}
 	});
 
-	it('omits the date and adds ANSI colour codes with options', () => {
+	it('passes an empty string as the payload when there is no data', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		try {
+			consoleLog({ context: 'Auth', message: 'signed in' });
+			expect(spy.mock.calls[0]).toEqual(['LOG [Auth] signed in', '']);
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	it('omits the context brackets when no context is given', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+		try {
+			consoleLog({ context: '', message: 'hello' });
+			expect(spy.mock.calls[0][0]).toBe('LOG hello');
+		} finally {
+			spy.mockRestore();
+		}
+	});
+
+	it('adds ANSI colour codes with options.prettify', () => {
 		const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 		try {
 			consoleLog({
 				context: 'Ctx',
 				message: 'msg',
-				options: { prettify: true, ignoreDate: true },
+				options: { prettify: true },
 			});
 			const [line] = spy.mock.calls[0];
-			expect(line).not.toMatch(/GMT/);
 			expect(line).toContain('\x1b['); // colour escape sequence
+			expect(line).toContain('[Ctx]');
+			expect(line).toContain('msg');
 		} finally {
 			spy.mockRestore();
 		}
+	});
+});
+
+describe('isDispasableEmail', () => {
+	const blocklist = 'mailinator.com\nYopMail.com\r\n\n  throwaway.example  \n';
+
+	it('returns true for a domain on the blocklist, ignoring case and blank lines', async () => {
+		mockedAxios.mockResolvedValue({ data: blocklist });
+		expect(await isDispasableEmail('a@mailinator.com')).toBe(true);
+		expect(await isDispasableEmail('a@MAILINATOR.COM')).toBe(true);
+		expect(await isDispasableEmail('a@yopmail.com')).toBe(true);
+		expect(await isDispasableEmail('a@throwaway.example')).toBe(true);
+		mockedAxios.mockReset();
+	});
+
+	it('matches a subdomain through its parent domain', async () => {
+		mockedAxios.mockResolvedValue({ data: blocklist });
+		expect(await isDispasableEmail('a@sub.mailinator.com')).toBe(true);
+		expect(await isDispasableEmail('a@x.y.mailinator.com')).toBe(true);
+		mockedAxios.mockReset();
+	});
+
+	it('returns false for a domain that is not on the blocklist', async () => {
+		mockedAxios.mockResolvedValue({ data: blocklist });
+		expect(await isDispasableEmail('a@my-company.com')).toBe(false);
+		expect(await isDispasableEmail('a@notmailinator.com')).toBe(false);
+		mockedAxios.mockReset();
+	});
+
+	it('trusts well-known providers without downloading the blocklist', async () => {
+		mockedAxios.mockClear();
+		expect(await isDispasableEmail('a@gmail.com')).toBe(false);
+		expect(await isDispasableEmail('a@Outlook.com')).toBe(false);
+		expect(mockedAxios).not.toHaveBeenCalled();
+	});
+
+	it('no longer trusts the removed domains: 21cn.com is checked against the blocklist', async () => {
+		mockedAxios.mockResolvedValue({ data: '21cn.com\n' });
+		expect(await isDispasableEmail('a@21cn.com')).toBe(true);
+		mockedAxios.mockReset();
+	});
+
+	it('options.trustedDomains adds extra trusted domains (case-insensitive)', async () => {
+		mockedAxios.mockClear();
+		mockedAxios.mockResolvedValue({ data: 'my-company.com\n' });
+		expect(await isDispasableEmail('a@my-company.com')).toBe(true);
+		expect(
+			await isDispasableEmail('a@my-company.com', {
+				trustedDomains: ['My-Company.com'],
+			}),
+		).toBe(false);
+		mockedAxios.mockReset();
+	});
+
+	it('returns false for a missing, non-string, or domain-less address without a network call', async () => {
+		mockedAxios.mockClear();
+		expect(await isDispasableEmail('')).toBe(false);
+		expect(await isDispasableEmail(null as unknown as string)).toBe(false);
+		expect(await isDispasableEmail('no-at-sign')).toBe(false);
+		expect(await isDispasableEmail('a@')).toBe(false);
+		expect(mockedAxios).not.toHaveBeenCalled();
+	});
+
+	it('requests the disposable-email-domains blocklist', async () => {
+		mockedAxios.mockResolvedValue({ data: '' });
+		await isDispasableEmail('a@unknown-domain.test');
+		expect(
+			(mockedAxios.mock.calls.at(-1)?.[0] as unknown as { url: string }).url,
+		).toContain('disposable-email-domains/disposable-email-domains');
+		mockedAxios.mockReset();
+	});
+
+	it('enableDebug logs when a trusted domain short-circuits the check', async () => {
+		const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+		await isDispasableEmail('a@gmail.com', { enableDebug: true });
+		expect(log).toHaveBeenCalled();
+		log.mockRestore();
 	});
 });
 
@@ -985,6 +1083,7 @@ describe('public API surface', () => {
 			'compileHtmlWithHandlebar',
 			'consoleLog',
 			'fetchGoogleSheet',
+			'isDispasableEmail',
 		] as const;
 		for (const name of expectedFunctions) {
 			expect(typeof toolkit[name], name).toBe('function');

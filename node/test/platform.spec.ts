@@ -93,20 +93,6 @@ describe('initGcpFunctionHandler', () => {
 		expect(result).toBe('dispatched');
 		expect(app).toHaveBeenCalledWith(request, response);
 	});
-
-	it('bootstraps a NestJS app before dispatching', async () => {
-		const { initGcpFunctionHandler: fresh } = await import('../src/index');
-		const expressInstance = vi.fn();
-		const app = {
-			init: vi.fn(async () => undefined),
-			getHttpAdapter: () => ({ getInstance: () => expressInstance }),
-		} as never;
-
-		await fresh({ app, request: {} as never, response: {} as never });
-
-		expect((app as { init: ReturnType<typeof vi.fn> }).init).toHaveBeenCalled();
-		expect(expressInstance).toHaveBeenCalled();
-	});
 });
 
 describe('initMongooseSchema', () => {

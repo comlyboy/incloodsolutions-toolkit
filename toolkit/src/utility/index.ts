@@ -12,7 +12,7 @@ import {
 	parsePhoneNumberWithError,
 } from 'libphonenumber-js';
 
-import { ObjectType } from '../interface';
+import { IBaseEnableDebug, ObjectType } from '../interface';
 import { CustomException } from '../error';
 import { nanoid } from 'nanoid';
 import { v4 as uuidv4, v7 as uuidv7, validate as uuidValidate } from 'uuid';
@@ -644,8 +644,8 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({
 /**
  * Writes a formatted line to `console.log` without a logging library.
  *
- * Output shape: `<UTC date> - LOG [context] message <data>`. Colours and the
- * leading date are opt-in.
+ * Output shape: `LOG [context] message`, with `data` passed to `console.log` as a
+ * second argument. Colours are opt-in.
  *
  * @param params - Parameters.
  * @param params.context - Short label shown in brackets, e.g. a module or function name.
@@ -653,15 +653,10 @@ export function compileHtmlWithHandlebar<TData extends ObjectType>({
  * @param params.data - Optional payload appended to the line (object, array, etc.).
  * @param params.options - Formatting options.
  * @param params.options.prettify - Apply ANSI colours to the label, context, and message. Defaults to `false`.
- * @param params.options.ignoreDate - Omit the leading UTC timestamp. Defaults to `false`.
  *
  * @example
  * consoleLog({ context: 'Auth', message: 'user signed in', data: { id: 1 } });
- * consoleLog({
- *   context: 'Auth',
- *   message: 'user signed in',
- *   options: { prettify: true, ignoreDate: true },
- * });
+ * consoleLog({ context: 'Auth', message: 'user signed in', options: { prettify: true } });
  */
 export function consoleLog({
 	context,
@@ -782,20 +777,78 @@ export function parseCsv<TSchema>({
 }
 
 
-export async function isDispasableEmail(email: string) {
-	const DISPOSABLE_EMAIL_LIST_URL = 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/refs/heads/main/disposable_email_blocklist.conf';
-	const TRUSTED_DOMAINS = ['live.com', 'ymail.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'protonmail.com', 'zoho.com', 'gmx.com', 'aol.com', 'yandex.com', 'mail.com', 'fastmail.com', 'tutanota.com', 'hushmail.com', 'mailfence.com', 'runbox.com', 'posteo.de', 'startmail.com', 'countermail.com', 'kolabnow.com', 'lavabit.com', 'mailbox.org', 'thexyz.com', 'openmailbox.org', 'disroot.org', 'cock.li', 'seznam.cz', 'inbox.lv', 'mail.ru', 'bk.ru', 'list.ru', 'rambler.ru', 'tut.by', 'ukr.net', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'rediffmail.com', 'sina.com', 'qq.com', '126.com', '163.com', 'yeah.net', 'sohu.com', 'tom.com', '21cn.com', '263.net', '188.com', '139.com', '189.cn', 'wo.com.cn', 'vip.163.com', 'vip.sina.com', 'vip.qq.com'];
+/**
+ * Checks whether an email address uses a disposable (throwaway) email domain.
+ *
+ * Well-known providers (`gmail.com`, `outlook.com`, `protonmail.com`, ...) are trusted and
+ * returned as not disposable without a network call. Any other domain is looked up in the
+ * community `disposable-email-domains` blocklist, downloaded from GitHub on every call. A domain
+ * matches when it, or any parent domain, is on the list, so `a@sub.mailinator.com` is caught
+ * through `mailinator.com`.
+ *
+ * Only the domain is judged: a `true` result means the domain is a known throwaway service,
+ * and `false` does not prove the address exists.
+ *
+ * @param email - The email address to check.
+ * @param options - Options.
+ * @param options.trustedDomains - Extra domains to treat as not disposable, added to the built-in
+ *   trusted list. Matched exactly and case-insensitively.
+ * @param options.enableDebug - Log when a trusted domain short-circuits the check. Defaults to `false`.
+ * @returns `true` when the domain is disposable. `false` when it is trusted, not on the blocklist,
+ *   or when `email` is not a string with a domain part.
+ * @throws When the blocklist cannot be downloaded (the error from `sendHttpRequest`).
+ *
+ * @example
+ * await isDispasableEmail('someone@mailinator.com'); // true
+ * await isDispasableEmail('someone@gmail.com');      // false, no network call
+ * await isDispasableEmail('a@my-company.com', { trustedDomains: ['my-company.com'] }); // false
+ */
+export async function isDispasableEmail(
+	email: string,
+	options?: { trustedDomains?: string[] } & IBaseEnableDebug,
+): Promise<boolean> {
+	const DISPOSABLE_EMAIL_LIST_URL =
+		'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/refs/heads/main/disposable_email_blocklist.conf';
+	const TRUSTED_DOMAINS = ['live.com', 'ymail.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'protonmail.com', 'zoho.com', 'gmx.com', 'aol.com', 'yandex.com', 'mail.com', 'fastmail.com', 'tutanota.com', 'hushmail.com', 'mailfence.com', 'runbox.com', 'posteo.de', 'startmail.com', 'countermail.com', 'kolabnow.com', 'lavabit.com', 'mailbox.org', 'thexyz.com', 'disroot.org', 'cock.li', 'seznam.cz', 'inbox.lv', 'mail.ru', 'bk.ru', 'list.ru', 'rambler.ru', 'ukr.net', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'rediffmail.com', 'sina.com', 'qq.com', '126.com', '163.com', 'yeah.net', 'sohu.com', 'tom.com', '263.net', '188.com', '139.com', '189.cn', 'wo.com.cn', 'vip.163.com', 'vip.sina.com', 'vip.qq.com'];
 
 	if (!email || typeof email !== 'string') {
 		return false;
 	}
 
-	const domain = email.split('@')[1]?.toLowerCase();
-	if (TRUSTED_DOMAINS.includes(domain)) {
+	const domain = email.split('@')[1]?.trim().toLowerCase();
+	if (!domain) {
 		return false;
 	}
 
-	const domains = await sendHttpRequest<string>({ url: DISPOSABLE_EMAIL_LIST_URL });
+	const trustedDomains = [
+		...TRUSTED_DOMAINS,
+		...(options?.trustedDomains || []).map((trustedDomain) =>
+			trustedDomain.trim().toLowerCase(),
+		),
+	];
+	if (trustedDomains.includes(domain)) {
+		if (options?.enableDebug) {
+			consoleLog({
+				message: `Email domain ${domain} is trusted.`,
+				context: 'isDispasableEmail',
+				options: { prettify: true },
+			});
+		}
+		return false;
+	}
 
-	return domains.split('\n').some((line) => line.trim() === domain);
+	const blocklistText = await sendHttpRequest<string>({
+		url: DISPOSABLE_EMAIL_LIST_URL,
+	});
+	const blockedDomains = new Set(
+		blocklistText
+			.split('\n')
+			.map((line) => line.trim().toLowerCase())
+			.filter(Boolean),
+	);
+
+	const labels = domain.split('.');
+	return labels
+		.slice(0, -1)
+		.some((_, index) => blockedDomains.has(labels.slice(index).join('.')));
 }
