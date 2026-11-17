@@ -120,7 +120,7 @@ export class BaseLambdaConstruct extends Construct {
 					logGroupName: `/aws/lambda/${functionName}`,
 					retention:
 						props.stage === 'production'
-							? RetentionDays.ONE_MONTH
+							? RetentionDays.TWO_WEEKS
 							: RetentionDays.ONE_WEEK,
 					removalPolicy: RemovalPolicy.DESTROY,
 				}),

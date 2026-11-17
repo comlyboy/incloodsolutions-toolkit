@@ -780,3 +780,22 @@ export function parseCsv<TSchema>({
 			}),
 	});
 }
+
+
+export async function isDispasableEmail(email: string) {
+	const DISPOSABLE_EMAIL_LIST_URL = 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/refs/heads/main/disposable_email_blocklist.conf';
+	const TRUSTED_DOMAINS = ['live.com', 'ymail.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'protonmail.com', 'zoho.com', 'gmx.com', 'aol.com', 'yandex.com', 'mail.com', 'fastmail.com', 'tutanota.com', 'hushmail.com', 'mailfence.com', 'runbox.com', 'posteo.de', 'startmail.com', 'countermail.com', 'kolabnow.com', 'lavabit.com', 'mailbox.org', 'thexyz.com', 'openmailbox.org', 'disroot.org', 'cock.li', 'seznam.cz', 'inbox.lv', 'mail.ru', 'bk.ru', 'list.ru', 'rambler.ru', 'tut.by', 'ukr.net', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'rediffmail.com', 'sina.com', 'qq.com', '126.com', '163.com', 'yeah.net', 'sohu.com', 'tom.com', '21cn.com', '263.net', '188.com', '139.com', '189.cn', 'wo.com.cn', 'vip.163.com', 'vip.sina.com', 'vip.qq.com'];
+
+	if (!email || typeof email !== 'string') {
+		return false;
+	}
+
+	const domain = email.split('@')[1]?.toLowerCase();
+	if (TRUSTED_DOMAINS.includes(domain)) {
+		return false;
+	}
+
+	const domains = await sendHttpRequest<string>({ url: DISPOSABLE_EMAIL_LIST_URL });
+
+	return domains.split('\n').some((line) => line.trim() === domain);
+}
