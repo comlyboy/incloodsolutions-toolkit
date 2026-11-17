@@ -124,7 +124,7 @@ new BaseLambdaApiStack(app, 'OrdersApi', {
 | ------ | ------- |
 | `IBaseConstruct` | extends `IBaseEnableDebug`. |
 | `IBaseCdkConstructProps<TOptions>` | shared construct props (see above). |
-| `IBaseStackProps<TStackOptions>` | shared stack props: CDK `StackProps` + a required `stackOptions: { stage?; enableDebug? } & TStackOptions`. |
+| `IBaseStackProps<TStackOptions>` | shared stack props: CDK `StackProps` + a required `stackOptions: { stage; enableDebug? } & TStackOptions` (`stage` is required). |
 
 ## Usage
 

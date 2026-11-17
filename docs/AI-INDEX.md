@@ -381,7 +381,7 @@ Each is a `Stack` subclass, `(scope, id, props)` where `props` is based on
 | ------ | ---- | ------- |
 | `IBaseConstruct` | interface | extends `IBaseEnableDebug`. |
 | `IBaseCdkConstructProps<TOptions = any>` | interface | `{ stage?: AppEnvironmentType; options?: TOptions; stackName?: string; appName?: string; enableDebug?: boolean }` (all readonly). |
-| `IBaseStackProps<TStackOptions = any>` | interface | Extends CDK `StackProps`; adds a **required** `stackOptions: { stage?: AppEnvironmentType } & TStackOptions & Partial<IBaseEnableDebug>`. |
+| `IBaseStackProps<TStackOptions = any>` | interface | Extends CDK `StackProps`; adds a **required** `stackOptions: { stage: AppEnvironmentType } & TStackOptions & Partial<IBaseEnableDebug>`. |
 
 ---
 
