@@ -41,8 +41,8 @@ jobs:
           echo "  Branch: $GITHUB_REF_NAME"
           echo "  Commit: $GITHUB_SHA"
           echo "  Triggered by: $GITHUB_ACTOR"
-          echo "WORKING_DIRECTORY=${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
-          echo "✅ Package folder: /${GITHUB_REF_NAME#publish-}"
+          echo "WORKING_DIRECTORY=packages/${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
+          echo "✅ Package folder: /packages/${GITHUB_REF_NAME#publish-}"
           echo "  Node: $(node -v) | npm: $(npm -v)"
 
       - name: Resolve package info
@@ -79,20 +79,18 @@ jobs:
           fi
 
       - name: Install dependencies
-        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "▶ [4/6] Installing dependencies for /${{ env.WORKING_DIRECTORY }} folder"
-          echo "📍 Current directory: $(pwd)"
+          echo "▶ [4/6] Installing workspace dependencies (repo root, one lockfile)"
+          pwd
           npm ci --no-audit --no-fund --quiet
           echo "✅ Dependencies installed"
 
       - name: Build
-        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "▶ [5/6] Building $PACKAGE_NAME@$LOCAL_VERSION"
-          npm run build
+          echo "▶ [5/6] Building $PACKAGE_NAME@$LOCAL_VERSION (and the workspace packages it depends on)"
+          npx turbo run build --filter="./$WORKING_DIRECTORY"
           echo "✅ Build finished. Output in /$WORKING_DIRECTORY/dist:"
-          ls -1 dist | head -30
+          ls -1 "$WORKING_DIRECTORY/dist" | head -30
 
       - name: Publish to npm
         working-directory: ${{ env.WORKING_DIRECTORY }}

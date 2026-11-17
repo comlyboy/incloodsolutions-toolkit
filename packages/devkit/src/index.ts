@@ -18,7 +18,7 @@
  *   {@link IBaseStackProps}.
  *
  * The `cli`, `lint`, `prettier`, and `utility` folders are placeholders and export nothing.
- * See `README.md` and `../docs/AI-INDEX.md`.
+ * See `README.md` and `../../docs/AI-INDEX.md`.
  */
 
 // export * from './cli';

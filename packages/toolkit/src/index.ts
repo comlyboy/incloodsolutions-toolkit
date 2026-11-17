@@ -18,7 +18,7 @@
  *                 {@link detectCountry}, {@link formatMoney}, {@link getCurrencyByCountryCode}.
  *
  * This file is kept only as the internal barrel used by this package's own
- * tests. See `README.md` and `../docs/AI-INDEX.md` for the full catalogue.
+ * tests. See `README.md` and `../../docs/AI-INDEX.md` for the full catalogue.
  */
 
 export * from './constant';

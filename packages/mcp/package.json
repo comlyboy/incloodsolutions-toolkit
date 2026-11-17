@@ -37,6 +37,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
+		"clean": "rimraf dist",
 		"build:cdk": "rimraf dist && mkdir -p dist/nodejs && cp package*.json dist/nodejs && npm i --omit=dev --prefix dist/nodejs && du -sh dist/nodejs/node_modules",
 		"buildd": "tsc",
 		"build": "tsup",
@@ -51,16 +52,16 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@incloodsolutions/toolkit": "^0.1.10",
+		"@incloodsolutions/toolkit": "^0.1.18",
 		"@modelcontextprotocol/server": "^2.0.0"
 	},
 	"devDependencies": {
 		"@types/node": "^26.4.1",
-		"prettier": "^3.9.6",
-		"rimraf": "^6.1.3",
+		"prettier": "^3.10.1",
+		"rimraf": "^6.1.4",
 		"source-map-support": "^0.5.21",
-		"tsup": "^8.5.1",
+		"tsup": "^9.0.0",
 		"typescript": "^6.0.3",
-		"vitest": "^5.0.0"
+		"vitest": "^5.1.0"
 	}
 }

@@ -67,6 +67,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
+		"clean": "rimraf dist",
 		"build": "tsup",
 		"buildd": "npm run prebuild && npx vite build",
 		"version:patch": "npm version patch --no-git-tag-version",
@@ -79,7 +80,7 @@
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^7.0.6",
-		"@incloodsolutions/toolkit": "^0.1.17",
+		"@incloodsolutions/toolkit": "^0.1.18",
 		"clsx": "^2.1.1",
 		"localforage": "^1.10.0",
 		"radix-ui": "^1.8.1",

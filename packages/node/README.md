@@ -10,7 +10,7 @@ crypto and hashing, environment-variable loading, request logging, and API-respo
 utilities.
 
 > For a one-line index of every export in this package (and the other toolkits), see
-> [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md). Every exported symbol also carries an inline
+> [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md). Every exported symbol also carries an inline
 > TSDoc comment with parameter descriptions, default values, and examples.
 
 ---

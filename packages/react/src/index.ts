@@ -17,7 +17,7 @@
  * - `types`     — {@link ViteModeType}.
  *
  * `components` (`FormLayoutComponent`) has been removed; the line below is a dangling
- * reference to a deleted directory — see `README.md` and `../docs/AI-INDEX.md` for the
+ * reference to a deleted directory — see `README.md` and `../../docs/AI-INDEX.md` for the
  * full catalogue and known gaps.
  */
 

@@ -32,8 +32,8 @@ resolve; import a subpath. Internal barrel at `src/index.ts` (`constant`, `error
 
 Published as tree-shakeable subpaths — one build per module, each with its own ESM + CJS +
 `.d.ts`, mirroring the source folder: `@incloodsolutions/toolkit/{constant, error, utility,
-validator, interface, countries}`. Configured in `toolkit/tsup.config.ts` (`entry` map) and
-`toolkit/package.json` (`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
+validator, interface, countries}`. Configured in `packages/toolkit/tsup.config.ts` (`entry` map) and
+`packages/toolkit/package.json` (`exports` + `typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### Constants — `src/constant/index.ts`
 
@@ -187,7 +187,7 @@ the source folder):
 aws-sdk/sns, aws-sdk/parameter, aws-sdk/dynamo-db, aws-sdk/event-bridge, gcp, mongo,
 utility, config, interface}`. `aws-sdk` (bare) bundles every SDK wrapper together — prefer
 a per-service leaf (`aws-sdk/s3`, …) unless you genuinely want all of them. Configured in
-`node/tsup.config.ts` (`entry` map) and `node/package.json` (`exports` + `typesVersions`,
+`packages/node/tsup.config.ts` (`entry` map) and `packages/node/package.json` (`exports` + `typesVersions`,
 no `.` / `main` / `module` / `types`).
 
 ### Serverless adapters — `src/aws/lambda/index.ts`, `src/gcp/function/index.ts`
@@ -264,7 +264,7 @@ no `.` / `main` / `module` / `types`).
 
 ## @incloodsolutions/react-toolkit
 
-React 18+. **No package-root export**: `@incloodsolutions/react-toolkit` alone does not resolve; import a subpath (`/hooks`, `/utilities`, `/validators`, `/types`), each built as its own ESM bundle + `.d.ts` (configured in `react/tsup.config.ts` and `react/package.json` `exports` + `typesVersions`). The internal barrel `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
+React 18+. **No package-root export**: `@incloodsolutions/react-toolkit` alone does not resolve; import a subpath (`/hooks`, `/utilities`, `/validators`, `/types`), each built as its own ESM bundle + `.d.ts` (configured in `packages/react/tsup.config.ts` and `packages/react/package.json` `exports` + `typesVersions`). The internal barrel `src/index.ts` → `hooks`, `types`, `utilities`, `validators`
 (`components` is commented out — the directory has been deleted; `src/config` and
 `src/constant` have been deleted outright). Peer deps: `react`, `react-dom`. Bundled: `clsx`,
 `tailwind-merge`, `react-hook-form`, `@hookform/resolvers`, `zod`, `usehooks-ts`,
@@ -338,7 +338,7 @@ construct (`lambda`, `dynamo-db`, `s3`, `api-gateway`, `api-gateway-v2`,
 or `aws-cdk/stacks` barrel subpath — each would re-bundle every construct or every stack
 into one artifact, defeating tree-shaking; `@incloodsolutions/devkit/aws` remains the sole
 "everything" escape hatch. Configured in
-`devkit/tsup.config.ts` (`entry` map) and `devkit/package.json` (`exports` +
+`packages/devkit/tsup.config.ts` (`entry` map) and `packages/devkit/package.json` (`exports` +
 `typesVersions`, no `.` / `main` / `module` / `types`).
 
 ### CDK constructs — `src/aws/cdk/constructs/`
@@ -389,7 +389,7 @@ Each is a `Stack` subclass, `(scope, id, props)` where `props` is based on
 ## @incloodsolutions/angular-toolkit
 
 Angular 21+ (`ng-packagr` workspace at `angular/`, library at
-`angular/projects/toolkit/`). Entry point: `src/public-api.ts` → `lib/services`.
+`packages/angular/projects/toolkit/`). Entry point: `src/public-api.ts` → `lib/services`.
 
 | Symbol | Kind | Summary |
 | ------ | ---- | ------- |

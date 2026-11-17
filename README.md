@@ -22,12 +22,12 @@ Repository: <https://github.com/comlyboy/incloodsolutions-toolkit>
 | I want to...                                              | Read                                            |
 | -------------------------------------------------------- | ----------------------------------------------- |
 | Look up any exported symbol across all packages          | [`docs/AI-INDEX.md`](./docs/AI-INDEX.md)        |
-| Use the core utilities, schemas, and types               | [`toolkit/README.md`](./toolkit/README.md)      |
-| Build a Node.js / serverless backend                     | [`node/README.md`](./node/README.md)            |
-| Build a React app                                        | [`react/README.md`](./react/README.md)          |
-| Build an Angular app                                     | [`angular/README.md`](./angular/README.md)      |
-| Define AWS infrastructure with CDK                       | [`devkit/README.md`](./devkit/README.md)        |
-| Check the (unimplemented) MCP package's intended API      | [`mcp/README.md`](./mcp/README.md)              |
+| Use the core utilities, schemas, and types               | [`packages/toolkit/README.md`](./packages/toolkit/README.md)      |
+| Build a Node.js / serverless backend                     | [`packages/node/README.md`](./packages/node/README.md)            |
+| Build a React app                                        | [`packages/react/README.md`](./packages/react/README.md)          |
+| Build an Angular app                                     | [`packages/angular/README.md`](./packages/angular/README.md)      |
+| Define AWS infrastructure with CDK                       | [`packages/devkit/README.md`](./packages/devkit/README.md)        |
+| Check the (unimplemented) MCP package's intended API      | [`packages/mcp/README.md`](./packages/mcp/README.md)              |
 
 [`docs/AI-INDEX.md`](./docs/AI-INDEX.md) is a single flat index of **every** public export
 (name, kind, signature, one-line description, source path). It is the fastest way for a
@@ -40,12 +40,12 @@ does it live?".
 
 | Package | Directory | npm | Runtime | Status |
 | ------- | --------- | --- | ------- | ------ |
-| `@incloodsolutions/toolkit` | [`toolkit/`](./toolkit) | [link](https://www.npmjs.com/package/@incloodsolutions/toolkit) | Any JS/TS (Node 18+) | Stable, actively used |
-| `@incloodsolutions/node-toolkit` | [`node/`](./node) | [link](https://www.npmjs.com/package/@incloodsolutions/node-toolkit) | Node.js 18+ | Active, some helpers are stubs |
-| `@incloodsolutions/react-toolkit` | [`react/`](./react) | [link](https://www.npmjs.com/package/@incloodsolutions/react-toolkit) | React 18+ | Active, small surface |
-| `@incloodsolutions/devkit` | [`devkit/`](./devkit) | [link](https://www.npmjs.com/package/@incloodsolutions/devkit) | Node.js + AWS CDK v2 | Active, AWS CDK constructs only |
-| `@incloodsolutions/angular-toolkit` | [`angular/`](./angular) | [link](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit) | Angular 21+ | Placeholder, not yet functional |
-| `@incloodsolutions/mcp` | [`mcp/`](./mcp) | [link](https://www.npmjs.com/package/@incloodsolutions/mcp) | Any JS/TS (Node 18+) | Placeholder — `src/index.ts` is empty, builds export nothing |
+| `@incloodsolutions/toolkit` | [`toolkit/`](./packages/toolkit) | [link](https://www.npmjs.com/package/@incloodsolutions/toolkit) | Any JS/TS (Node 18+) | Stable, actively used |
+| `@incloodsolutions/node-toolkit` | [`node/`](./packages/node) | [link](https://www.npmjs.com/package/@incloodsolutions/node-toolkit) | Node.js 18+ | Active, some helpers are stubs |
+| `@incloodsolutions/react-toolkit` | [`react/`](./packages/react) | [link](https://www.npmjs.com/package/@incloodsolutions/react-toolkit) | React 18+ | Active, small surface |
+| `@incloodsolutions/devkit` | [`devkit/`](./packages/devkit) | [link](https://www.npmjs.com/package/@incloodsolutions/devkit) | Node.js + AWS CDK v2 | Active, AWS CDK constructs only |
+| `@incloodsolutions/angular-toolkit` | [`angular/`](./packages/angular) | [link](https://www.npmjs.com/package/@incloodsolutions/angular-toolkit) | Angular 21+ | Placeholder, not yet functional |
+| `@incloodsolutions/mcp` | [`mcp/`](./packages/mcp) | [link](https://www.npmjs.com/package/@incloodsolutions/mcp) | Any JS/TS (Node 18+) | Placeholder — `src/index.ts` is empty, builds export nothing |
 
 ### `@incloodsolutions/toolkit` — the core
 
@@ -103,7 +103,7 @@ The README documents an intended API (mirroring `toolkit/`'s) that is not yet im
 
 ## Getting started
 
-Each package is installed independently:
+Each package is installed independently by consumers:
 
 ```bash
 npm install @incloodsolutions/toolkit
@@ -114,21 +114,49 @@ npm install @incloodsolutions/devkit
 
 ## Repository layout
 
+This is a [Turborepo](https://turborepo.com) monorepo on npm workspaces.
+
 ```
 incloodsolutions-toolkit/
-├── docs/AI-INDEX.md      # flat index of every export in every package
-├── toolkit/              # @incloodsolutions/toolkit         (core)
-├── node/                 # @incloodsolutions/node-toolkit
-├── react/                # @incloodsolutions/react-toolkit
-├── devkit/               # @incloodsolutions/devkit
-├── angular/              # @incloodsolutions/angular-toolkit  (ng-packagr workspace)
-├── mcp/                  # @incloodsolutions/mcp              (placeholder, empty entry point)
+├── package.json          # workspace root (private): `workspaces: ["packages/*"]`, turbo scripts
+├── package-lock.json     # the single lockfile for every package
+├── turbo.json            # task graph: build, test, lint, format, ...
+├── packages/
+│   ├── toolkit/          # @incloodsolutions/toolkit         (core)
+│   ├── node/             # @incloodsolutions/node-toolkit
+│   ├── react/            # @incloodsolutions/react-toolkit
+│   ├── devkit/           # @incloodsolutions/devkit
+│   ├── angular/          # angular-toolkit (ng-packagr workspace; publishes @incloodsolutions/angular-toolkit)
+│   └── mcp/              # @incloodsolutions/mcp              (placeholder, empty entry point)
 ├── shared/               # tsup base config shared by packages
+├── docs/AI-INDEX.md      # flat index of every export in every package
 └── .github/workflows/    # publish.yml
 ```
 
-Each package is a self-contained npm project with its own `package.json`, `tsconfig`, and
-build. There is no root workspace; run `npm install` inside the package you are working on.
+Package names and folder names are unchanged from before the move; they now live under
+`packages/`. `@incloodsolutions/toolkit` is a dependency of `node`, `devkit`, `react` and
+`mcp`: while the version in `packages/toolkit` satisfies their range, npm links the local
+copy instead of downloading it, and Turborepo builds `toolkit` first.
+
+## Working in the monorepo
+
+Install once, at the repo root (never inside a package):
+
+```bash
+npm install
+```
+
+Then run tasks across everything, or one package, with Turborepo:
+
+```bash
+npm run build                                  # turbo run build (dependencies first, cached)
+npm test                                       # turbo run test (builds first where needed)
+npx turbo run build --filter=@incloodsolutions/node-toolkit   # one package and what it needs
+npx turbo run test --filter=./packages/react
+```
+
+Each package still has its own `build`, `test`, `lint`, `format` and `clean` scripts, so you can
+also `cd packages/<name>` and run `npm run <script>`.
 
 ## Code style
 
@@ -136,13 +164,14 @@ Every package uses [Prettier](https://prettier.io) with a shared configuration �
 tab indentation, single quotes, trailing commas (`useTabs: true`, `singleQuote: true`,
 `trailingComma: "all"`). `toolkit/`, `node/`, `react/`, and `devkit/` each carry a
 `.prettierrc`; `angular/` keeps the Prettier config that its CLI scaffold placed in
-`package.json`. Format a package with:
+`package.json`. Format everything, or one package, with:
 
 ```bash
-npm run format   # runs prettier --write over that package's sources
+npm run format                           # turbo run format, every package
+cd packages/node && npm run format       # just one
 ```
 
-Run it before committing. (For `angular/`, run `npm install` first so Prettier is available.)
+Run it before committing.
 
 ## Building and publishing
 
@@ -170,9 +199,13 @@ publishable tarball — use it to verify a package before release.
 
 Releases are automated by [`.github/workflows/publish.yml`](./.github/workflows/publish.yml).
 Pushing a branch named `publish-<package-dir>` (for example `publish-toolkit`,
-`publish-node`, `publish-react`, `publish-devkit`) triggers a job that installs, refuses to
-republish an existing version, runs `npm run build`, and runs `npm publish --access=public`
-in that directory. Bump the version in the package's `package.json` before pushing.
+`publish-node`, `publish-react`, `publish-devkit`) triggers a job that refuses to republish
+an existing version, runs `npm ci` at the repo root, builds that package with
+`turbo run build --filter=./packages/<package-dir>` (its workspace dependencies are built
+first), and runs `npm publish --access=public` in `packages/<package-dir>`. Bump the version
+in the package's `package.json` before pushing. When a release needs a new version of
+`@incloodsolutions/toolkit`, publish `toolkit` first: the other packages depend on it by
+version range.
 
 ## Contributing
 

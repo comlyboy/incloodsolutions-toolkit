@@ -25,7 +25,7 @@
 
 import { defineConfig, Options } from "tsup";
 
-import { tsupBaseConfig } from "../shared/tsup-base.config";
+import { tsupBaseConfig } from "../../shared/tsup-base.config";
 
 /**
  * One bundle per public module, so a consumer imports only the area they use.

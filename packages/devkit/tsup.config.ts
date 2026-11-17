@@ -1,6 +1,6 @@
 import { defineConfig, Options } from "tsup";
 
-import { tsupBaseConfig } from "../shared/tsup-base.config";
+import { tsupBaseConfig } from "../../shared/tsup-base.config";
 
 /**
  * One bundle per public module — and per CDK construct and stack — so a

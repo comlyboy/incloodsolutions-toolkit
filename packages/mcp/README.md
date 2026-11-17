@@ -12,7 +12,7 @@ declarations.
 
 > Every exported function, type, interface, and schema carries a TSDoc comment with
 > parameter descriptions, **default values**, and usage examples, so your editor shows the
-> full contract on hover. This README and [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md)
+> full contract on hover. This README and [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md)
 > mirror the same information for quick scanning.
 
 > **Status: placeholder.** `src/index.ts` — the package's only entry point — is currently
@@ -321,7 +321,7 @@ utilities that are currently buggy — the tests pin the current behaviour so a 
 the "known bug" cases fail on purpose.
 
 > The whole build is `tsup` (`dts: true` in
-> [`../shared/tsup-base.config.ts`](../shared/tsup-base.config.ts)). It emits `dist/index.js`
+> [`../../shared/tsup-base.config.ts`](../../shared/tsup-base.config.ts)). It emits `dist/index.js`
 > (ESM), `dist/index.cjs` (CommonJS), and one bundled `dist/index.d.ts`. Pinned to
 > `typescript@^6` — that is the version tsup's declaration bundler supports.
 

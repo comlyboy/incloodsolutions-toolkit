@@ -85,6 +85,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
+		"clean": "rimraf dist",
 		"buildd": "tsc",
 		"build": "tsup",
 		"build:cjs": "tsc -p tsconfig.cjs.json",

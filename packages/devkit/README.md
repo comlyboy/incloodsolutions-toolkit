@@ -10,7 +10,7 @@ applications. Each construct wraps one or more `aws-cdk-lib` resources, applies 
 outputs), and exposes the underlying resource for further customisation.
 
 > For a one-line index of every construct and type in this package (and the other
-> toolkits), see [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md). Every construct, its props
+> toolkits), see [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md). Every construct, its props
 > interface, and the created resource fields carry inline TSDoc comments describing the
 > applied defaults.
 

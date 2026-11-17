@@ -20,7 +20,7 @@
  *                and URL-encoding helpers live in `@incloodsolutions/toolkit/utility`.
  *
  * Note: `initEventBridgeClientWrapper` and `uploadToS3ViaCli` are placeholders.
- * See `README.md` and `../docs/AI-INDEX.md` for the full catalogue.
+ * See `README.md` and `../../docs/AI-INDEX.md` for the full catalogue.
  */
 
 export * from './aws';

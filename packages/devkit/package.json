@@ -145,6 +145,7 @@
 	],
 	"scripts": {
 		"prebuild": "rimraf dist",
+		"clean": "rimraf dist",
 		"build": "NODE_OPTIONS=--max-old-space-size=4096 tsup",
 		"version:patch": "npm version patch --no-git-tag-version",
 		"package": "npm run build && npm pack",
@@ -155,7 +156,7 @@
 		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
-		"@incloodsolutions/toolkit": "^0.1.17",
+		"@incloodsolutions/toolkit": "^0.1.18",
 		"aws-cdk-lib": "^2.277.0",
 		"constructs": "^10.8.1",
 		"tslib": "^2.9.1"

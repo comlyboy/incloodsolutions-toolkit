@@ -10,7 +10,7 @@ full [`usehooks-ts`](https://usehooks-ts.com) API plus a large slice of
 [`react-use`](https://github.com/streamich/react-use).
 
 > For a one-line index of every export in this package (and the other toolkits), see
-> [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md). Every exported hook, utility, and type also
+> [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md). Every exported hook, utility, and type also
 > carries an inline TSDoc comment with parameter descriptions, default values, and examples.
 
 ---

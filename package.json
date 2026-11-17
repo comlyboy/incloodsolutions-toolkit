@@ -1,0 +1,25 @@
+{
+	"name": "incloodsolutions-toolkit",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Monorepo for the @incloodsolutions toolkits: core, Node.js, React, Angular, AWS CDK and MCP.",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
+	},
+	"license": "MIT",
+	"packageManager": "npm@11.12.1",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"build": "turbo run build",
+		"test": "turbo run test",
+		"lint": "turbo run lint",
+		"format": "turbo run format",
+		"clean": "turbo run clean"
+	},
+	"devDependencies": {
+		"turbo": "^2.9.0"
+	}
+}

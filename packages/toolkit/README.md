@@ -12,7 +12,7 @@ declarations.
 
 > Every exported function, type, interface, and schema carries a TSDoc comment with
 > parameter descriptions, **default values**, and usage examples, so your editor shows the
-> full contract on hover. This README and [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md)
+> full contract on hover. This README and [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md)
 > mirror the same information for quick scanning.
 
 ---
@@ -368,7 +368,7 @@ the "known bug" cases fail on purpose. [`test/esm-bundle.spec.ts`](./test/esm-bu
 guards that every subpath entry builds, loads as ESM, and stays isolated from its siblings.
 
 > The whole build is `tsup` (`dts: true` in
-> [`../shared/tsup-base.config.ts`](../shared/tsup-base.config.ts)), pinned to
+> [`../../shared/tsup-base.config.ts`](../../shared/tsup-base.config.ts)), pinned to
 > `typescript@^6`. There is **no root export** and no `main`/`module`/`types` fields —
 > every module is a `./*` subpath in `exports` (see
 > [Modular imports](#modular-imports-tree-shaking)), configured by the `entry` map in

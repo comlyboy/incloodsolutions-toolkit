@@ -8,7 +8,7 @@ Angular utilities and services that build on [`@incloodsolutions/toolkit`](../to
 > **Status: placeholder.** This package is published so the name is reserved, but it has no
 > usable API yet. The only export is an empty `StorageService`. Do not depend on it in
 > production. For a current index of what every package exports, see
-> [`../docs/AI-INDEX.md`](../docs/AI-INDEX.md).
+> [`../../docs/AI-INDEX.md`](../../docs/AI-INDEX.md).
 
 ---
 
@@ -19,9 +19,9 @@ This directory is an Angular CLI workspace built with `ng-packagr`.
 | Path | Purpose |
 | ---- | ------- |
 | `angular/` | Angular CLI workspace (`angular.json`, tooling) |
-| `angular/projects/toolkit/` | the publishable library (`@incloodsolutions/angular-toolkit`) |
-| `angular/projects/toolkit/src/public-api.ts` | public entry point |
-| `angular/projects/toolkit/src/lib/services/` | `StorageService` (stub) |
+| `packages/angular/projects/toolkit/` | the publishable library (`@incloodsolutions/angular-toolkit`) |
+| `packages/angular/projects/toolkit/src/public-api.ts` | public entry point |
+| `packages/angular/projects/toolkit/src/lib/services/` | `StorageService` (stub) |
 
 Peer dependencies: `@angular/common` and `@angular/core` `^21`.
 
