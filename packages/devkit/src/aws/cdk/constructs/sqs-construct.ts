@@ -63,7 +63,7 @@ export class BaseSqsConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: ISqsConstructProps) {
 		super(scope, id);
 
-		this.queue = new Queue(this, id, {
+		this.queue = new Queue(this, 'Default', {
 			...props?.options?.queueOptions,
 
 			/**

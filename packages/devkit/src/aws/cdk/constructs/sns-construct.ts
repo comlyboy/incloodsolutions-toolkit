@@ -49,6 +49,9 @@ export class BaseSnsConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: ISnsConstructProps) {
 		super(scope, id);
 
+		// Not 'Default' like the other constructs: `LambdaSubscription` creates its subscription
+		// inside the function using the topic's id, and `<function>/Default` would get the same
+		// CloudFormation logical id as the function itself.
 		this.topic = new Topic(this, id, props.options?.topicOptions);
 
 		/**

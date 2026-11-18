@@ -346,6 +346,12 @@ into one artifact, defeating tree-shaking; `@incloodsolutions/devkit/aws` remain
 Every construct extends `constructs.Construct`, takes `(scope, id, props)` where `props`
 is based on `IBaseCdkConstructProps`, applies opinionated defaults, and emits a `CfnOutput`.
 
+The construct's main resource is created under the child id `'Default'` (`<construct id>/Default`),
+for every construct except `BaseSnsConstruct`: CDK names the SNS-to-Lambda subscription it creates
+inside the function after the topic's id, and `<function>/Default` would collide with the function's
+own CloudFormation logical id, so the topic keeps the construct's own `id`. Importing an existing
+resource (`fromExisting...`) uses `<id>-Name`, `<id>-Arn` or `<id>-Attribute` instead.
+
 | Symbol | Source file | Creates |
 | ------ | ----------- | ------- |
 | `BaseLambdaConstruct` | `lambda-construct.ts` | `aws-lambda.Function`. Defaults: Node.js 24, ARM64, 1024 MB, `Code.fromAsset('dist')`, handler `lambda.handler`, timeout 30 s in production / 15 s otherwise, source maps on, injects `NODE_ENV` from `stage`. Validates env vars for duplicates. Exposes `.function`. |

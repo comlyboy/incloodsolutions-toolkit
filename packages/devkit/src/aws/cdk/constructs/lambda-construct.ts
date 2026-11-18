@@ -83,7 +83,7 @@ export class BaseLambdaConstruct extends Construct {
 				},
 			}).logGroup;
 
-		this.function = new Function(this, id, {
+		this.function = new Function(this, 'Default', {
 			...props?.options?.lambdaOptions,
 
 			/**

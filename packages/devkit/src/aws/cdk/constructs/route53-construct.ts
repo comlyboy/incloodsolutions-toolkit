@@ -123,19 +123,19 @@ export class BaseRoute53Construct extends Construct {
 		if (options.hostedZoneOptions) {
 			this.hostedZone = new HostedZone(
 				this,
-				`${id}-HostedZone`,
+				'Default',
 				options.hostedZoneOptions,
 			);
 		} else if (options.fromExistingHostedZoneAttributes) {
 			this.hostedZone = HostedZone.fromHostedZoneAttributes(
 				this,
-				`${id}-HostedZone`,
+				`${id}-hostedZone`,
 				options.fromExistingHostedZoneAttributes,
 			);
 		} else if (options.fromLookupOptions) {
 			this.hostedZone = HostedZone.fromLookup(
 				this,
-				`${id}-HostedZone`,
+				`${id}-hostedZone`,
 				options.fromLookupOptions,
 			);
 		} else {

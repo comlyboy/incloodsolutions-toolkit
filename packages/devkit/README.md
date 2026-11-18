@@ -76,6 +76,19 @@ Every subpath resolves ESM (`import`), CommonJS (`require`), and its own `.d.ts`
 
 ## Constructs
 
+Each construct creates its main resource under the child id `'Default'` (`<construct id>/Default`),
+except `BaseSnsConstruct`, whose topic uses the construct's own `id`: CDK names the SNS-to-Lambda
+subscription after the topic's id, and `<function>/Default` would collide with the function's
+CloudFormation logical id. Importing an existing resource uses `<id>-Name`, `<id>-Arn` or
+`<id>-Attribute`.
+
+**Upgrading an existing stack:** the Lambda function, SQS queue and created Route53 hosted zone
+moved from the construct's `id` (or `<id>-HostedZone`) to `Default`, which changes their
+CloudFormation logical ids. CloudFormation then replaces them, and a resource with a fixed physical
+name (a function with `functionName`, a queue with `queueName`) cannot be replaced in place, so the
+deploy fails until the old resource is removed or renamed. A replaced hosted zone also gets new
+name servers. Plan for this before deploying an existing stack.
+
 | Construct | Wraps | Notable defaults |
 | --------- | ----- | ---------------- |
 | `BaseLambdaConstruct` | `aws-lambda.Function` | Node.js 24, ARM64, 1024 MB, `Code.fromAsset('dist')`, handler `lambda.handler`, timeout 30 s (prod) / 15 s, `--enable-source-maps`, injects `NODE_ENV` from `stage`, validates env vars for duplicates. Exposes `.function`. |

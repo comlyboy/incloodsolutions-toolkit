@@ -560,6 +560,38 @@ describe('BaseS3DeploymentConstruct', () => {
 	});
 });
 
+describe("main resource construct id ('Default')", () => {
+	it('creates the main resource of each construct under the child id Default', () => {
+		const s = stack();
+		const handler = fn(s);
+		const constructs: Record<
+			string,
+			{ node: { tryFindChild(id: string): unknown } }
+		> = {
+			lambda: new BaseLambdaConstruct(s, 'Lambda', {
+				stackName: 'orders',
+				stage: 'qa',
+				options: { lambdaOptions: { code: Code.fromInline('x') } },
+			}),
+			sqs: new BaseSqsConstruct(s, 'Sqs', { options: { queueOptions: {} } }),
+			route53: new BaseRoute53Construct(s, 'Dns', {
+				options: { hostedZoneOptions: { zoneName: 'example.com' } },
+			} as never),
+			s3: new BaseS3Construct(s, 'Bucket', { options: { bucketOptions: {} } }),
+			vpc: new BaseVpcConstruct(s, 'Vpc', { options: { vpcOptions: {} } }),
+			eventBridge: new BaseEventBridgeConstruct(s, 'Rule', {
+				options: {
+					eventBridgeOptions: { schedule: Schedule.rate(Duration.hours(1)) },
+					targetFunctions: [handler],
+				},
+			}),
+		};
+		for (const [name, construct] of Object.entries(constructs)) {
+			expect(construct.node.tryFindChild('Default'), name).toBeDefined();
+		}
+	});
+});
+
 describe('package surface', () => {
 	it('exports every Base* construct and the two shared types are usable', () => {
 		for (const name of [
