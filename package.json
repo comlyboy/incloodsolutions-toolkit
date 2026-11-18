@@ -14,12 +14,24 @@
 	],
 	"scripts": {
 		"build": "turbo run build",
+		"build:toolkit": "turbo run build --filter=@incloodsolutions/toolkit",
+		"build:node": "turbo run build --filter=@incloodsolutions/node-toolkit",
+		"build:devkit": "turbo run build --filter=@incloodsolutions/devkit",
+		"build:react": "turbo run build --filter=@incloodsolutions/react-toolkit",
+		"build:angular": "turbo run build --filter=angular-toolkit",
+		"build:mcp": "turbo run build --filter=@incloodsolutions/mcp",
 		"test": "turbo run test",
+		"test:toolkit": "turbo run test --filter=@incloodsolutions/toolkit",
+		"test:node": "turbo run test --filter=@incloodsolutions/node-toolkit",
+		"test:devkit": "turbo run test --filter=@incloodsolutions/devkit",
+		"test:react": "turbo run test --filter=@incloodsolutions/react-toolkit",
+		"test:angular": "turbo run test --filter=angular-toolkit",
+		"test:mcp": "turbo run test --filter=@incloodsolutions/mcp",
 		"lint": "turbo run lint",
 		"format": "turbo run format",
 		"clean": "turbo run clean"
 	},
 	"devDependencies": {
-		"turbo": "^2.9.0"
+		"turbo": "^2.11.12"
 	}
 }

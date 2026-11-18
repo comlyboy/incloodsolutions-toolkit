@@ -21,7 +21,6 @@ jobs:
       PACKAGE_NAME: ""
       LOCAL_VERSION: ""
       PUBLISHED_VERSION: ""
-      WORKING_DIRECTORY: ${{ github.ref_name }}
 
     steps:
       - name: Checkout code (make repo branch code available in this pipeline)
@@ -35,22 +34,20 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets._NPM_TOKEN }}
 
-      - name: Determine working directory
+      - name: Resolve package info
         run: |
-          echo "▶ [1/6] Determining working directory"
+          echo "▶ [1/5] Resolving package info"
           echo "  Branch: $GITHUB_REF_NAME"
           echo "  Commit: $GITHUB_SHA"
           echo "  Triggered by: $GITHUB_ACTOR"
-          echo "WORKING_DIRECTORY=packages/${GITHUB_REF_NAME#publish-}" >> $GITHUB_ENV
-          echo "✅ Package folder: /packages/${GITHUB_REF_NAME#publish-}"
           echo "  Node: $(node -v) | npm: $(npm -v)"
 
-      - name: Resolve package info
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          echo "▶ [2/6] Resolving package info in /$WORKING_DIRECTORY"
-          PACKAGE_NAME=$(node -p 'require("./package.json").name')
-          LOCAL_VERSION=$(node -p 'require("./package.json").version')
+          WORKING_DIRECTORY="packages/${GITHUB_REF_NAME#publish-}"
+          echo "WORKING_DIRECTORY=$WORKING_DIRECTORY" >> "$GITHUB_ENV"
+          echo "  Package folder: /$WORKING_DIRECTORY"
+
+          PACKAGE_NAME=$(node -p "require('./$WORKING_DIRECTORY/package.json').name")
+          LOCAL_VERSION=$(node -p "require('./$WORKING_DIRECTORY/package.json').version")
 
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
           echo "LOCAL_VERSION=$LOCAL_VERSION" >> "$GITHUB_ENV"
@@ -69,7 +66,7 @@ jobs:
 
       - name: Prevent duplicate publish
         run: |
-          echo "▶ [3/6] Checking $PACKAGE_NAME@$LOCAL_VERSION is not already published"
+          echo "▶ [2/5] Checking $PACKAGE_NAME@$LOCAL_VERSION is not already published"
           if [ "$LOCAL_VERSION" = "$PUBLISHED_VERSION" ]; then
             echo "❌ Version already exists on npm ($LOCAL_VERSION)"
             exit 1
@@ -80,21 +77,21 @@ jobs:
 
       - name: Install dependencies
         run: |
-          echo "▶ [4/6] Installing workspace dependencies (repo root, one lockfile)"
+          echo "▶ [3/5] Installing workspace dependencies (repo root, one lockfile)"
           pwd
           npm ci --no-audit --no-fund --quiet
           echo "✅ Dependencies installed"
 
       - name: Build
         run: |
-          echo "▶ [5/6] Building $PACKAGE_NAME@$LOCAL_VERSION (and the workspace packages it depends on)"
-          npx turbo run build --filter="./$WORKING_DIRECTORY"
+          echo "▶ [4/5] Building $PACKAGE_NAME@$LOCAL_VERSION (and the workspace packages it depends on)"
+          npm run "build:${GITHUB_REF_NAME#publish-}"
           echo "✅ Build finished. Output in /$WORKING_DIRECTORY/dist:"
           ls -1 "$WORKING_DIRECTORY/dist" | head -30
 
       - name: Publish to npm
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
-          echo "▶ [6/6] Publishing $PACKAGE_NAME@$LOCAL_VERSION to npm (public, with provenance)"
+          echo "▶ [5/5] Publishing $PACKAGE_NAME@$LOCAL_VERSION to npm (public, with provenance)"
           npm publish --access=public --provenance
           echo "🎉 Published $PACKAGE_NAME@$LOCAL_VERSION: https://www.npmjs.com/package/$PACKAGE_NAME/v/$LOCAL_VERSION"

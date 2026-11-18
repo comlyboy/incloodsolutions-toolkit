@@ -151,9 +151,15 @@ Then run tasks across everything, or one package, with Turborepo:
 ```bash
 npm run build                                  # turbo run build (dependencies first, cached)
 npm test                                       # turbo run test (builds first where needed)
-npx turbo run build --filter=@incloodsolutions/node-toolkit   # one package and what it needs
-npx turbo run test --filter=./packages/react
+npm run build:toolkit                          # one package (and the packages it needs), by folder name
+npm run test:node                              # same for tests; also build:/test: devkit, react, angular, mcp
+npx turbo run build --filter=@incloodsolutions/node-toolkit   # the same thing, by hand
+npx turbo run build --filter=./packages/node                  # or by path
 ```
+
+Turborepo's `--filter` matches the npm package name (`@incloodsolutions/node-toolkit`,
+`angular-toolkit`) or a path (`./packages/node`), so a bare `--filter=node` finds nothing. The
+`build:<folder>` and `test:<folder>` scripts use the folder name and filter by the package name for you.
 
 Each package still has its own `build`, `test`, `lint`, `format` and `clean` scripts, so you can
 also `cd packages/<name>` and run `npm run <script>`.
