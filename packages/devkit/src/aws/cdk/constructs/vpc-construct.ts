@@ -36,7 +36,7 @@ export class BaseVpcConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: IVpcConstructProps) {
 		super(scope, id);
 
-		this.vpc = new Vpc(this, id, {
+		this.vpc = new Vpc(this, 'Default', {
 			...props.options.vpcOptions,
 		});
 

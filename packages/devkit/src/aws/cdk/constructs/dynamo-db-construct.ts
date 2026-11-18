@@ -165,7 +165,7 @@ export class BaseDynamoDBConstruct extends Construct implements IBaseConstruct {
 		} else {
 			this.existingTable = null;
 
-			this.table = new Table(this, id, {
+			this.table = new Table(this, 'Default', {
 				...props.options?.tableOptions,
 
 				/**

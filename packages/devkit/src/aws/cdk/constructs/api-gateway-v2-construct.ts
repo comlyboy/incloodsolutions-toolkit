@@ -76,7 +76,7 @@ export class BaseApiGatewayV2Construct
 
 		this.enableDebug = props.enableDebug;
 
-		this.api = new HttpApi(this, id, {
+		this.api = new HttpApi(this, 'Default', {
 			...props?.options?.gatewayOptions,
 
 			/** Default API description if not provided */

@@ -91,7 +91,7 @@ export class BaseApiGatewayWebSocketConstruct extends Construct {
 	) {
 		super(scope, id);
 
-		this.socketApi = new WebSocketApi(this, id, {
+		this.socketApi = new WebSocketApi(this, 'Default', {
 			...props.options.webSocketApiOptions,
 
 			/**

@@ -83,7 +83,7 @@ export class BaseS3Construct extends Construct {
 			);
 		} else {
 			// If no existing bucket is provided, create a new one
-			this.bucket = new Bucket(this, id, {
+			this.bucket = new Bucket(this, 'Default', {
 				...props.options?.bucketOptions,
 
 				/**

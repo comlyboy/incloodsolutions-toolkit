@@ -54,7 +54,7 @@ export class BaseLambdaAuthoriserConstruct extends Construct {
 	) {
 		super(scope, id);
 
-		this.authoriser = new TokenAuthorizer(this, id, {
+		this.authoriser = new TokenAuthorizer(this, 'Default', {
 			...props.options?.authorizerOptions,
 
 			/**

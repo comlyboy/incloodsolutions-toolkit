@@ -38,7 +38,11 @@ export class BaseCloudwatchLogGroupConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: ILogGroupConstructProps) {
 		super(scope, id);
 
-		this.logGroup = new LogGroup(this, id, {
+		// Id 'Default' is left out of CDK's path when it builds the CloudFormation logical id, so the log
+		// group keeps the id it had before this wrapper existed (`<scope>/<id>/Resource`). A different id
+		// here renames the logical id, and CloudFormation then creates the new log group before deleting
+		// the old one -- failing with "already exists" on a fixed-name group.
+		this.logGroup = new LogGroup(this, 'Default', {
 			...props.options?.logGroupOptions,
 
 			/**

@@ -95,7 +95,7 @@ export class BaseLambdaLayerConstruct extends Construct {
 			 * Create new Lambda layer
 			 */
 		} else {
-			this.layer = new LayerVersion(this, id, {
+			this.layer = new LayerVersion(this, 'Default', {
 				...props.options?.layerOptions,
 
 				/**

@@ -45,7 +45,7 @@ export class BaseEventBridgeConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: IEventBridgeConstructProps) {
 		super(scope, id);
 
-		this.eventSchedule = new Rule(this, id, {
+		this.eventSchedule = new Rule(this, 'Default', {
 			...props.options?.eventBridgeOptions,
 
 			/** Default description if not explicitly provided */

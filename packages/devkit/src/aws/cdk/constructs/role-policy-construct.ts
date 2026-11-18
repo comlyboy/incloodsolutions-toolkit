@@ -53,7 +53,7 @@ export class BaseRolePolicyConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: IRolePolicyConstructProps) {
 		super(scope, id);
 
-		this.role = new Role(this, id, {
+		this.role = new Role(this, 'Default', {
 			...props.options?.roleOptions,
 
 			/**

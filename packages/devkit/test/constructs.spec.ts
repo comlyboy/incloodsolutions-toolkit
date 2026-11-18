@@ -24,6 +24,7 @@ import {
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
 import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Schedule } from 'aws-cdk-lib/aws-events';
 import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { RecordTarget } from 'aws-cdk-lib/aws-route53';
@@ -219,6 +220,22 @@ describe('BaseCloudwatchLogGroupConstruct', () => {
 			options: { logGroupOptions: {} },
 		});
 		Template.fromStack(s).resourceCountIs('AWS::Logs::LogGroup', 1);
+	});
+
+	it('keeps the logical id of a log group created directly under the same id', () => {
+		// Deployed stacks hold the directly-created id; a different one makes CloudFormation create the
+		// new fixed-name log group before deleting the old, which fails with "already exists".
+		const wrapped = stack();
+		new BaseCloudwatchLogGroupConstruct(wrapped, 'Logs', {
+			options: { logGroupOptions: {} },
+		});
+		const direct = stack();
+		new LogGroup(direct, 'Logs');
+		expect(
+			Object.keys(Template.fromStack(wrapped).findResources('AWS::Logs::LogGroup')),
+		).toEqual(
+			Object.keys(Template.fromStack(direct).findResources('AWS::Logs::LogGroup')),
+		);
 	});
 });
 

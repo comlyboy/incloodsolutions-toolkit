@@ -42,7 +42,7 @@ export class BaseCloudfrontConstruct extends Construct {
 	constructor(scope: Construct, id: string, props: ICloudfrontConstructProps) {
 		super(scope, id);
 
-		this.distribution = new Distribution(this, id, {
+		this.distribution = new Distribution(this, 'Default', {
 			...props.options?.cloudfrontOptions,
 
 			/**
