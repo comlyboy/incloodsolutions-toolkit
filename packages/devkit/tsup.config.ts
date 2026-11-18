@@ -1,6 +1,6 @@
-import { defineConfig, Options } from "tsup";
+import { defineConfig, Options } from 'tsup';
 
-import { tsupBaseConfig } from "../../shared/tsup-base.config";
+import { tsupBaseConfig } from '../../shared/tsup-base.config';
 
 /**
  * One bundle per public module — and per CDK construct and stack — so a
@@ -21,41 +21,41 @@ import { tsupBaseConfig } from "../../shared/tsup-base.config";
  * bundle is still built (test aggregation point) but is unreachable by name.
  */
 const constructs = [
-	"api-gateway",
-	"api-gateway-v2",
-	"api-gateway-websocket",
-	"cloudfront",
-	"cloudwatch",
-	"dynamo-db",
-	"event-bridge",
-	"lambda",
-	"lambda-authorizer",
-	"lambda-authorizer-v2",
-	"lambda-layer",
-	"role-policy",
-	"route53",
-	"s3",
-	"s3-deployment",
-	"sns",
-	"sqs",
-	"vpc",
+	'api-gateway',
+	'api-gateway-v2',
+	'api-gateway-websocket',
+	'cloudfront',
+	'cloudwatch',
+	'dynamo-db',
+	'event-bridge',
+	'lambda',
+	'lambda-authorizer',
+	'lambda-authorizer-v2',
+	'lambda-layer',
+	'role-policy',
+	'route53',
+	's3',
+	's3-deployment',
+	'sns',
+	'sqs',
+	'vpc',
 ] as const;
 
-const stacks = ["lambda-api", "lambda-layer"] as const;
+const stacks = ['lambda-api', 'lambda-layer'] as const;
 
 export default defineConfig([
 	{
-		...tsupBaseConfig as unknown as Options,
+		...(tsupBaseConfig as unknown as Options),
 		// Keep every dependency external (`aws-cdk-lib`, `constructs`, …) — never
 		// bundle them. See `test/esm-bundle.spec.ts`.
 		skipNodeModulesBundle: true,
 		entry: {
 			// Built but NOT exported from package.json — see the note above.
-			index: "src/index.ts",
+			index: 'src/index.ts',
 
 			// Top-level modules
-			aws: "src/aws/index.ts",
-			"aws-types": "src/aws/types/index.ts",
+			aws: 'src/aws/index.ts',
+			'aws-types': 'src/aws/types/index.ts',
 
 			// One entry per CDK construct
 			...Object.fromEntries(

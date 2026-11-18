@@ -1,6 +1,6 @@
-import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { LogGroup, LogGroupProps, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

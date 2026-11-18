@@ -1,10 +1,9 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import {
-	ARecord,
-	ARecordProps,
 	AaaaRecord,
 	AaaaRecordProps,
+	ARecord,
+	ARecordProps,
 	CnameRecord,
 	CnameRecordProps,
 	HostedZone,
@@ -15,6 +14,7 @@ import {
 	TxtRecord,
 	TxtRecordProps,
 } from 'aws-cdk-lib/aws-route53';
+import { Construct } from 'constructs';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
 

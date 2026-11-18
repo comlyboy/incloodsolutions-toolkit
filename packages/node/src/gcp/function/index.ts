@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from 'express';
+import { type Express, type Request, type Response } from 'express';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
 

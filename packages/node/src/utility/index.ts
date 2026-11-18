@@ -1,17 +1,15 @@
-import { writeFile } from 'fs/promises';
 import { existsSync, readFileSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import path from 'path';
 
-// import sqlBrick from 'sql-bricks';
-import morgan, { Options } from 'morgan';
-import { compare, genSalt, hash } from 'bcryptjs';
-import type { Request, Response } from 'express';
-// `crypto-js` is CJS-only with no named ESM exports — default-import it so the
-// built ESM bundle loads in a real ESM runtime (Node ESM, NestJS 12, Vite).
-import cryptoJs from 'crypto-js';
-import { isValidObjectId, ObjectId, Types } from 'mongoose';
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda';
+import { compare, genSalt, hash } from 'bcryptjs';
 import { toBuffer as qrBarcodeFn, RenderOptions } from 'bwip-js';
+import {
+	ClassConstructor,
+	ClassTransformOptions,
+	plainToInstance,
+} from 'class-transformer';
 // import { QRCodeToDataURLOptions, toDataURL } from 'qrcode';
 import {
 	isIP,
@@ -20,20 +18,23 @@ import {
 	ValidationError,
 	ValidatorOptions,
 } from 'class-validator';
+// `crypto-js` is CJS-only with no named ESM exports — default-import it so the
+// built ESM bundle loads in a real ESM runtime (Node ESM, NestJS 12, Vite).
+import cryptoJs from 'crypto-js';
+import { type Request, type Response } from 'express';
+import { isValidObjectId, ObjectId, Types } from 'mongoose';
+// import sqlBrick from 'sql-bricks';
+import morgan, { Options } from 'morgan';
+
+import { CustomException } from '@incloodsolutions/toolkit/error';
 import {
-	ClassConstructor,
-	ClassTransformOptions,
-	plainToInstance,
-} from 'class-transformer';
+	IBaseEnableDebug,
+	ObjectType,
+} from '@incloodsolutions/toolkit/interface';
+import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
 import { getCurrentLambdaInvocation } from '../aws';
 import { IBaseApiResult } from '../interface';
-import { CustomException } from '@incloodsolutions/toolkit/error';
-import {
-	ObjectType,
-	IBaseEnableDebug,
-} from '@incloodsolutions/toolkit/interface';
-import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
 const { AES, enc, HmacSHA512, SHA512 } = cryptoJs;
 
@@ -556,7 +557,9 @@ export function reqResLogger({
 	);
 	const defaultFormats = [
 		...(!options?.ignoreRequestIdentity ? [':id'] : []),
-		...(isLambdaEnvironment() && !options?.ignoreLambdaInvokeId ? [':invocationId'] : []),
+		...(isLambdaEnvironment() && !options?.ignoreLambdaInvokeId
+			? [':invocationId']
+			: []),
 		':method',
 		':status',
 		':url',
@@ -613,9 +616,9 @@ export async function validateDataWithClassValidator<
 		return errors.flatMap((error) => {
 			const currentConstraints = error.constraints
 				? Object.values(error.constraints).map((constraint) => {
-					const [first, ...rest] = constraint.split(' ');
-					return `'${first}': ${rest.join(' ')}`;
-				})
+						const [first, ...rest] = constraint.split(' ');
+						return `'${first}': ${rest.join(' ')}`;
+					})
 				: [];
 			const childConstraints = error.children?.length
 				? flattenValidationErrors(error.children)

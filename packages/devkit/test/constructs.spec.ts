@@ -7,29 +7,29 @@
  * created in the same stack.
  *
  * KNOWN ISSUES pinned here (test names say "known issue"):
- *   - BaseApiGatewayConstruct throws unless
- *     `options.gatewayOptions.defaultCorsPreflightOptions.allowHeaders` is an
- *     array (it spreads `undefined`).
+ *   - BaseLambdaAuthoriserV2Construct can never be instantiated stand-alone
+ *     (its `CfnOutput` reads `authorizerId` before the authorizer is attached).
  *   - Several constructs dereference `props.options.<x>` without a guard, so
  *     `options` (and the specific sub-key) must be supplied.
  */
 
-import { describe, expect, it } from 'vitest';
 import { join } from 'node:path';
+
 import { App, Duration, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
+import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
+import { Schedule } from 'aws-cdk-lib/aws-events';
+import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
 	Code,
 	Function as LambdaFunction,
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
-import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { Schedule } from 'aws-cdk-lib/aws-events';
-import { ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { describe, expect, it } from 'vitest';
 
 import * as devkit from '../src/index';
 import {
@@ -155,26 +155,37 @@ describe('BaseLambdaConstruct environment defaults', () => {
 		});
 	});
 
-	it('creates a log group with two-week retention in production, one week otherwise', () => {
-		const prod = stack();
-		new BaseLambdaConstruct(prod, 'L', {
+	it('creates a /aws/lambda/<function name> log group with one-week retention in every stage', () => {
+		for (const stage of ['production', 'qa'] as const) {
+			const s = stack();
+			new BaseLambdaConstruct(s, 'L', {
+				stackName: 'orders',
+				stage,
+				options: { lambdaOptions: { code: Code.fromInline('x') } },
+			});
+			Template.fromStack(s).hasResourceProperties('AWS::Logs::LogGroup', {
+				LogGroupName: '/aws/lambda/orders',
+				RetentionInDays: 7,
+			});
+		}
+	});
+
+	it('uses a log group passed in lambdaOptions instead of creating one', () => {
+		const s = stack();
+		const existing = new LogGroup(s, 'Existing', {
+			logGroupName: '/custom/logs',
+		});
+		new BaseLambdaConstruct(s, 'L', {
 			stackName: 'orders',
 			stage: 'production',
-			options: { lambdaOptions: { code: Code.fromInline('x') } },
+			options: {
+				lambdaOptions: { code: Code.fromInline('x'), logGroup: existing },
+			},
 		});
-		Template.fromStack(prod).hasResourceProperties('AWS::Logs::LogGroup', {
-			LogGroupName: '/aws/lambda/orders',
-			RetentionInDays: 14,
-		});
-
-		const dev = stack();
-		new BaseLambdaConstruct(dev, 'L', {
-			stackName: 'orders',
-			stage: 'qa',
-			options: { lambdaOptions: { code: Code.fromInline('x') } },
-		});
-		Template.fromStack(dev).hasResourceProperties('AWS::Logs::LogGroup', {
-			RetentionInDays: 7,
+		const template = Template.fromStack(s);
+		template.resourceCountIs('AWS::Logs::LogGroup', 1);
+		template.hasResourceProperties('AWS::Logs::LogGroup', {
+			LogGroupName: '/custom/logs',
 		});
 	});
 });
@@ -232,9 +243,13 @@ describe('BaseCloudwatchLogGroupConstruct', () => {
 		const direct = stack();
 		new LogGroup(direct, 'Logs');
 		expect(
-			Object.keys(Template.fromStack(wrapped).findResources('AWS::Logs::LogGroup')),
+			Object.keys(
+				Template.fromStack(wrapped).findResources('AWS::Logs::LogGroup'),
+			),
 		).toEqual(
-			Object.keys(Template.fromStack(direct).findResources('AWS::Logs::LogGroup')),
+			Object.keys(
+				Template.fromStack(direct).findResources('AWS::Logs::LogGroup'),
+			),
 		);
 	});
 });
@@ -443,7 +458,8 @@ describe('BaseApiGatewayV2Construct', () => {
 			},
 		} as never);
 		const apis = Template.fromStack(s).findResources('AWS::ApiGatewayV2::Api');
-		const headers: string[] = Object.values(apis)[0].Properties.CorsConfiguration.AllowHeaders;
+		const headers: string[] =
+			Object.values(apis)[0].Properties.CorsConfiguration.AllowHeaders;
 		expect(headers).toContain('X-Custom');
 		expect(headers).toContain('Authorization');
 	});
@@ -487,15 +503,14 @@ describe('BaseApiGatewayWebSocketConstruct', () => {
 });
 
 describe('BaseApiGatewayConstruct', () => {
-	it('known issue: throws without options.gatewayOptions.defaultCorsPreflightOptions.allowHeaders', () => {
+	it('creates a REST API when defaultCorsPreflightOptions.allowHeaders is omitted', () => {
 		const s = stack();
-		expect(
-			() =>
-				new BaseApiGatewayConstruct(s, 'RestApi', {
-					handlerFunction: fn(s),
-					options: { gatewayOptions: {}, routeOptions: [] },
-				} as never),
-		).toThrow();
+		const c = new BaseApiGatewayConstruct(s, 'RestApi', {
+			handlerFunction: fn(s),
+			options: { gatewayOptions: {}, routeOptions: [] },
+		} as never);
+		expect(c.api).toBeDefined();
+		Template.fromStack(s).resourceCountIs('AWS::ApiGateway::RestApi', 1);
 	});
 
 	it('creates a REST API when defaultCorsPreflightOptions.allowHeaders is provided', () => {

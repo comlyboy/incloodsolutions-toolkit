@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, renderHook } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { useCustomReactHookForm } from '../src/hooks/useHookForm';
 import { useKeyEvent } from '../src/hooks/useKeyEvent';
 import { usePageMetadata } from '../src/hooks/usePageMetadata';
-import { useCustomReactHookForm } from '../src/hooks/useHookForm';
 
 afterEach(() => {
 	cleanup();
@@ -19,7 +19,10 @@ describe('useKeyEvent', () => {
 	it('runs the action when any listed key is released (default keyup, matchAll off)', () => {
 		const action = vi.fn();
 		renderHook(() =>
-			useKeyEvent({ combinations: { keys: ['Escape', 'q'] }, returnedAction: action }),
+			useKeyEvent({
+				combinations: { keys: ['Escape', 'q'] },
+				returnedAction: action,
+			}),
 		);
 		press('keyup', 'q');
 		expect(action).toHaveBeenCalledTimes(1);
@@ -94,7 +97,9 @@ describe('usePageMetadata', () => {
 	});
 
 	it('uses the given twitterCardType', () => {
-		renderHook(() => usePageMetadata({ title: 'x', twitterCardType: 'summary' }));
+		renderHook(() =>
+			usePageMetadata({ title: 'x', twitterCardType: 'summary' }),
+		);
 		expect(meta('name', 'twitter:card')).toBe('summary');
 	});
 
@@ -104,7 +109,9 @@ describe('usePageMetadata', () => {
 			{ initialProps: { description: 'first' } },
 		);
 		rerender({ description: 'second' });
-		expect(document.head.querySelectorAll('meta[name="description"]')).toHaveLength(1);
+		expect(
+			document.head.querySelectorAll('meta[name="description"]'),
+		).toHaveLength(1);
 		expect(meta('name', 'description')).toBe('second');
 	});
 
@@ -127,7 +134,9 @@ describe('usePageMetadata', () => {
 describe('useCustomReactHookForm', () => {
 	it('returns a react-hook-form instance that validates on every event (mode all)', () => {
 		const resolver = vi.fn(async (values: unknown) => ({ values, errors: {} }));
-		const { result } = renderHook(() => useCustomReactHookForm(resolver as never));
+		const { result } = renderHook(() =>
+			useCustomReactHookForm(resolver as never),
+		);
 		expect(typeof result.current.handleSubmit).toBe('function');
 		expect(result.current.control._options.mode).toBe('all');
 	});

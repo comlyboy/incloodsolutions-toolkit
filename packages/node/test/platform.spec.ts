@@ -7,7 +7,15 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { CustomException } from '@incloodsolutions/toolkit/error';
+
+import * as node from '../src/index';
+import {
+	initEnvironmentVariables,
+	initMongooseConnection,
+	initMongooseSchema,
+} from '../src/index';
 
 const { connect, disconnect } = vi.hoisted(() => ({
 	connect: vi.fn(async () => ({ readyState: 1 })),
@@ -18,13 +26,6 @@ vi.mock('mongoose', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('mongoose')>();
 	return { ...actual, connect, disconnect, set: vi.fn() };
 });
-
-import * as node from '../src/index';
-import {
-	initEnvironmentVariables,
-	initMongooseConnection,
-	initMongooseSchema,
-} from '../src/index';
 
 beforeEach(() => {
 	connect.mockClear();
@@ -157,7 +158,9 @@ describe('package surface', () => {
 			'normalizeMongooseData',
 			'reqResLogger',
 		] as const) {
-			expect(typeof node[name], name).toBe('function');
+			expect(typeof (node as Record<string, unknown>)[name], name).toBe(
+				'function',
+			);
 		}
 	});
 

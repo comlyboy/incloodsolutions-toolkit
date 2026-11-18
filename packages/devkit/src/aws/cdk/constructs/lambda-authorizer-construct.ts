@@ -1,10 +1,10 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import {
 	TokenAuthorizer,
 	TokenAuthorizerProps,
 } from 'aws-cdk-lib/aws-apigateway';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

@@ -1,4 +1,4 @@
-import { AppEnvironmentType } from "@incloodsolutions/toolkit/interface";
+import { AppEnvironmentType } from '@incloodsolutions/toolkit/interface';
 
 /**
  * The build/runtime modes recognised by a Vite app in this ecosystem.

@@ -1,7 +1,4 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
-import { Function } from 'aws-cdk-lib/aws-lambda';
-import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import {
 	WebSocketApi,
 	WebSocketApiProps,
@@ -9,6 +6,9 @@ import {
 	WebSocketStage,
 	WebSocketStageProps,
 } from 'aws-cdk-lib/aws-apigatewayv2';
+import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

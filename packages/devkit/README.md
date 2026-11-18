@@ -170,8 +170,7 @@ export class ApiStack extends Stack {
 ```bash
 npm install
 npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
-npm run format     # prettier --write (tabs, single quotes, trailing commas)
-npm run lint       # eslint --fix
+npm run lint       # oxlint (config: ../../oxlint.json); format from the repo root: npm run format
 npm test           # vitest run — synthesises every construct and asserts its CloudFormation
 npm run test:watch # vitest in watch mode
 npm run package    # build, then npm pack a tarball

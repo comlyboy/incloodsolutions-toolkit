@@ -1,11 +1,11 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import {
 	HttpLambdaAuthorizer,
 	HttpLambdaAuthorizerProps,
 	HttpLambdaResponseType,
 } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -66,7 +66,7 @@ export class BaseLambdaAuthoriserV2Construct extends Construct {
 			identitySource: [
 				'$request.header.Cookie',
 				'$request.header.Authorization',
-				...props?.options?.authorizerOptions?.identitySource,
+				...(props?.options?.authorizerOptions?.identitySource || []),
 			],
 
 			/**

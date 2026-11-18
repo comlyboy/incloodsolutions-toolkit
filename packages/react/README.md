@@ -119,8 +119,7 @@ suffix: `useBoolean2`, `useCounter2`, `useHover2`, `useInterval2`, `useCopyToCli
 ```bash
 npm install
 npm run build    # tsup: one ESM bundle + .d.ts per subpath
-npm run format   # prettier --write over src/**/*.{ts,tsx} (tabs, single quotes)
-npm run lint     # eslint --fix
+npm run lint     # oxlint (config: ../../oxlint.json); format from the repo root: npm run format
 npm test         # vitest (jsdom + Testing Library)
 npm run package  # build, then npm pack a tarball
 ```

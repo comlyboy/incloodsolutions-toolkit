@@ -193,7 +193,8 @@ export const AppEnvironmentEnum = {
  * Use this where a plain string is expected but you still want the values
  * constrained, e.g. a config schema or a CDK construct's `stage` prop.
  */
-export type AppEnvironmentType = (typeof AppEnvironmentEnum)[keyof typeof AppEnvironmentEnum];;
+export type AppEnvironmentType =
+	(typeof AppEnvironmentEnum)[keyof typeof AppEnvironmentEnum];
 
 /**
  * The union of all value types of `TEntity`.

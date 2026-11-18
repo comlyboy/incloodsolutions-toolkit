@@ -1,7 +1,7 @@
 import { CustomException } from '@incloodsolutions/toolkit/error';
 import {
-	ObjectType,
 	IBaseEnableDebug,
+	ObjectType,
 } from '@incloodsolutions/toolkit/interface';
 
 import { IBaseEnvironmentVariable } from '../interface';

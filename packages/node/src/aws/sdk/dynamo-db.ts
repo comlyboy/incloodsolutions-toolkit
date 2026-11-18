@@ -18,20 +18,19 @@ import {
 	UpdateCommand,
 	UpdateCommandInput,
 } from '@aws-sdk/lib-dynamodb';
-
 import { object, ZodObject } from 'zod/v4';
 import { $ZodIssue, ParseContext } from 'zod/v4/core';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
 import {
-	ObjectType,
 	IBaseEnableDebug,
+	ObjectType,
 } from '@incloodsolutions/toolkit/interface';
 import {
 	consoleLog,
 	generateCustomUUID,
-	generateISODate,
 	generateDateInNumber,
+	generateISODate,
 } from '@incloodsolutions/toolkit/utility';
 
 /**
@@ -116,7 +115,7 @@ export function initDynamoDbClientWrapper<
 		 * @default timestampUuid
 		 */
 		readonly primaryKeyIdType?:
-		'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
+			'uuid' | 'timestampUuid' | 'epochTimestamp' | 'none';
 	};
 	/** Dynamo-db client configuration, forwarded to `new DynamoDBClient(...)`. */
 	readonly config?: DynamoDBClientConfig;
@@ -899,7 +898,10 @@ export function initDynamoDbClientWrapper<
 
 			const item: Partial<TType> = { ...dataDto };
 			for (const systemField of [primaryKeyName, 'createdAtDate']) {
-				if (item[systemField] === undefined && data[systemField] !== undefined) {
+				if (
+					item[systemField] === undefined &&
+					data[systemField] !== undefined
+				) {
 					(item as any)[systemField] = data[systemField];
 				}
 			}

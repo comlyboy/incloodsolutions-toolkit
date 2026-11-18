@@ -307,8 +307,7 @@ const env = AppEnvironmentEnum.PRODUCTION;
 ```bash
 npm install        # install dependencies
 npm run build      # tsup: bundles ESM + CJS and a single dist/index.d.ts
-npm run lint       # eslint --fix
-npm run format     # prettier --write
+npm run lint       # oxlint (config: ../../oxlint.json); format from the repo root: npm run format
 npm test           # vitest run — behaviour tests for every export (test/mcp.spec.ts)
 npm run test:watch # vitest in watch mode
 npm run package    # build, then npm pack a tarball

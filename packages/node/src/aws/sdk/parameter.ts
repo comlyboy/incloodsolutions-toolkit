@@ -15,7 +15,10 @@ import {
 export function initSsmParameterClientWrapper({
 	config,
 }: { config?: SSMClientConfig } = {}) {
-	const ssmInstance = new SSMClient({ ...config, region: config?.region || 'us-east-1' });
+	const ssmInstance = new SSMClient({
+		...config,
+		region: config?.region || 'us-east-1',
+	});
 
 	return {
 		/**

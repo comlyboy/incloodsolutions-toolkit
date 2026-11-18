@@ -1,6 +1,3 @@
-import { Construct } from 'constructs';
-import { Function } from 'aws-cdk-lib/aws-lambda';
-import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
 import { CfnOutput, RemovalPolicy, Size } from 'aws-cdk-lib';
 import {
 	Cors,
@@ -9,6 +6,9 @@ import {
 	RestApi,
 	RestApiProps,
 } from 'aws-cdk-lib/aws-apigateway';
+import { HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
@@ -113,8 +113,8 @@ export class BaseApiGatewayConstruct
 
 				/** Merge default headers with user-defined headers */
 				allowHeaders: [
-					...props.options?.gatewayOptions?.defaultCorsPreflightOptions
-						?.allowHeaders,
+					...(props.options?.gatewayOptions?.defaultCorsPreflightOptions
+						?.allowHeaders || []),
 					'Content-Type',
 					'Accept',
 					'X-Amz-Date',

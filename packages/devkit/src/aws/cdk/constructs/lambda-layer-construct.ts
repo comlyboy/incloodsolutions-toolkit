@@ -1,4 +1,3 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import {
 	Architecture,
@@ -8,6 +7,7 @@ import {
 	LayerVersionProps,
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

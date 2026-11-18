@@ -1,10 +1,16 @@
 import { App, DefaultStackSynthesizer, Stack } from 'aws-cdk-lib';
-import { FunctionProps } from 'aws-cdk-lib/aws-lambda';
-import { AddRoutesOptions, HttpApiProps, HttpMethod } from 'aws-cdk-lib/aws-apigatewayv2';
-import { PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+	AddRoutesOptions,
+	HttpApiProps,
+	HttpMethod,
+} from 'aws-cdk-lib/aws-apigatewayv2';
 import { RuleProps } from 'aws-cdk-lib/aws-events';
+import { PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { FunctionProps } from 'aws-cdk-lib/aws-lambda';
 import { TopicProps } from 'aws-cdk-lib/aws-sns';
 import { QueueProps } from 'aws-cdk-lib/aws-sqs';
+
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 import { IBaseStackProps } from '../../types';
 import {
@@ -19,8 +25,6 @@ import {
 	IBucketCdkConstructProps,
 	IDynamoDbCdkConstructProps,
 } from '../constructs';
-import { CustomException } from '@incloodsolutions/toolkit/error';
-
 
 /**
  * A Lambda function plus the triggers and permissions it needs, in one stack.
@@ -57,19 +61,19 @@ export class BaseLambdaApiStack extends Stack {
 				readonly extraLayers?: {
 					name: string;
 					version: number;
-				}[]
+				}[];
 			};
 			triggersOptions?: {
 				apiGateway?: {
 					options?: HttpApiProps;
 					routeOptions?: Partial<AddRoutesOptions>[];
-				},
-				sns?: TopicProps,
-				sqs?: QueueProps,
+				};
+				sns?: TopicProps;
+				sqs?: QueueProps;
 				s3?: IBucketCdkConstructProps;
 				dynamodb?: IDynamoDbCdkConstructProps;
-				eventBridge?: RuleProps,
-			}
+				eventBridge?: RuleProps;
+			};
 			policies?: { principal: 'lambda'; policy: PolicyStatement }[];
 		}>,
 	) {
@@ -90,19 +94,24 @@ export class BaseLambdaApiStack extends Stack {
 				}),
 		});
 
-
-		const extraLayers = (props?.stackOptions?.lambdaOptions?.extraLayers || []).map((layer, layerIndex) => {
+		const extraLayers = (
+			props?.stackOptions?.lambdaOptions?.extraLayers || []
+		).map((layer, layerIndex) => {
 			if (!layer?.name || !layer?.version) {
 				throw new CustomException(
 					"Invalid layer options provided! Both layer 'name' and 'version' are required.",
 				);
 			}
-			const { existingLayer } = new BaseLambdaLayerConstruct(this, `layer${layerIndex}`, {
-				enableDebug: props?.stackOptions?.enableDebug,
-				options: {
-					fromExistingLayerArn: `arn:aws:lambda:${region}:${account}:layer:${layer?.name}:${layer?.version}`,
+			const { existingLayer } = new BaseLambdaLayerConstruct(
+				this,
+				`layer${layerIndex}`,
+				{
+					enableDebug: props?.stackOptions?.enableDebug,
+					options: {
+						fromExistingLayerArn: `arn:aws:lambda:${region}:${account}:layer:${layer?.name}:${layer?.version}`,
+					},
 				},
-			});
+			);
 			return existingLayer;
 		});
 
@@ -116,31 +125,39 @@ export class BaseLambdaApiStack extends Stack {
 				options: {
 					lambdaOptions: {
 						...props?.stackOptions?.lambdaOptions,
-						layers: [...(props?.stackOptions?.lambdaOptions?.layers || []), ...extraLayers]
+						layers: [
+							...(props?.stackOptions?.lambdaOptions?.layers || []),
+							...extraLayers,
+						],
 					},
 				},
 			},
 		);
 
-		if (props?.stackOptions?.triggersOptions?.apiGateway && Object.keys(props?.stackOptions?.triggersOptions?.apiGateway).length) {
+		if (
+			props?.stackOptions?.triggersOptions?.apiGateway &&
+			Object.keys(props?.stackOptions?.triggersOptions?.apiGateway).length
+		) {
 			new BaseApiGatewayV2Construct(this, 'apiGateway', {
 				handlerFunctions: [lambdaFunction],
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					gatewayOptions: {
-						...(props?.stackOptions?.triggersOptions?.apiGateway?.options || {}),
+						...(props?.stackOptions?.triggersOptions?.apiGateway?.options ||
+							{}),
 						apiName:
-							props?.stackOptions?.triggersOptions?.apiGateway?.options?.apiName ||
-							props.stackName,
+							props?.stackOptions?.triggersOptions?.apiGateway?.options
+								?.apiName || props.stackName,
 						corsPreflight: {
 							...(props?.stackOptions?.triggersOptions?.apiGateway?.options
 								?.corsPreflight || {}),
-							allowOrigins: props?.stackOptions?.triggersOptions?.apiGateway?.options
-								?.corsPreflight?.allowOrigins || ['*'],
+							allowOrigins: props?.stackOptions?.triggersOptions?.apiGateway
+								?.options?.corsPreflight?.allowOrigins || ['*'],
 						},
 					},
 					routeOptions: [
-						...(props?.stackOptions?.triggersOptions?.apiGateway?.routeOptions || []),
+						...(props?.stackOptions?.triggersOptions?.apiGateway
+							?.routeOptions || []),
 						{
 							path: '/{proxy+}',
 							methods: [HttpMethod.ANY],
@@ -150,7 +167,10 @@ export class BaseLambdaApiStack extends Stack {
 			});
 		}
 
-		if (props?.stackOptions?.triggersOptions?.eventBridge && Object.keys(props?.stackOptions?.triggersOptions?.eventBridge).length) {
+		if (
+			props?.stackOptions?.triggersOptions?.eventBridge &&
+			Object.keys(props?.stackOptions?.triggersOptions?.eventBridge).length
+		) {
 			new BaseEventBridgeConstruct(this, 'eventBridge', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
@@ -160,14 +180,15 @@ export class BaseLambdaApiStack extends Stack {
 						ruleName:
 							props?.stackOptions?.triggersOptions?.eventBridge?.ruleName ||
 							props.stackName,
-					}
-				}
+					},
+				},
 			});
-
-
 		}
 
-		if (props?.stackOptions?.triggersOptions?.sns && Object.keys(props?.stackOptions?.triggersOptions?.sns).length) {
+		if (
+			props?.stackOptions?.triggersOptions?.sns &&
+			Object.keys(props?.stackOptions?.triggersOptions?.sns).length
+		) {
 			new BaseSnsConstruct(this, 'sns', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
@@ -182,8 +203,10 @@ export class BaseLambdaApiStack extends Stack {
 			});
 		}
 
-
-		if (props?.stackOptions?.triggersOptions?.sqs && Object.keys(props?.stackOptions?.triggersOptions?.sqs).length) {
+		if (
+			props?.stackOptions?.triggersOptions?.sqs &&
+			Object.keys(props?.stackOptions?.triggersOptions?.sqs).length
+		) {
 			new BaseSqsConstruct(this, 'sqs', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				targetFunctions: [lambdaFunction],
@@ -191,13 +214,18 @@ export class BaseLambdaApiStack extends Stack {
 					eventSourceMappingOptions: {},
 					queueOptions: {
 						...(props?.stackOptions?.triggersOptions?.sqs || {}),
-						queueName: props?.stackOptions?.triggersOptions?.sqs?.queueName || props.stackName,
+						queueName:
+							props?.stackOptions?.triggersOptions?.sqs?.queueName ||
+							props.stackName,
 					},
 				},
 			});
 		}
 
-		if (props?.stackOptions?.triggersOptions?.s3 && Object.keys(props?.stackOptions?.triggersOptions?.s3).length) {
+		if (
+			props?.stackOptions?.triggersOptions?.s3 &&
+			Object.keys(props?.stackOptions?.triggersOptions?.s3).length
+		) {
 			const { bucket, existingBucket } = new BaseS3Construct(this, 's3', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
@@ -216,15 +244,17 @@ export class BaseLambdaApiStack extends Stack {
 				sourceArn: bucket.bucketArn,
 				// sourceAccount: Stack.of(this).account,
 			});
-
 		}
 
-		if (props?.stackOptions?.triggersOptions?.dynamodb && Object.keys(props?.stackOptions?.triggersOptions?.dynamodb).length) {
-			const { } = new BaseDynamoDBConstruct(this, 'dynamodb', {
+		if (
+			props?.stackOptions?.triggersOptions?.dynamodb &&
+			Object.keys(props?.stackOptions?.triggersOptions?.dynamodb).length
+		) {
+			new BaseDynamoDBConstruct(this, 'dynamodb', {
 				enableDebug: props?.stackOptions?.enableDebug,
 				options: {
 					...(props?.stackOptions?.triggersOptions?.dynamodb || {}),
-				}
+				},
 			});
 		}
 
@@ -233,6 +263,5 @@ export class BaseLambdaApiStack extends Stack {
 				lambdaFunction.addToRolePolicy(policy.policy);
 			}
 		});
-
 	}
 }

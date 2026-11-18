@@ -1,6 +1,6 @@
 import { defineConfig, Options } from 'tsup';
 
-import { tsupBaseConfig } from "../../shared/tsup-base.config";
+import { tsupBaseConfig } from '../../shared/tsup-base.config';
 
 /**
  * One bundle per public module — and per sub-module — so a consumer imports only
@@ -17,7 +17,7 @@ import { tsupBaseConfig } from "../../shared/tsup-base.config";
  */
 export default defineConfig([
 	{
-		...tsupBaseConfig as unknown as Options,
+		...(tsupBaseConfig as unknown as Options),
 		// Keep every dependency external (AWS SDK v3, mongoose, bcryptjs, …) —
 		// bundling them bloats each entry and pulls the MongoDB driver's dynamic
 		// `require()` calls into the ESM output. See `test/esm-bundle.spec.ts`.
@@ -45,5 +45,5 @@ export default defineConfig([
 			'aws-sdk/event-bridge': 'src/aws/sdk/event-bridge.ts',
 			'aws-sdk/parameter': 'src/aws/sdk/parameter.ts',
 		},
-	}
+	},
 ]);

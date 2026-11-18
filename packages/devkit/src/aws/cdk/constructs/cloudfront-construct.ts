@@ -1,10 +1,10 @@
-import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
 import {
 	Distribution,
 	DistributionProps,
 	ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

@@ -1,6 +1,6 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import { Vpc, VpcProps } from 'aws-cdk-lib/aws-ec2';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

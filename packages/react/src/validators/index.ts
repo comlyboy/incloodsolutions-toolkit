@@ -10,12 +10,12 @@ import { ObjectType } from '@incloodsolutions/toolkit/interface';
  *
  * @typeParam TSchema - The form values shape.
  * @param schema - A Zod schema.
- * @param _ - Reserved options object; currently unused, pass `{}`.
+ * @param _options - Reserved options object; currently unused. Optional.
  * @returns A resolver to hand to `useForm({ resolver })`.
  */
 export function zodCustomResolver<TSchema extends FieldValues = ObjectType>(
 	schema: TSchema,
-	{}: {},
+	_options?: object,
 ) {
 	return zodResolver(schema as any) as any;
 }
@@ -26,12 +26,12 @@ export function zodCustomResolver<TSchema extends FieldValues = ObjectType>(
  *
  * @typeParam TSchema - The form values shape.
  * @param schema - A class decorated with `class-validator` decorators.
- * @param _ - Reserved options object; currently unused, pass `{}`.
+ * @param _options - Reserved options object; currently unused. Optional.
  * @returns A `Resolver<TSchema>`.
  */
 export function classValidatorCustomResolver<
 	TSchema extends FieldValues = ObjectType,
->(schema: TSchema, {}: {}) {
+>(schema: new (...args: any[]) => TSchema, _options?: object) {
 	return classValidatorResolver(schema) as Resolver<TSchema>;
 }
 

@@ -6,23 +6,15 @@
  * (`Types.ObjectId` only — no connection).
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CustomException } from '@incloodsolutions/toolkit/error';
-import { Types } from 'mongoose';
-import { IsString } from 'class-validator';
-
-vi.mock('bwip-js', () => ({
-	toBuffer: vi.fn(async () => Buffer.from('FAKE_PNG_BYTES')),
-}));
-vi.mock('fs/promises', () => ({ writeFile: vi.fn(async () => undefined) }));
-vi.mock('fs', () => ({
-	existsSync: vi.fn(() => true),
-	readFileSync: vi.fn(() => Buffer.from('file-contents')),
-}));
+import { existsSync, readFileSync } from 'fs';
+import { writeFile } from 'fs/promises';
 
 import { toBuffer } from 'bwip-js';
-import { writeFile } from 'fs/promises';
-import { existsSync, readFileSync } from 'fs';
+import { IsString } from 'class-validator';
+import { Types } from 'mongoose';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 import {
 	apiResult,
@@ -36,18 +28,32 @@ import {
 	isValidMongoId,
 	normalizeMongooseData,
 	normalizeMongooseData_v2,
+	readFileFromLambda,
 	reqResLogger,
 	returnApiOverview,
 	returnApiResponse,
 	validateDataWithClassValidator,
 	validateHashWithBcrypt,
 	writeFileToLambda,
-	readFileFromLambda,
 } from '../src/index';
 
+vi.mock('bwip-js', () => ({
+	toBuffer: vi.fn(async () => Buffer.from('FAKE_PNG_BYTES')),
+}));
+
+vi.mock('fs/promises', () => ({ writeFile: vi.fn(async () => undefined) }));
+
+vi.mock('fs', () => ({
+	existsSync: vi.fn(() => true),
+	readFileSync: vi.fn(() => Buffer.from('file-contents')),
+}));
+
 const mockedToBuffer = vi.mocked(toBuffer);
+
 const mockedWriteFile = vi.mocked(writeFile);
+
 const mockedExistsSync = vi.mocked(existsSync);
+
 const mockedReadFileSync = vi.mocked(readFileSync);
 
 /** Toggle the two env vars that make `isLambdaEnvironment()` return true. */

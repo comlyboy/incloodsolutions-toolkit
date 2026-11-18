@@ -1,11 +1,11 @@
-import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import {
 	EventSourceMapping,
 	EventSourceMappingProps,
 	Function,
 } from 'aws-cdk-lib/aws-lambda';
+import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

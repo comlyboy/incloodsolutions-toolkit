@@ -1,0 +1,10 @@
+node_modules
+dist
+.turbo
+.angular
+coverage
+package-lock.json
+*.tsbuildinfo
+*.tgz
+packages/toolkit/src/countries/countries.ts
+packages/toolkit/src/countries/timezones.ts

@@ -6,11 +6,6 @@
  * No AWS credentials or network are used.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockClient } from 'aws-sdk-client-mock';
-import { CustomException } from '@incloodsolutions/toolkit/error';
-import { object, string } from 'zod';
-
 import {
 	DeleteObjectCommand,
 	GetObjectCommand,
@@ -32,11 +27,12 @@ import {
 	PutCommand,
 	UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
-
-vi.mock('@aws-sdk/s3-request-presigner', () => ({
-	getSignedUrl: vi.fn(async () => 'https://signed.example/object?sig=abc'),
-}));
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { mockClient } from 'aws-sdk-client-mock';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { object, string } from 'zod';
+
+import { CustomException } from '@incloodsolutions/toolkit/error';
 
 import {
 	initDynamoDbClientWrapper,
@@ -48,10 +44,18 @@ import {
 	uploadToS3ViaCli,
 } from '../src/index';
 
+vi.mock('@aws-sdk/s3-request-presigner', () => ({
+	getSignedUrl: vi.fn(async () => 'https://signed.example/object?sig=abc'),
+}));
+
 const s3Mock = mockClient(S3Client);
+
 const sesMock = mockClient(SESClient);
+
 const snsMock = mockClient(SNSClient);
+
 const ssmMock = mockClient(SSMClient);
+
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
 beforeEach(() => {
@@ -386,9 +390,9 @@ describe('initDynamoDbClientWrapper validation', () => {
 	it('put rejects a missing required field, updateOne validates against schema.partial() instead', async () => {
 		ddbMock.on(PutCommand).resolves({});
 		ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
-		await expect(
-			make().put({ data: { name: 'ok' } }),
-		).rejects.toBeInstanceOf(CustomException);
+		await expect(make().put({ data: { name: 'ok' } })).rejects.toBeInstanceOf(
+			CustomException,
+		);
 		await expect(
 			make().updateOne({ key: { id: '1' }, data: { name: 'ok' } }),
 		).resolves.toBeDefined();
@@ -424,15 +428,21 @@ describe('initDynamoDbClientWrapper validation', () => {
 
 			await make(true).put({ data: { name: 'ok', age: '1' } });
 			const logged = spy.mock.calls.map((call) => String(call[0]));
-			expect(logged.some((line) => line.includes('Validating against schema'))).toBe(true);
-			expect(logged.some((line) => line.includes('Validation succeeded'))).toBe(true);
+			expect(
+				logged.some((line) => line.includes('Validating against schema')),
+			).toBe(true);
+			expect(logged.some((line) => line.includes('Validation succeeded'))).toBe(
+				true,
+			);
 
 			spy.mockClear();
 			await expect(
 				make(true).put({ data: { name: 1, age: '1' } as never }),
 			).rejects.toBeInstanceOf(CustomException);
 			expect(
-				spy.mock.calls.some((call) => String(call[0]).includes('Validation failed')),
+				spy.mock.calls.some((call) =>
+					String(call[0]).includes('Validation failed'),
+				),
 			).toBe(true);
 		} finally {
 			spy.mockRestore();

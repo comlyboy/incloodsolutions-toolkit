@@ -1,11 +1,10 @@
-
 import { extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import react from '@vitejs/plugin-react-swc';
 import { glob } from 'glob';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 import packageJSON from './package.json' with { type: 'json' };
@@ -67,9 +66,12 @@ export default defineConfig({
 					(chunks, dependency) => {
 						return {
 							...chunks,
-							[`dependencies/${dependency.replace('@', '').replace('/', '-')}`]: [dependency],
-						}
-					}, {}),
+							[`dependencies/${dependency.replace('@', '').replace('/', '-')}`]:
+								[dependency],
+						};
+					},
+					{},
+				),
 			},
 			external: [
 				'react/jsx-runtime',

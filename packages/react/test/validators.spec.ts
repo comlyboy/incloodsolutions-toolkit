@@ -1,18 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 
-// `@hookform/resolvers/class-validator` needs `class-validator` and
-// `class-transformer`, which this package does not install. Mock it so the
-// module under test can load.
-vi.mock('@hookform/resolvers/class-validator', () => ({
-	classValidatorResolver: vi.fn(() => 'class-validator-resolver'),
-}));
-
 import {
 	classValidatorCustomResolver,
 	EmailLoginValidationSchema,
 	UsernameLoginValidationSchema,
 	zodCustomResolver,
 } from '../src/validators';
+
+// `@hookform/resolvers/class-validator` needs `class-validator` and
+// `class-transformer`, which this package does not install. Mock it so the
+// module under test can load.
+vi.mock('@hookform/resolvers/class-validator', () => ({
+	classValidatorResolver: vi.fn(() => 'class-validator-resolver'),
+}));
 
 describe('EmailLoginValidationSchema', () => {
 	const schema = EmailLoginValidationSchema();
@@ -32,8 +32,7 @@ describe('EmailLoginValidationSchema', () => {
 
 	it('rejects a password that is too short or too long', () => {
 		expect(
-			schema.safeParse({ email: 'ada@example.com', password: '12345' })
-				.success,
+			schema.safeParse({ email: 'ada@example.com', password: '12345' }).success,
 		).toBe(false);
 		expect(
 			schema.safeParse({ email: 'ada@example.com', password: 'x'.repeat(101) })
@@ -59,15 +58,18 @@ describe('UsernameLoginValidationSchema', () => {
 		expect(
 			schema.safeParse({ username: 'a', password: 'secret1' }).success,
 		).toBe(false);
-		expect(
-			schema.safeParse({ username: 'ada', password: '123' }).success,
-		).toBe(false);
+		expect(schema.safeParse({ username: 'ada', password: '123' }).success).toBe(
+			false,
+		);
 	});
 });
 
 describe('resolver wrappers', () => {
 	it('zodCustomResolver returns a react-hook-form resolver function', async () => {
-		const resolver = zodCustomResolver(EmailLoginValidationSchema() as never, {});
+		const resolver = zodCustomResolver(
+			EmailLoginValidationSchema() as never,
+			{},
+		);
 		expect(typeof resolver).toBe('function');
 
 		const valid = await resolver(

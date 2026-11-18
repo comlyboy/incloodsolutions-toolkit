@@ -1,15 +1,16 @@
-import { Construct } from 'constructs';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import {
 	AddRoutesOptions,
 	CorsHttpMethod,
 	HttpApi,
 	HttpApiProps,
 } from 'aws-cdk-lib/aws-apigatewayv2';
+import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
+
 import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
 
 /**

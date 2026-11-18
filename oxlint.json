@@ -1,0 +1,28 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "oxc", "import"],
+	"categories": {
+		"correctness": "error"
+	},
+	"rules": {
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-floating-promises": "warn",
+		"no-unused-vars": ["warn", { "args": "none", "vars": "all" }],
+		"import/first": "warn",
+		"import/newline-after-import": "warn",
+		"import/no-duplicates": "warn",
+		"import/consistent-type-specifier-style": ["warn", "prefer-inline"]
+	},
+	"overrides": [
+		{
+			"files": ["packages/react/**/*.{ts,tsx}"],
+			"plugins": ["react", "typescript", "oxc", "import"],
+			"rules": {
+				"react/rules-of-hooks": "error",
+				"react/exhaustive-deps": "warn",
+				"react/only-export-components": ["warn", { "allowConstantExport": true }]
+			}
+		}
+	],
+	"ignorePatterns": ["**/node_modules/**", "**/dist/**", "**/.turbo/**", "**/.angular/**", "**/coverage/**"]
+}

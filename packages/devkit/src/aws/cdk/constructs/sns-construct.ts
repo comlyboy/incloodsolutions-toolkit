@@ -1,8 +1,8 @@
-import { Construct } from 'constructs';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import { Function } from 'aws-cdk-lib/aws-lambda';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 import { LambdaSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

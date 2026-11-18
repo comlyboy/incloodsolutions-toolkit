@@ -1,4 +1,3 @@
-import { Construct } from 'constructs';
 import { CfnOutput } from 'aws-cdk-lib';
 import {
 	BillingMode,
@@ -9,6 +8,7 @@ import {
 	TableAttributes,
 	TableProps,
 } from 'aws-cdk-lib/aws-dynamodb';
+import { Construct } from 'constructs';
 
 import { consoleLog } from '@incloodsolutions/toolkit/utility';
 
@@ -23,23 +23,23 @@ import { IBaseCdkConstructProps, IBaseConstruct } from '../../types';
  * - Defining Global Secondary Indexes (GSI) and Local Secondary Indexes (LSI)
  */
 export interface IDynamoDbCdkConstructProps {
-  /** Configuration for creating a new table */
-  readonly tableOptions?: TableProps;
+	/** Configuration for creating a new table */
+	readonly tableOptions?: TableProps;
 
-  /** Import an existing table by ARN */
-  readonly fromExistingTableArn?: string;
+	/** Import an existing table by ARN */
+	readonly fromExistingTableArn?: string;
 
-  /** Import an existing table by name */
-  readonly fromExistingTableName?: string;
+	/** Import an existing table by name */
+	readonly fromExistingTableName?: string;
 
-  /** Import an existing table using attributes */
-  readonly fromExistingTableAttributes?: TableAttributes;
+	/** Import an existing table using attributes */
+	readonly fromExistingTableAttributes?: TableAttributes;
 
-  /** Global Secondary Index definitions */
-  readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
+	/** Global Secondary Index definitions */
+	readonly globalSecondaryIndexes?: GlobalSecondaryIndexProps[];
 
-  /** Local Secondary Index definitions */
-  readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
+	/** Local Secondary Index definitions */
+	readonly localSecondaryIndexes?: LocalSecondaryIndexProps[];
 }
 
 /**

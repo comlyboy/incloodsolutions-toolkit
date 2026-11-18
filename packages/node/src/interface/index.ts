@@ -1,4 +1,4 @@
-import type { Document, ObjectId } from 'mongoose';
+import { type Document, type ObjectId } from 'mongoose';
 
 import {
 	AppEnvironmentType,

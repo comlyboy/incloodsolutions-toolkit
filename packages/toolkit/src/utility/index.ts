@@ -2,21 +2,21 @@
 // default-imported for the built ESM bundle to load in a real ESM runtime
 // (Node ESM, NestJS 12, Vite, ...). `RuntimeOptions` / `CompileOptions` are
 // ambient global types from `@types/handlebars`.
-import Handlebars from 'handlebars';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
+import { OptionsWithColumns, parse } from 'csv-parse/sync';
+import Handlebars from 'handlebars';
 import {
 	CountryCode,
-	PhoneNumber,
 	parsePhoneNumberFromString,
 	parsePhoneNumberWithError,
+	PhoneNumber,
 } from 'libphonenumber-js';
-
-import { IBaseEnableDebug, ObjectType } from '../interface';
-import { CustomException } from '../error';
 import { nanoid } from 'nanoid';
 import { v4 as uuidv4, v7 as uuidv7, validate as uuidValidate } from 'uuid';
-import { OptionsWithColumns, parse } from 'csv-parse/sync';
+import { Builder, BuilderOptions, Parser, ParserOptions } from 'xml2js';
+
+import { CustomException } from '../error';
+import { IBaseEnableDebug, ObjectType } from '../interface';
 
 /**
  * Checks whether a string is a valid ISO 8601 date or date-time.
@@ -686,10 +686,7 @@ export function consoleLog({
 		? `${greenColor}${message}${resetColor}`
 		: message;
 
-	console.log(
-		`${logLabel} ${ctx}${logMessage}`,
-		data || '',
-	);
+	console.log(`${logLabel} ${ctx}${logMessage}`, data || '');
 }
 
 /**
@@ -776,7 +773,6 @@ export function parseCsv<TSchema>({
 	});
 }
 
-
 /**
  * Checks whether an email address uses a disposable (throwaway) email domain.
  *
@@ -809,7 +805,62 @@ export async function isDispasableEmail(
 ): Promise<boolean> {
 	const DISPOSABLE_EMAIL_LIST_URL =
 		'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/refs/heads/main/disposable_email_blocklist.conf';
-	const TRUSTED_DOMAINS = ['live.com', 'ymail.com', 'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'protonmail.com', 'zoho.com', 'gmx.com', 'aol.com', 'yandex.com', 'mail.com', 'fastmail.com', 'tutanota.com', 'hushmail.com', 'mailfence.com', 'runbox.com', 'posteo.de', 'startmail.com', 'countermail.com', 'kolabnow.com', 'lavabit.com', 'mailbox.org', 'thexyz.com', 'disroot.org', 'cock.li', 'seznam.cz', 'inbox.lv', 'mail.ru', 'bk.ru', 'list.ru', 'rambler.ru', 'ukr.net', 'naver.com', 'daum.net', 'hanmail.net', 'nate.com', 'rediffmail.com', 'sina.com', 'qq.com', '126.com', '163.com', 'yeah.net', 'sohu.com', 'tom.com', '263.net', '188.com', '139.com', '189.cn', 'wo.com.cn', 'vip.163.com', 'vip.sina.com', 'vip.qq.com'];
+	const TRUSTED_DOMAINS = [
+		'live.com',
+		'ymail.com',
+		'gmail.com',
+		'yahoo.com',
+		'outlook.com',
+		'hotmail.com',
+		'icloud.com',
+		'protonmail.com',
+		'zoho.com',
+		'gmx.com',
+		'aol.com',
+		'yandex.com',
+		'mail.com',
+		'fastmail.com',
+		'tutanota.com',
+		'hushmail.com',
+		'mailfence.com',
+		'runbox.com',
+		'posteo.de',
+		'startmail.com',
+		'countermail.com',
+		'kolabnow.com',
+		'lavabit.com',
+		'mailbox.org',
+		'thexyz.com',
+		'disroot.org',
+		'cock.li',
+		'seznam.cz',
+		'inbox.lv',
+		'mail.ru',
+		'bk.ru',
+		'list.ru',
+		'rambler.ru',
+		'ukr.net',
+		'naver.com',
+		'daum.net',
+		'hanmail.net',
+		'nate.com',
+		'rediffmail.com',
+		'sina.com',
+		'qq.com',
+		'126.com',
+		'163.com',
+		'yeah.net',
+		'sohu.com',
+		'tom.com',
+		'263.net',
+		'188.com',
+		'139.com',
+		'189.cn',
+		'wo.com.cn',
+		'vip.163.com',
+		'vip.sina.com',
+		'vip.qq.com',
+	];
 
 	if (!email || typeof email !== 'string') {
 		return false;

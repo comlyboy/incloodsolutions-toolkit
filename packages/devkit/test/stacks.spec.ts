@@ -3,12 +3,13 @@
  * its synthesised CloudFormation is asserted. Nothing is deployed and no AWS credentials are used.
  */
 
-import { describe, expect, it } from 'vitest';
 import { join } from 'node:path';
+
 import { App } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { Code } from 'aws-cdk-lib/aws-lambda';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Code } from 'aws-cdk-lib/aws-lambda';
+import { describe, expect, it } from 'vitest';
 
 import { BaseLambdaApiStack, BaseLambdaLayerStack } from '../src/index';
 
@@ -71,7 +72,10 @@ describe('BaseLambdaApiStack', () => {
 
 	it('adds an SNS topic and an SQS queue named after the stack when those triggers are set', () => {
 		const template = apiStack({
-			triggersOptions: { sns: { displayName: 'orders' }, sqs: { visibilityTimeout: undefined, fifo: false } },
+			triggersOptions: {
+				sns: { displayName: 'orders' },
+				sqs: { visibilityTimeout: undefined, fifo: false },
+			},
 		});
 		template.hasResourceProperties('AWS::SNS::Topic', {
 			TopicName: 'orders-api',

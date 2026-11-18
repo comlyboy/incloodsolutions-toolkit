@@ -1,4 +1,4 @@
-import { CountryCode, countries, CurrencyCode } from './countries';
+import { countries, CountryCode, CurrencyCode } from './countries';
 
 /**
  * ISO 3166 alpha-2 country codes, built from {@link countries} so it never drifts from the data.

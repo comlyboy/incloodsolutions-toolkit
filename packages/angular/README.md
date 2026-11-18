@@ -34,16 +34,15 @@ Peer dependencies: `@angular/common` and `@angular/core` `^21`.
 ## Building and formatting
 
 ```bash
-cd angular
+cd packages/angular
 npm install
 npm run build    # ng build  ->  dist/toolkit
-npm run format   # prettier --write over projects/**/*.{ts,html}
+npm run lint     # oxlint (config: ../../oxlint.json)
 ```
 
-Prettier config for this workspace lives in the `"prettier"` key of `package.json` (the
-Angular CLI scaffold's defaults: 100-char width, single quotes, spaces, plus an `angular`
-parser override for `.html`). This differs from the tab-based `.prettierrc` used by the
-other packages, and that is intentional — this is a standard Angular workspace.
+Formatting is controlled by the repo-root `.prettierrc` (`npm run format` from the root). Files under
+`packages/angular` use the Angular CLI conventions (2 spaces, 100 columns, the `angular` HTML parser)
+through an override there, while the other packages use tabs.
 
 ## Roadmap
 

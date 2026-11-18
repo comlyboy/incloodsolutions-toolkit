@@ -128,7 +128,7 @@ export class CustomException extends Error {
 			};
 
 			return {
-				message: obj.message as string || 'An unexpected error occurred.',
+				message: (obj.message as string) || 'An unexpected error occurred.',
 				status:
 					typeof obj.status === 'number'
 						? obj.status

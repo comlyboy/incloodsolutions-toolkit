@@ -23,9 +23,9 @@
 // 	}
 // ]);
 
-import { defineConfig, Options } from "tsup";
+import { defineConfig, Options } from 'tsup';
 
-import { tsupBaseConfig } from "../../shared/tsup-base.config";
+import { tsupBaseConfig } from '../../shared/tsup-base.config';
 
 /**
  * One bundle per public module, so a consumer imports only the area they use.
@@ -41,9 +41,9 @@ import { tsupBaseConfig } from "../../shared/tsup-base.config";
  */
 export default defineConfig([
 	{
-		...tsupBaseConfig as unknown as Options,
+		...(tsupBaseConfig as unknown as Options),
 		format: ['esm'],
-		external: [...tsupBaseConfig.external, "react", "react-dom"],
+		external: [...tsupBaseConfig.external, 'react', 'react-dom'],
 		skipNodeModulesBundle: true,
 		platform: 'browser',
 		entry: {
@@ -55,5 +55,5 @@ export default defineConfig([
 			validators: 'src/validators/index.ts',
 			types: 'src/types/index.ts',
 		},
-	}
+	},
 ]);

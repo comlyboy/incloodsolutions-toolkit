@@ -259,8 +259,7 @@ const barcode = await generateQrBarcode({ id: 42 }, { type: 'barcode' });
 ```bash
 npm install
 npm run build      # tsup: one ESM + CJS + .d.ts bundle per subpath entry
-npm run format     # prettier --write (tabs, single quotes, trailing commas)
-npm run lint       # eslint --fix
+npm run lint       # oxlint (config: ../../oxlint.json); format from the repo root: npm run format
 npm test           # vitest run — behaviour tests for every export
 npm run test:watch # vitest in watch mode
 npm run package    # build, then npm pack a tarball

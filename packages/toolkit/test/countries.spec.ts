@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-	CountryCodeEnum,
 	countries,
+	CountryCodeEnum,
 	CurrencyCodeEnum,
 	detectCountry,
 	formatMoney,
 	getCountryByCode,
-	getTimezone,
 	getCurrencyByCountryCode,
+	getTimezone,
 } from '../src/countries';
 
 describe('country', () => {
@@ -17,7 +17,9 @@ describe('country', () => {
 	});
 
 	it('every country has a flag emoji built from its alpha-2 code', () => {
-		expect(countries.every((country) => [...country.flag].length === 2)).toBe(true);
+		expect(countries.every((country) => [...country.flag].length === 2)).toBe(
+			true,
+		);
 		expect(getCountryByCode('NG')?.flag).toBe('🇳🇬');
 	});
 
@@ -26,7 +28,11 @@ describe('country', () => {
 			countries.map((country) => country.alpha2Code).sort(),
 		);
 		expect(Object.values(CurrencyCodeEnum).sort()).toEqual(
-			[...new Set(countries.map((country) => country.currencyCode).filter(Boolean))].sort(),
+			[
+				...new Set(
+					countries.map((country) => country.currencyCode).filter(Boolean),
+				),
+			].sort(),
 		);
 		expect(CountryCodeEnum.NG).toBe('NG');
 		expect(CurrencyCodeEnum.NGN).toBe('NGN');

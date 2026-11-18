@@ -1,4 +1,3 @@
-import { Construct } from 'constructs';
 import { CfnOutput, Duration } from 'aws-cdk-lib';
 import {
 	Architecture,
@@ -7,10 +6,12 @@ import {
 	FunctionProps,
 	Runtime,
 } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
-import { IBaseCdkConstructProps } from '../../types';
 import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
 import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
+
+import { IBaseCdkConstructProps } from '../../types';
 import { BaseCloudwatchLogGroupConstruct } from '../constructs/cloudwatch-construct';
 
 /**
@@ -25,7 +26,7 @@ interface ILambdaConstructProps extends Omit<
 		readonly lambdaOptions: Partial<FunctionProps>;
 	}>,
 	'appName'
-> { }
+> {}
 
 /**
  * CDK construct for AWS Lambda function
@@ -70,15 +71,17 @@ export class BaseLambdaConstruct extends Construct {
 
 		const functionName = `${props?.options?.lambdaOptions?.functionName || props?.stackName}`;
 
-		const logGroup = props?.options?.lambdaOptions?.logGroup || new BaseCloudwatchLogGroupConstruct(this, `${id}LogGroup`, {
-			enableDebug: props.enableDebug,
-			options: {
-				logGroupOptions: {
-					...props?.options?.lambdaOptions?.logGroup,
-					logGroupName: `/aws/lambda/${functionName}`,
+		const logGroup =
+			props?.options?.lambdaOptions?.logGroup ||
+			new BaseCloudwatchLogGroupConstruct(this, `${id}LogGroup`, {
+				enableDebug: props.enableDebug,
+				options: {
+					logGroupOptions: {
+						...props?.options?.lambdaOptions?.logGroup,
+						logGroupName: `/aws/lambda/${functionName}`,
+					},
 				},
-			},
-		}).logGroup;
+			}).logGroup;
 
 		this.function = new Function(this, id, {
 			...props?.options?.lambdaOptions,
@@ -122,7 +125,7 @@ export class BaseLambdaConstruct extends Construct {
 			memorySize: props?.options?.lambdaOptions?.memorySize || 1024,
 
 			/**
-			 * CloudWatch log group: the provided one, else one with stage-based retention
+			 * CloudWatch log group: the provided one, else a `BaseCloudwatchLogGroupConstruct` log group (one-week retention by default)
 			 */
 			logGroup,
 

@@ -353,8 +353,7 @@ formatMoney(150050, 'NGN', 'en-NG'); // '₦1,500.50'
 ```bash
 npm install        # install dependencies
 npm run build      # tsup: one ESM + CJS + .d.ts bundle per subpath entry
-npm run lint       # eslint --fix
-npm run format     # prettier --write
+npm run lint       # oxlint (config: ../../oxlint.json); format from the repo root: npm run format
 npm test           # vitest run — behaviour tests for every export (test/toolkit.spec.ts)
 npm run test:watch # vitest in watch mode
 npm run package    # build, then npm pack a tarball

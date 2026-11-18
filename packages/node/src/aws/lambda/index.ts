@@ -1,7 +1,9 @@
-import type { Express } from 'express';
 import serverlessExpress, {
 	getCurrentInvoke,
 } from '@codegenie/serverless-express';
+// type-only: importing this as a value pulls the framework adapters (express,
+// fastify, koa, hapi) — and their `require('fs')` calls — into the ESM bundle.
+import type Framework from '@codegenie/serverless-express/src/frameworks';
 import {
 	APIGatewayProxyEventV2,
 	APIGatewayProxyHandlerV2,
@@ -10,9 +12,8 @@ import {
 	SNSEvent,
 	SQSEvent,
 } from 'aws-lambda';
-// type-only: importing this as a value pulls the framework adapters (express,
-// fastify, koa, hapi) — and their `require('fs')` calls — into the ESM bundle.
-import type Framework from '@codegenie/serverless-express/src/frameworks';
+import { type Express } from 'express';
+
 import { ObjectType } from '@incloodsolutions/toolkit/interface';
 
 let lambdaInstance: APIGatewayProxyHandlerV2;

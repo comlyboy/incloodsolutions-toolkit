@@ -1,8 +1,8 @@
-import { Construct } from 'constructs';
-import { Function } from 'aws-cdk-lib/aws-lambda';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import { Rule, RuleProps } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 
@@ -22,7 +22,7 @@ interface IEventBridgeConstructProps extends Omit<
 		readonly eventBridgeOptions: RuleProps;
 	}>,
 	'appName' | 'stackName'
-> { }
+> {}
 
 /**
  * CDK construct for EventBridge rule

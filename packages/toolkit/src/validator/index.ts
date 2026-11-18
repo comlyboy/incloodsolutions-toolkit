@@ -16,7 +16,6 @@
 
 import validator from 'validator';
 import type * as ValidatorTypes from 'validator';
-
 import {
 	boolean,
 	email,

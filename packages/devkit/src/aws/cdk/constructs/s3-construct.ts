@@ -1,9 +1,13 @@
-import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { Bucket, BucketAttributes, BucketProps, IBucket } from 'aws-cdk-lib/aws-s3';
+import {
+	Bucket,
+	BucketAttributes,
+	BucketProps,
+	IBucket,
+} from 'aws-cdk-lib/aws-s3';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
-
 
 /**
  * Props for BaseS3Construct
@@ -35,7 +39,7 @@ export interface IBucketCdkConstructProps {
 interface IS3ConstructProps extends Omit<
 	IBaseCdkConstructProps<IBucketCdkConstructProps>,
 	'appName' | 'stackName'
-> { }
+> {}
 
 /**
  * CDK construct for S3 bucket
@@ -56,11 +60,7 @@ export class BaseS3Construct extends Construct {
 	 * @param id Unique construct identifier
 	 * @param props Configuration for S3 bucket
 	 */
-	constructor(
-		scope: Construct,
-		id: string,
-		props: IS3ConstructProps,
-	) {
+	constructor(scope: Construct, id: string, props: IS3ConstructProps) {
 		super(scope, id);
 
 		if (props.options?.fromExistingBucketName) {
@@ -94,7 +94,6 @@ export class BaseS3Construct extends Construct {
 					props.options?.bucketOptions?.removalPolicy || RemovalPolicy.DESTROY,
 			});
 		}
-
 
 		/**
 		 * CloudFormation output exposing the S3 bucket ARN

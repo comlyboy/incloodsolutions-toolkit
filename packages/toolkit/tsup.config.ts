@@ -1,6 +1,6 @@
-import { defineConfig, Options } from "tsup";
+import { defineConfig, Options } from 'tsup';
 
-import { tsupBaseConfig } from "../../shared/tsup-base.config";
+import { tsupBaseConfig } from '../../shared/tsup-base.config';
 
 /**
  * One bundle per public module, so a consumer imports only the area they use.
@@ -14,7 +14,7 @@ import { tsupBaseConfig } from "../../shared/tsup-base.config";
  */
 export default defineConfig([
 	{
-		...tsupBaseConfig as unknown as Options,
+		...(tsupBaseConfig as unknown as Options),
 		// `uuid` (>= 12) is ESM-only, so a CJS consumer on Node < 22.12 cannot
 		// `require()` it. Bundle it so `dist/*.cjs` stays loadable everywhere.
 		noExternal: ['uuid'],
@@ -32,5 +32,5 @@ export default defineConfig([
 			interface: 'src/interface/index.ts',
 			countries: 'src/countries/index.ts',
 		},
-	}
+	},
 ]);

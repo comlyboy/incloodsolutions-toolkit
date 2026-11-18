@@ -1,4 +1,3 @@
-import { Construct } from 'constructs';
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import {
 	ManagedPolicy,
@@ -7,6 +6,7 @@ import {
 	Role,
 	RoleProps,
 } from 'aws-cdk-lib/aws-iam';
+import { Construct } from 'constructs';
 
 import { IBaseCdkConstructProps } from '../../types';
 

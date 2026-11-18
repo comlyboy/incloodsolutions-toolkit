@@ -166,16 +166,26 @@ also `cd packages/<name>` and run `npm run <script>`.
 
 ## Code style
 
-Every package uses [Prettier](https://prettier.io) with a shared configuration —
-tab indentation, single quotes, trailing commas (`useTabs: true`, `singleQuote: true`,
-`trailingComma: "all"`). `toolkit/`, `node/`, `react/`, and `devkit/` each carry a
-`.prettierrc`; `angular/` keeps the Prettier config that its CLI scaffold placed in
-`package.json`. Format everything, or one package, with:
+Formatting and linting are controlled by the root config, the same way as in `workinance/clients`:
+
+- **Prettier** (`prettier@3.10.1`, a root devDependency) reads [`.prettierrc`](./.prettierrc):
+  tabs, single quotes, trailing commas, and imports sorted by
+  [`@ianvs/prettier-plugin-sort-imports`](https://github.com/IanVS/prettier-plugin-sort-imports)
+  (Node built-ins, third-party, `@incloodsolutions/*`, then relative paths). `packages/angular`
+  keeps the Angular CLI conventions (2 spaces, 100 columns, the `angular` HTML parser) through an
+  override in the same file. [`.prettierignore`](./.prettierignore) skips build output and the
+  generated country and timezone data.
+- **oxlint** (a root devDependency) reads [`oxlint.json`](./oxlint.json); each package's `lint`
+  script is `oxlint -c ../../oxlint.json`. There are no per-package ESLint or Prettier configs or
+  dependencies.
 
 ```bash
-npm run format                           # turbo run format, every package
-cd packages/node && npm run format       # just one
+npm run format          # prettier --write over every package
+npm run format:check    # prettier --check (what CI would run)
+npm run lint            # turbo run lint, oxlint in every package
 ```
+
+Run `npm run format` and `npm run lint` before committing.
 
 Run it before committing.
 

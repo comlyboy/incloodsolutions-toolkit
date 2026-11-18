@@ -31,57 +31,36 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
-import { describe, expect, it, vi } from 'vitest';
 import axios from 'axios';
+import { describe, expect, it, vi } from 'vitest';
 
 import * as toolkit from '../src/index';
 import {
 	AppEnvironmentEnum,
 	BooleanValidationSchema,
-	CountryCodeValidationSchema,
-	CurrencyCodeValidationSchema,
-	CustomException,
-	DateTimeValidationSchema,
-	DescriptionValidationSchema,
-	EmailValidationSchema,
-	FileExtensionValidationSchema,
-	FirstNameValidationSchema,
-	HexColorValidationSchema,
-	IpAddressValidationSchema,
-	LanguageCodeValidationSchema,
-	LastNameValidationSchema,
-	LatitudeValidationSchema,
-	LongitudeValidationSchema,
-	MimeTypeValidationSchema,
-	NameValidationSchema,
-	NonNegativeNumberValidationSchema,
-	OtpValidationSchema,
-	PageSizeValidationSchema,
-	PageValidationSchema,
-	PasswordValidationSchema,
-	PhoneNumberValidationSchema,
-	PositiveNumberValidationSchema,
-	RequiredStringValidationSchema,
-	ResponseMessageEnum,
-	SearchQueryValidationSchema,
-	SlugValidationSchema,
-	TokenValidationSchema,
-	UrlValidationSchema,
-	UsernameValidationSchema,
-	UuidValidationSchema,
 	cloneDeep,
 	compileHtmlWithHandlebar,
 	consoleLog,
 	containsUUID,
+	CountryCodeValidationSchema,
+	CurrencyCodeValidationSchema,
+	CustomException,
+	DateTimeValidationSchema,
 	decodeUrlComponent,
+	DescriptionValidationSchema,
 	detectDuplicateProperties,
+	EmailValidationSchema,
 	encodeUrlComponent,
 	fetchGoogleSheet,
-	generateDateInNumber,
+	FileExtensionValidationSchema,
+	FirstNameValidationSchema,
 	generateCustomUUID,
+	generateDateInNumber,
 	generateISODate,
 	generateNanoid,
 	generateRandomId,
+	HexColorValidationSchema,
+	IpAddressValidationSchema,
 	isDispasableEmail,
 	isEmail,
 	isIsoDate,
@@ -89,23 +68,50 @@ import {
 	isMongoId,
 	isSlug,
 	isStrongPassword,
+	isURL,
 	isUUID,
 	isValidUUID,
-	isURL,
 	jsonToXml,
+	LanguageCodeValidationSchema,
+	LastNameValidationSchema,
+	LatitudeValidationSchema,
+	LongitudeValidationSchema,
+	MimeTypeValidationSchema,
+	NameValidationSchema,
+	NonNegativeNumberValidationSchema,
 	normalizeEmail,
+	OtpValidationSchema,
+	PageSizeValidationSchema,
+	PageValidationSchema,
 	parsePhonenumber,
+	PasswordValidationSchema,
+	PhoneNumberValidationSchema,
+	PositiveNumberValidationSchema,
 	removeDuplicates,
+	RequiredStringValidationSchema,
+	ResponseMessageEnum,
 	sanitizeObject,
+	SearchQueryValidationSchema,
 	sendHttpRequest,
 	sendMessageToTelegram,
+	SlugValidationSchema,
+	TokenValidationSchema,
 	transformText,
 	trim,
+	UrlValidationSchema,
+	UsernameValidationSchema,
+	UuidValidationSchema,
 	xmlToJson,
 } from '../src/index';
 
 vi.mock('axios', () => ({ default: vi.fn() }));
 const mockedAxios = vi.mocked(axios);
+
+/** The `url` that `sendHttpRequest` (and therefore axios) was last called with. */
+function lastRequestUrl(): string {
+	const [request] = mockedAxios.mock.calls.at(-1) ?? [];
+	return (request as unknown as { url: string }).url;
+}
 
 const A_UUID = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d';
 
@@ -771,9 +777,9 @@ describe('isDispasableEmail', () => {
 	it('requests the disposable-email-domains blocklist', async () => {
 		mockedAxios.mockResolvedValue({ data: '' });
 		await isDispasableEmail('a@unknown-domain.test');
-		expect(
-			(mockedAxios.mock.calls.at(-1)?.[0] as unknown as { url: string }).url,
-		).toContain('disposable-email-domains/disposable-email-domains');
+		expect(lastRequestUrl()).toContain(
+			'disposable-email-domains/disposable-email-domains',
+		);
 		mockedAxios.mockReset();
 	});
 
@@ -787,8 +793,7 @@ describe('isDispasableEmail', () => {
 
 describe('fetchGoogleSheet', () => {
 	/** Grab the `url` that `sendHttpRequest` (and therefore axios) was called with. */
-	const calledUrl = () =>
-		(mockedAxios.mock.calls.at(-1)?.[0] as unknown as { url: string }).url;
+	const calledUrl = lastRequestUrl;
 
 	it('hits the sheet /export endpoint and returns the raw CSV text', async () => {
 		const csv = 'name,age\nAda,36';
@@ -1086,7 +1091,9 @@ describe('public API surface', () => {
 			'isDispasableEmail',
 		] as const;
 		for (const name of expectedFunctions) {
-			expect(typeof toolkit[name], name).toBe('function');
+			expect(typeof (toolkit as Record<string, unknown>)[name], name).toBe(
+				'function',
+			);
 		}
 
 		expect(typeof toolkit.CustomException).toBe('function');

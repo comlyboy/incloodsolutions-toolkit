@@ -1,5 +1,5 @@
-import { build } from 'esbuild';
 import TsconfigPathsPlugin from '@esbuild-plugins/tsconfig-paths';
+import { build } from 'esbuild';
 
 build({
 	keepNames: true,
@@ -10,5 +10,5 @@ build({
 	sourcemap: true,
 	plugins: [TsconfigPathsPlugin({})],
 	platform: 'node',
-	target: 'node18'
-}).catch(() => { });
+	target: 'node18',
+}).catch(() => {});

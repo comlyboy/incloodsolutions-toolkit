@@ -18,7 +18,8 @@
 export const ResponseMessageEnum = {
 	// General
 	SUCCESS: 'Operation completed successfully.',
-	INTERNAL_SERVER_ERROR: 'An unexpected error occurred. Please try again later.',
+	INTERNAL_SERVER_ERROR:
+		'An unexpected error occurred. Please try again later.',
 	NOT_SUCCESS: 'The operation was not successful. Please try again.',
 	BAD_REQUEST: 'Invalid request. Please check your input.',
 	INVALID_REQUEST: 'The request is invalid.',
@@ -52,7 +53,8 @@ export const ResponseMessageEnum = {
 	// Authorization
 	FORBIDDEN: 'You do not have permission to perform this action.',
 	ROLE_MISMATCHED: 'You do not have permission to perform this action.',
-	INSUFFICIENT_PERMISSIONS: 'You do not have sufficient permissions to perform this action.',
+	INSUFFICIENT_PERMISSIONS:
+		'You do not have sufficient permissions to perform this action.',
 
 	// User
 	USER_NOT_FOUND: 'User not found.',
@@ -68,7 +70,8 @@ export const ResponseMessageEnum = {
 	PASSWORD_RESET_LINK_SENT: 'Password reset instructions have been sent.',
 	PASSWORD_MISMATCH: 'Passwords do not match.',
 	CURRENT_PASSWORD_INCORRECT: 'The current password is incorrect.',
-	PASSWORD_TOO_WEAK: 'The password does not meet the required security criteria.',
+	PASSWORD_TOO_WEAK:
+		'The password does not meet the required security criteria.',
 
 	// Email
 	EMAIL_SENT: 'Email sent successfully.',
@@ -92,4 +95,5 @@ export const ResponseMessageEnum = {
 } as const;
 
 /** Union of every {@link ResponseMessageEnum} message string. */
-export type ResponseMessageEnum = (typeof ResponseMessageEnum)[keyof typeof ResponseMessageEnum];
+export type ResponseMessageEnum =
+	(typeof ResponseMessageEnum)[keyof typeof ResponseMessageEnum];
