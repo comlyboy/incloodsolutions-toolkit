@@ -8,7 +8,7 @@
 		"url": "https://github.com/comlyboy/incloodsolutions-toolkit.git"
 	},
 	"license": "MIT",
-	"packageManager": "npm@11.12.1",
+	"packageManager": "npm@12.2.3",
 	"workspaces": [
 		"packages/*"
 	],
