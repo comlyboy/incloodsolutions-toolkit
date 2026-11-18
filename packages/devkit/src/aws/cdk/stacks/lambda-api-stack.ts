@@ -78,11 +78,7 @@ export class BaseLambdaApiStack extends Stack {
 
 		super(scope, id, {
 			...props,
-			env: {
-				...props?.env,
-				region: props?.env?.region || 'us-east-1',
-				account: props?.env?.account || process.env?.CDK_DEFAULT_ACCOUNT,
-			},
+			env: { ...props?.env, region, account },
 			tags: {
 				...(props.tags || {}),
 				stackName: props?.stackName,

@@ -50,10 +50,10 @@ export class BaseCloudwatchLogGroupConstruct extends Construct {
 
 			/**
 			 * Log retention period
-			 * Defaults to INFINITE when not explicitly defined
+			 * Defaults to ONE_WEEK when not explicitly defined
 			 */
 			retention:
-				props?.options?.logGroupOptions?.retention || RetentionDays.INFINITE,
+				props?.options?.logGroupOptions?.retention || RetentionDays.ONE_WEEK,
 		});
 
 		/**

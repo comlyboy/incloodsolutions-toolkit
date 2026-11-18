@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput, Duration } from 'aws-cdk-lib';
 import {
 	Architecture,
 	Code,
@@ -10,8 +10,8 @@ import {
 
 import { IBaseCdkConstructProps } from '../../types';
 import { AppEnvironmentEnum } from '@incloodsolutions/toolkit/interface';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { detectDuplicateProperties } from '@incloodsolutions/toolkit/utility';
+import { BaseCloudwatchLogGroupConstruct } from '../constructs/cloudwatch-construct';
 
 /**
  * Props for BaseLambdaConstruct
@@ -25,7 +25,7 @@ interface ILambdaConstructProps extends Omit<
 		readonly lambdaOptions: Partial<FunctionProps>;
 	}>,
 	'appName'
-> {}
+> { }
 
 /**
  * CDK construct for AWS Lambda function
@@ -69,6 +69,16 @@ export class BaseLambdaConstruct extends Construct {
 		detectDuplicateProperties({ data: environment });
 
 		const functionName = `${props?.options?.lambdaOptions?.functionName || props?.stackName}`;
+
+		const logGroup = props?.options?.lambdaOptions?.logGroup || new BaseCloudwatchLogGroupConstruct(this, `${id}LogGroup`, {
+			enableDebug: props.enableDebug,
+			options: {
+				logGroupOptions: {
+					...props?.options?.lambdaOptions?.logGroup,
+					logGroupName: `/aws/lambda/${functionName}`,
+				},
+			},
+		}).logGroup;
 
 		this.function = new Function(this, id, {
 			...props?.options?.lambdaOptions,
@@ -114,16 +124,7 @@ export class BaseLambdaConstruct extends Construct {
 			/**
 			 * CloudWatch log group: the provided one, else one with stage-based retention
 			 */
-			logGroup:
-				props?.options?.lambdaOptions?.logGroup ||
-				new LogGroup(this, `${id}LogGroup`, {
-					logGroupName: `/aws/lambda/${functionName}`,
-					retention:
-						props.stage === 'production'
-							? RetentionDays.TWO_WEEKS
-							: RetentionDays.ONE_WEEK,
-					removalPolicy: RemovalPolicy.DESTROY,
-				}),
+			logGroup,
 
 			/**
 			 * CPU architecture
