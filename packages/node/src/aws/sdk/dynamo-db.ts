@@ -81,7 +81,8 @@ function toPartialSchema(schema: ZodObject): ZodObject {
  * @param options.options - Wrapper-wide runtime options (debug logging, etc.).
  *
  * @returns An object exposing `put`, `query`, `getOne`, `getMany`,
- *   `updateOne`, and `delete`, each scoped to `options.tableName`.
+ *   `updateOne`, `incrementOne` (an atomic counter), and `delete`, each
+ *   scoped to `options.tableName`.
  */
 export function initDynamoDbClientWrapper<
 	TType extends ObjectType = any,
@@ -1392,6 +1393,216 @@ export function initDynamoDbClientWrapper<
 			}
 
 			return response.Attributes as TType;
+		},
+
+		/**
+		 * Atomically adds to a number attribute of one item (`UpdateCommand` with
+		 * `SET field = if_not_exists(field, :startsAt) + :by`) and returns the
+		 * number. The addition happens inside DynamoDB, not in the caller, so
+		 * concurrent callers never receive the same value (a read followed by an
+		 * `updateOne` is not safe). It suits any numeric counter: sequence numbers,
+		 * stock levels, quotas, view or retry counts.
+		 *
+		 * The item is created when it does not exist yet, and the attribute is
+		 * created when the item lacks it, both starting from `startsAt`. Nothing
+		 * else about the item matters: any other attributes are left untouched.
+		 *
+		 * @param key The primary key (and sort key, if the table has one) of the
+		 *   item holding the counter.
+		 * @param field The number attribute to add to. A dotted path such as
+		 *   `'counters.invoice'` reaches a number inside a map; the map itself must
+		 *   already exist, DynamoDB cannot create it in the same update.
+		 * @param by How much to add. Negative values count down. @default 1
+		 * @param startsAt The value the attribute counts from when it does not
+		 *   exist yet. @default 0
+		 * @param returns Which value to resolve with: `'new'` is the value after
+		 *   the addition (a first call on a counter that starts at 0 gives 1);
+		 *   `'previous'` is the value before it (a first call on a counter that
+		 *   starts at 1 gives 1, then 2 ...), for counters that store the number
+		 *   the next caller should use. @default 'new'
+		 * @param min The lowest value the attribute may reach. An addition that
+		 *   would take it below is not applied, and throws.
+		 * @param max The highest value the attribute may reach. An addition that
+		 *   would take it above is not applied, and throws. With `min` this makes a
+		 *   safe stock decrement or a quota that cannot be overspent.
+		 * @param ifMissing Top-level attributes to set only when the item does not
+		 *   already have them, so a counter made on first use still gets what the
+		 *   schema requires (`entityName`, `createdAtDate`, ...) and an existing one
+		 *   keeps its own values. Validated against `options.schema.partial()`.
+		 * @throws {CustomException} When `by`, `startsAt`, `min` or `max` is not a
+		 *   finite number (or `min` is above `max`), when `field` is empty, when
+		 *   `ifMissing` names the counter or an attribute the schema does not have
+		 *   or that fails validation, or when `min`/`max` would be crossed.
+		 *   DynamoDB is not called for the first of these.
+		 * @returns The counter value, as a number.
+		 */
+		incrementOne: async ({
+			key,
+			field,
+			by = 1,
+			startsAt = 0,
+			returns = 'new',
+			min,
+			max,
+			ifMissing,
+		}: {
+			/** primaryKey and sortKey only */
+			key: Partial<TType>;
+			/** The number attribute to add to, or a dotted path to one inside a map */
+			field: (keyof TType & string) | `${keyof TType & string}.${string}`;
+			by?: number;
+			startsAt?: number;
+			returns?: 'new' | 'previous';
+			min?: number;
+			max?: number;
+			ifMissing?: Partial<TType>;
+		}): Promise<number> => {
+			const fieldPath = String(field).split('.');
+			if (fieldPath.some((segment) => segment === '')) {
+				throw new CustomException([
+					'field must be an attribute name or a dotted path',
+				]);
+			}
+			const numberInputs = { by, startsAt, min, max };
+			const notFinite = Object.entries(numberInputs).filter(
+				([, value]) => value !== undefined && !Number.isFinite(value),
+			);
+			if (notFinite.length > 0) {
+				throw new CustomException([
+					`${notFinite.map(([name]) => name).join(', ')} must be finite numbers`,
+				]);
+			}
+			if (min !== undefined && max !== undefined && min > max) {
+				throw new CustomException(['min cannot be above max']);
+			}
+			if (ifMissing && fieldPath[0] in ifMissing) {
+				throw new CustomException([
+					`ifMissing cannot set ${fieldPath[0]}, it is the attribute being incremented`,
+				]);
+			}
+
+			const ifMissingDto = ifMissing
+				? await validate(ifMissing, { skipMissingProperties: true })
+				: {};
+			// Validation drops attributes the schema does not know; a counter that silently loses one is worse than an error.
+			const droppedAttributes = Object.entries(ifMissing ?? {})
+				.filter(
+					([name, value]) => value !== undefined && !(name in ifMissingDto),
+				)
+				.map(([name]) => name);
+			if (droppedAttributes.length > 0) {
+				throw new CustomException([
+					`ifMissing: ${droppedAttributes.join(', ')} not in the schema`,
+				]);
+			}
+
+			// Every name goes through a `#` placeholder, so a reserved word can never break the expression.
+			const expressionAttributeNames: Record<string, string> = {};
+			const counterPath = fieldPath
+				.map((segment, index) => {
+					expressionAttributeNames[`#counter${index}`] = segment;
+					return `#counter${index}`;
+				})
+				.join('.');
+			const expressionAttributeValues: Record<string, unknown> = {
+				':startsAt': startsAt,
+				':by': by,
+			};
+			const setClauses = [
+				`${counterPath} = if_not_exists(${counterPath}, :startsAt) + :by`,
+			];
+			Object.entries(ifMissingDto).forEach(([attributeName, value], index) => {
+				expressionAttributeNames[`#missing${index}`] = attributeName;
+				expressionAttributeValues[`:missing${index}`] = value;
+				setClauses.push(
+					`#missing${index} = if_not_exists(#missing${index}, :missing${index})`,
+				);
+			});
+
+			// The bounds are judged on the value before the addition: it may be added to only while
+			// min <= before + by <= max. A counter that does not exist yet starts from `startsAt`.
+			const boundConditions: string[] = [];
+			if (min !== undefined) {
+				boundConditions.push(`${counterPath} >= :lowestBefore`);
+				expressionAttributeValues[':lowestBefore'] = min - by;
+			}
+			if (max !== undefined) {
+				boundConditions.push(`${counterPath} <= :highestBefore`);
+				expressionAttributeValues[':highestBefore'] = max - by;
+			}
+			const firstValue = startsAt + by;
+			const isFirstValueInBounds =
+				(min === undefined || firstValue >= min) &&
+				(max === undefined || firstValue <= max);
+			// A missing attribute passes only when its first value is itself within the bounds; otherwise the
+			// comparison against a missing attribute is false and the addition is refused.
+			const withinBounds = `(${boundConditions.join(' AND ')})`;
+			const conditionExpression =
+				boundConditions.length === 0
+					? undefined
+					: isFirstValueInBounds
+						? `attribute_not_exists(${counterPath}) OR ${withinBounds}`
+						: withinBounds;
+
+			const updateParam: UpdateCommandInput = {
+				Key: key,
+				TableName: options.tableName,
+				UpdateExpression: `SET ${setClauses.join(', ')}`,
+				...(conditionExpression && {
+					ConditionExpression: conditionExpression,
+				}),
+				ExpressionAttributeNames: expressionAttributeNames,
+				ExpressionAttributeValues: expressionAttributeValues,
+				ReturnValues: returns === 'new' ? 'UPDATED_NEW' : 'ALL_OLD',
+				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+			};
+
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} UpdateCommand (increment)`,
+					message: 'Calling with',
+					data: updateParam,
+				});
+			}
+
+			let response;
+			try {
+				response = await dynamoDbClientInstance.send(
+					new UpdateCommand(updateParam),
+				);
+			} catch (error) {
+				if (
+					(error as { name?: string })?.name ===
+					'ConditionalCheckFailedException'
+				) {
+					throw new CustomException([
+						`${String(field)} would go outside its allowed range`,
+					]);
+				}
+				throw error;
+			}
+
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} UpdateCommand (increment)`,
+					message: 'successful',
+					data: { consumedCapacity: response.ConsumedCapacity?.CapacityUnits },
+				});
+			}
+
+			// For a dotted path DynamoDB nests the returned value the same way. `ALL_OLD` returns nothing for
+			// an item that did not exist, and no such attribute for one without it: in both cases the counter
+			// started from `startsAt`.
+			const returnedValue = fieldPath.reduce<unknown>(
+				(parent, segment) =>
+					parent && typeof parent === 'object'
+						? (parent as Record<string, unknown>)[segment]
+						: undefined,
+				response.Attributes,
+			);
+			return returns === 'previous'
+				? Number(returnedValue ?? startsAt)
+				: Number(returnedValue);
 		},
 
 		/**

@@ -30,7 +30,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { mockClient } from 'aws-sdk-client-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { object, string } from 'zod';
+import { number, object, string } from 'zod';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
@@ -263,6 +263,7 @@ describe('initDynamoDbClientWrapper', () => {
 			'getOne',
 			'getMany',
 			'updateOne',
+			'incrementOne',
 			'delete',
 		]);
 	});
@@ -367,6 +368,278 @@ describe('initDynamoDbClientWrapper', () => {
 			':name': 'Widget 2',
 		});
 		expect(input.ExpressionAttributeValues).not.toHaveProperty(':#name_');
+	});
+});
+
+describe('initDynamoDbClientWrapper incrementOne', () => {
+	type Counters = {
+		id: string;
+		entityName: string;
+		nextInvoiceNumber: number;
+		createdAtDate: string;
+	};
+
+	const counters = () =>
+		initDynamoDbClientWrapper<Counters>({
+			tableName: 'items',
+			schema: object({
+				entityName: string(),
+				nextInvoiceNumber: number(),
+				createdAtDate: string(),
+			}) as never,
+			compositePrimaryKeyOptions: { primaryKeyName: 'id' },
+		});
+
+	const lastUpdate = () =>
+		ddbMock.commandCalls(UpdateCommand).at(-1)!.args[0].input;
+
+	it('adds inside DynamoDB with if_not_exists, and resolves with the new value by default', async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 1 } });
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+			}),
+		).resolves.toBe(1);
+
+		const input = lastUpdate();
+		expect(input.Key).toEqual({ id: 'counters:1' });
+		expect(input.UpdateExpression).toBe(
+			'SET #counter0 = if_not_exists(#counter0, :startsAt) + :by',
+		);
+		expect(input.ExpressionAttributeNames).toEqual({
+			'#counter0': 'nextInvoiceNumber',
+		});
+		expect(input.ExpressionAttributeValues).toEqual({
+			':startsAt': 0,
+			':by': 1,
+		});
+		expect(input.ReturnValues).toBe('UPDATED_NEW');
+	});
+
+	it("resolves with the value from before the addition when asked for 'previous'", async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 7 } });
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+				startsAt: 1,
+				returns: 'previous',
+			}),
+		).resolves.toBe(7);
+		expect(lastUpdate().ReturnValues).toBe('ALL_OLD');
+		expect(lastUpdate().ExpressionAttributeValues).toMatchObject({
+			':startsAt': 1,
+		});
+	});
+
+	it("falls back to startsAt for 'previous' when the item did not exist", async () => {
+		// ALL_OLD returns no attributes at all for an item that was not there.
+		ddbMock.on(UpdateCommand).resolves({});
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:new' },
+				field: 'nextInvoiceNumber',
+				startsAt: 1,
+				returns: 'previous',
+			}),
+		).resolves.toBe(1);
+	});
+
+	it('writes ifMissing attributes with if_not_exists, so existing ones are kept', async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 2 } });
+
+		await counters().incrementOne({
+			key: { id: 'counters:1' },
+			field: 'nextInvoiceNumber',
+			ifMissing: { entityName: 'business-counters', createdAtDate: 'now' },
+		});
+
+		const input = lastUpdate();
+		expect(input.UpdateExpression).toBe(
+			'SET #counter0 = if_not_exists(#counter0, :startsAt) + :by, #missing0 = if_not_exists(#missing0, :missing0), #missing1 = if_not_exists(#missing1, :missing1)',
+		);
+		expect(input.ExpressionAttributeNames).toEqual({
+			'#counter0': 'nextInvoiceNumber',
+			'#missing0': 'entityName',
+			'#missing1': 'createdAtDate',
+		});
+		expect(input.ExpressionAttributeValues).toMatchObject({
+			':missing0': 'business-counters',
+			':missing1': 'now',
+		});
+	});
+
+	it('refuses a non-finite amount, ifMissing that names the counter, and invalid ifMissing, without calling DynamoDB', async () => {
+		ddbMock.on(UpdateCommand).resolves({});
+		const call = (extra: object) =>
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+				...extra,
+			});
+
+		await expect(call({ by: Number.NaN })).rejects.toBeInstanceOf(
+			CustomException,
+		);
+		await expect(call({ startsAt: Infinity })).rejects.toBeInstanceOf(
+			CustomException,
+		);
+		await expect(
+			call({ ifMissing: { nextInvoiceNumber: 5 } }),
+		).rejects.toBeInstanceOf(CustomException);
+		await expect(
+			call({ ifMissing: { entityName: 123 } }),
+		).rejects.toBeInstanceOf(CustomException);
+		expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+	});
+	it('increments a number inside a map, reading the nested value back', async () => {
+		const anyTable = initDynamoDbClientWrapper<any>({
+			tableName: 'items',
+			schema: object({ counters: object({}) }) as never,
+			compositePrimaryKeyOptions: { primaryKeyName: 'id' },
+		});
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { counters: { invoice: 4 } } });
+
+		await expect(
+			anyTable.incrementOne({ key: { id: 'b1' }, field: 'counters.invoice' }),
+		).resolves.toBe(4);
+
+		const input = lastUpdate();
+		expect(input.UpdateExpression).toBe(
+			'SET #counter0.#counter1 = if_not_exists(#counter0.#counter1, :startsAt) + :by',
+		);
+		expect(input.ExpressionAttributeNames).toEqual({
+			'#counter0': 'counters',
+			'#counter1': 'invoice',
+		});
+	});
+
+	it('counts down by a negative amount', async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 8 } });
+
+		await counters().incrementOne({
+			key: { id: 'counters:1' },
+			field: 'nextInvoiceNumber',
+			by: -2,
+		});
+		expect(lastUpdate().ExpressionAttributeValues).toMatchObject({ ':by': -2 });
+	});
+
+	it('guards the range with a condition on the value before the addition, letting a new counter start when its first value fits', async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 9 } });
+
+		await counters().incrementOne({
+			key: { id: 'counters:1' },
+			field: 'nextInvoiceNumber',
+			by: -1,
+			startsAt: 10,
+			min: 0,
+			max: 100,
+		});
+
+		const input = lastUpdate();
+		// before + by must stay within [0, 100], so before must be within [1, 101].
+		expect(input.ConditionExpression).toBe(
+			'attribute_not_exists(#counter0) OR (#counter0 >= :lowestBefore AND #counter0 <= :highestBefore)',
+		);
+		expect(input.ExpressionAttributeValues).toMatchObject({
+			':lowestBefore': 1,
+			':highestBefore': 101,
+		});
+	});
+
+	it('refuses to start a new counter whose first value is already out of range', async () => {
+		ddbMock
+			.on(UpdateCommand)
+			.resolves({ Attributes: { nextInvoiceNumber: 0 } });
+
+		await counters().incrementOne({
+			key: { id: 'counters:1' },
+			field: 'nextInvoiceNumber',
+			by: -5,
+			startsAt: 3,
+			min: 0,
+		});
+
+		expect(lastUpdate().ConditionExpression).toBe(
+			'(#counter0 >= :lowestBefore)',
+		);
+	});
+
+	it('turns a failed range condition into a CustomException', async () => {
+		ddbMock.on(UpdateCommand).rejects(
+			Object.assign(new Error('The conditional request failed'), {
+				name: 'ConditionalCheckFailedException',
+			}),
+		);
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+				by: -1,
+				min: 0,
+			}),
+		).rejects.toBeInstanceOf(CustomException);
+	});
+
+	it('lets any other DynamoDB error through unchanged', async () => {
+		const outage = new Error('throttled');
+		ddbMock.on(UpdateCommand).rejects(outage);
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+			}),
+		).rejects.toBe(outage);
+	});
+
+	it('refuses ifMissing attributes the schema does not have, instead of dropping them', async () => {
+		ddbMock.on(UpdateCommand).resolves({});
+
+		await expect(
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+				ifMissing: { notInSchema: 'x' } as never,
+			}),
+		).rejects.toBeInstanceOf(CustomException);
+		expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+	});
+
+	it('refuses min above max and an empty path segment', async () => {
+		ddbMock.on(UpdateCommand).resolves({});
+		const call = (extra: object) =>
+			counters().incrementOne({
+				key: { id: 'counters:1' },
+				field: 'nextInvoiceNumber',
+				...extra,
+			});
+
+		await expect(call({ min: 5, max: 1 })).rejects.toBeInstanceOf(
+			CustomException,
+		);
+		await expect(call({ field: 'counters.' })).rejects.toBeInstanceOf(
+			CustomException,
+		);
+		expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
 	});
 });
 
