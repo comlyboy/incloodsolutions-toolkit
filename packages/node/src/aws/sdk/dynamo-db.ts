@@ -7,6 +7,7 @@ import {
 	BatchGetCommand,
 	BatchGetCommandInput,
 	BatchGetCommandOutput,
+	BatchWriteCommand,
 	DeleteCommand,
 	DynamoDBDocumentClient,
 	GetCommand,
@@ -14,6 +15,8 @@ import {
 	QueryCommand,
 	QueryCommandInput,
 	QueryCommandOutput,
+	TransactWriteCommand,
+	TransactWriteCommandInput,
 	TranslateConfig,
 	UpdateCommand,
 	UpdateCommandInput,
@@ -32,6 +35,80 @@ import {
 	generateDateInNumber,
 	generateISODate,
 } from '@incloodsolutions/toolkit/utility';
+
+/**
+ * A `CustomException` whose message lists every problem, joined with `; `. `CustomException` only reads a
+ * string (or an `Error`) as its message, so passing it a list would give a generic "An unexpected error
+ * occurred." and hide what was actually wrong.
+ */
+function toCustomException(messages: string[]): CustomException {
+	return new CustomException(messages.join('; '));
+}
+
+/**
+ * What an item must currently look like for a write to go ahead. Every listed rule must hold (they are
+ * AND-ed). Attribute names are top-level. When a rule does not hold the write is refused.
+ */
+export interface IDynamoDbCondition<TType> {
+	/** Attributes that must currently equal these values. */
+	equals?: Partial<TType>;
+	/** Attributes that must exist. */
+	exists?: (keyof TType & string)[];
+	/** Attributes that must not exist. */
+	notExists?: (keyof TType & string)[];
+}
+
+/**
+ * The changes `updateOne` and a transaction's `update` can make to one item, beyond setting values. Each
+ * attribute may appear in only one of these.
+ */
+export interface IDynamoDbUpdateOperations<TType> {
+	/** Attributes to set, like `updateOne`'s original `data`. Validated against `schema.partial()`. */
+	data?: Partial<TType>;
+	/** Attributes to delete from the item. Key attributes and attributes the schema requires cannot be removed. */
+	remove?: (keyof TType & string)[];
+	/** Values to add to the end of a list attribute. The list is created if the item has none. */
+	appendToList?: Partial<Record<keyof TType & string, unknown[]>>;
+	/** Values to add to a set attribute (a JS `Set`). The set is created if the item has none. */
+	addToSet?: Partial<Record<keyof TType & string, Set<string | number>>>;
+	/** Values to take out of a set attribute (a JS `Set`). */
+	deleteFromSet?: Partial<Record<keyof TType & string, Set<string | number>>>;
+}
+
+/** One step of `transactWrite`. Exactly one of `put`, `update`, `delete`, `conditionCheck`. */
+export type IDynamoDbTransactOperation<TType> =
+	| {
+			put: {
+				data: Partial<TType>;
+				/** Refuse (and cancel the whole transaction) if an item with this key already exists. */
+				mustNotExist?: boolean;
+				condition?: IDynamoDbCondition<TType>;
+			};
+	  }
+	| {
+			update: IDynamoDbUpdateOperations<TType> & {
+				/** primaryKey and sortKey only */
+				key: Partial<TType>;
+				/** Adds to a number attribute, like `incrementOne` (its result is not returned by a transaction). */
+				increment?: { field: string; by?: number; startsAt?: number };
+				condition?: IDynamoDbCondition<TType>;
+			};
+	  }
+	| {
+			delete: {
+				/** primaryKey and sortKey only */
+				key: Partial<TType>;
+				condition?: IDynamoDbCondition<TType>;
+			};
+	  }
+	| {
+			/** Checks an item without changing it, so a transaction can depend on it. */
+			conditionCheck: {
+				/** primaryKey and sortKey only */
+				key: Partial<TType>;
+				condition: IDynamoDbCondition<TType>;
+			};
+	  };
 
 /**
  * Every field optional, for validating partial updates. Zod refuses `.partial()` on a schema that
@@ -81,8 +158,9 @@ function toPartialSchema(schema: ZodObject): ZodObject {
  * @param options.options - Wrapper-wide runtime options (debug logging, etc.).
  *
  * @returns An object exposing `put`, `query`, `getOne`, `getMany`,
- *   `updateOne`, `incrementOne` (an atomic counter), and `delete`, each
- *   scoped to `options.tableName`.
+ *   `putOnce`, `updateOne`, `incrementOne` (an atomic counter),
+ *   `transactWrite`, `batchWrite`, `count`, and `delete`, each scoped to
+ *   `options.tableName`.
  */
 export function initDynamoDbClientWrapper<
 	TType extends ObjectType = any,
@@ -856,7 +934,7 @@ export function initDynamoDbClientWrapper<
 					data: errorMessages,
 				});
 			}
-			throw new CustomException(errorMessages);
+			throw toCustomException(errorMessages);
 		}
 
 		if (enableDebug) {
@@ -868,6 +946,400 @@ export function initDynamoDbClientWrapper<
 		}
 
 		return validationResult.data as Partial<TType>;
+	}
+
+	/** Whether `error` is DynamoDB refusing a write because its condition did not hold. */
+	function isConditionFailure(error: unknown): boolean {
+		return (
+			(error as { name?: string })?.name === 'ConditionalCheckFailedException'
+		);
+	}
+
+	/**
+	 * Validates `data` and returns the item exactly as `put` writes it: the partition key generated, `createdAtDate`
+	 * stamped, the data validated against `options.schema`, and any system field the schema does not declare put
+	 * back. Used by `put`, `putOnce`, `batchWrite` and `transactWrite`, so every way of creating an item agrees.
+	 */
+	async function prepareItem(data: Partial<TType>): Promise<TType> {
+		mapSchemaPrimaryKey(data);
+		mapSchemaCreatedDate(data);
+
+		const dataDto = await validate(data);
+
+		const item: Partial<TType> = { ...dataDto };
+		for (const systemField of [primaryKeyName, 'createdAtDate']) {
+			if (item[systemField] === undefined && data[systemField] !== undefined) {
+				(item as any)[systemField] = data[systemField];
+			}
+		}
+		return item as TType;
+	}
+
+	/** Turns a condition into a `ConditionExpression` with its own name and value placeholders, or undefined if it has no rules. */
+	function buildCondition(condition?: IDynamoDbCondition<TType>) {
+		if (!condition) return undefined;
+		const names: Record<string, string> = {};
+		const values: Record<string, unknown> = {};
+		const rules: string[] = [];
+		let index = 0;
+
+		Object.entries(condition.equals ?? {}).forEach(([attribute, value]) => {
+			names[`#cond${index}`] = attribute;
+			values[`:cond${index}`] = value;
+			rules.push(`#cond${index} = :cond${index}`);
+			index++;
+		});
+		(condition.exists ?? []).forEach((attribute) => {
+			names[`#cond${index}`] = attribute;
+			rules.push(`attribute_exists(#cond${index})`);
+			index++;
+		});
+		(condition.notExists ?? []).forEach((attribute) => {
+			names[`#cond${index}`] = attribute;
+			rules.push(`attribute_not_exists(#cond${index})`);
+			index++;
+		});
+
+		if (rules.length === 0) return undefined;
+		return { expression: rules.join(' AND '), names, values };
+	}
+
+	/**
+	 * Throws unless every key of `original` survived validation. Zod drops attributes the schema does not
+	 * declare, and a write that quietly loses one is worse than an error.
+	 */
+	function assertNoneDropped(
+		original: Record<string, unknown> | undefined,
+		validated: Record<string, unknown>,
+		label: string,
+	) {
+		const dropped = Object.entries(original ?? {})
+			.filter(([name, value]) => value !== undefined && !(name in validated))
+			.map(([name]) => name);
+		if (dropped.length > 0) {
+			throw toCustomException([
+				`${label}: ${dropped.join(', ')} not in the schema`,
+			]);
+		}
+	}
+
+	/**
+	 * Builds the `UpdateExpression` (and its placeholders) for a set of changes to one item: `SET` for values,
+	 * list appends and increments, `REMOVE`, `ADD` and `DELETE` for sets. Values are validated against
+	 * `options.schema.partial()` first, so the item stays valid under the schema. Throws `CustomException`, never
+	 * calling DynamoDB, for an attribute used twice, a key or required attribute being removed, an attribute the
+	 * schema does not declare, or no change at all.
+	 */
+	async function buildUpdateParts(
+		update: IDynamoDbUpdateOperations<TType> & {
+			increment?: { field: string; by?: number; startsAt?: number };
+		},
+	) {
+		const { remove, appendToList, addToSet, deleteFromSet, increment } = update;
+		const hasKeys = (value?: object) =>
+			!!value && Object.keys(value).length > 0;
+
+		const dataDto = hasKeys(update.data)
+			? await validate(update.data as Partial<TType>, {
+					skipMissingProperties: true,
+				})
+			: {};
+		const appendDto = hasKeys(appendToList)
+			? await validate(appendToList as Partial<TType>, {
+					skipMissingProperties: true,
+				})
+			: {};
+		const addDto = hasKeys(addToSet)
+			? await validate(addToSet as Partial<TType>, {
+					skipMissingProperties: true,
+				})
+			: {};
+		const deleteDto = hasKeys(deleteFromSet)
+			? await validate(deleteFromSet as Partial<TType>, {
+					skipMissingProperties: true,
+				})
+			: {};
+		assertNoneDropped(update.data, dataDto, 'data');
+		assertNoneDropped(appendToList, appendDto, 'appendToList');
+		assertNoneDropped(addToSet, addDto, 'addToSet');
+		assertNoneDropped(deleteFromSet, deleteDto, 'deleteFromSet');
+
+		const removedAttributes = remove ?? [];
+		const sortKeyName = options.compositePrimaryKeyOptions?.sortKeyName;
+		const keyAttributes = [
+			primaryKeyName,
+			...(sortKeyName ? [sortKeyName] : []),
+		];
+		for (const attribute of removedAttributes) {
+			if (keyAttributes.includes(attribute)) {
+				throw toCustomException([`remove: ${attribute} is part of the key`]);
+			}
+			const fieldSchema = (options.schema.shape as Record<string, any>)?.[
+				attribute
+			];
+			if (fieldSchema && !fieldSchema.safeParse(undefined).success) {
+				throw toCustomException([
+					`remove: ${attribute} is required by the schema`,
+				]);
+			}
+		}
+
+		if (increment) {
+			if (
+				!increment.field ||
+				increment.field.split('.').some((segment) => segment === '') ||
+				![increment.by ?? 1, increment.startsAt ?? 0].every(Number.isFinite)
+			) {
+				throw toCustomException(['increment needs a field and finite numbers']);
+			}
+		}
+
+		const usedAttributes = [
+			...Object.keys(dataDto),
+			...removedAttributes,
+			...Object.keys(appendDto),
+			...Object.keys(addDto),
+			...Object.keys(deleteDto),
+			...(increment ? [increment.field.split('.')[0]] : []),
+		];
+		const repeated = usedAttributes.filter(
+			(attribute, index) => usedAttributes.indexOf(attribute) !== index,
+		);
+		if (repeated.length > 0) {
+			throw toCustomException([
+				`${[...new Set(repeated)].join(', ')} is used by more than one change`,
+			]);
+		}
+		if (usedAttributes.length === 0) {
+			throw toCustomException(['nothing to update']);
+		}
+
+		const names: Record<string, string> = {};
+		const values: Record<string, unknown> = {};
+		const setClauses: string[] = [];
+
+		Object.entries(dataDto).forEach(([propertyKey, value]) => {
+			const rawKey = propertyKey;
+			// Value placeholder tokens (`:name`) are a separate namespace from attribute-name placeholders
+			// (`#name`) and must never contain a `#`, so this is derived from `rawKey`, before `propertyKey`
+			// is possibly rewritten to its `#`-prefixed name placeholder below.
+			const valuePlaceholder = `:${rawKey}`;
+			if (AWS_DYNAMODB_RESERVED_WORDS.includes(propertyKey.toLowerCase())) {
+				propertyKey = `#${propertyKey}_`;
+				names[propertyKey] = rawKey;
+			}
+			setClauses.push(`${propertyKey} = ${valuePlaceholder}`);
+			values[valuePlaceholder] = value;
+		});
+
+		Object.entries(appendDto).forEach(([attribute, value], index) => {
+			names[`#append${index}`] = attribute;
+			values[`:append${index}`] = value;
+			values[':emptyList'] = [];
+			setClauses.push(
+				`#append${index} = list_append(if_not_exists(#append${index}, :emptyList), :append${index})`,
+			);
+		});
+
+		if (increment) {
+			const incrementPath = increment.field
+				.split('.')
+				.map((segment, index) => {
+					names[`#increment${index}`] = segment;
+					return `#increment${index}`;
+				})
+				.join('.');
+			values[':incrementBy'] = increment.by ?? 1;
+			values[':incrementStartsAt'] = increment.startsAt ?? 0;
+			setClauses.push(
+				`${incrementPath} = if_not_exists(${incrementPath}, :incrementStartsAt) + :incrementBy`,
+			);
+		}
+
+		const removeClauses = removedAttributes.map((attribute, index) => {
+			names[`#remove${index}`] = attribute;
+			return `#remove${index}`;
+		});
+		const addClauses = Object.entries(addDto).map(
+			([attribute, value], index) => {
+				names[`#add${index}`] = attribute;
+				values[`:add${index}`] = value;
+				return `#add${index} :add${index}`;
+			},
+		);
+		const deleteClauses = Object.entries(deleteDto).map(
+			([attribute, value], index) => {
+				names[`#delete${index}`] = attribute;
+				values[`:delete${index}`] = value;
+				return `#delete${index} :delete${index}`;
+			},
+		);
+
+		const expression = [
+			setClauses.length ? `SET ${setClauses.join(', ')}` : '',
+			removeClauses.length ? `REMOVE ${removeClauses.join(', ')}` : '',
+			addClauses.length ? `ADD ${addClauses.join(', ')}` : '',
+			deleteClauses.length ? `DELETE ${deleteClauses.join(', ')}` : '',
+		]
+			.filter(Boolean)
+			.join(' ');
+
+		return { expression, names, values };
+	}
+
+	/**
+	 * Builds the `QueryCommand` input shared by `query` and `count`: key conditions, index, page size,
+	 * projection, pagination start, text search and equality filter, in that order. Every attribute name that
+	 * is a DynamoDB reserved word is rewritten to an `ExpressionAttributeNames` placeholder.
+	 */
+	function buildQueryParam({
+		filter,
+		conditions,
+		indexName,
+		limit,
+		paginationData,
+		searchTerms,
+		select = [],
+	}: {
+		conditions: Partial<TType>;
+		filter: Partial<TType>;
+		limit?: number;
+		indexName?: TTableIndexType;
+		paginationData?: Partial<TType>;
+		select?: (keyof TType)[];
+		searchTerms?: {
+			properties: (keyof TType)[];
+			value: string | number | boolean;
+		};
+	}): QueryCommandInput {
+		const queryParam: QueryCommandInput = {
+			TableName: options.tableName,
+			ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+		};
+
+		if (conditions && Object.keys(conditions).length) {
+			Object.entries(conditions).map(([key, value]) => {
+				const rawKey = key;
+				const modifiedRawKey = `:${key}`;
+				// first check if aws dynamoDB reserved key is present
+				if (AWS_DYNAMODB_RESERVED_WORDS.includes(String(key).toLowerCase())) {
+					key = `#${String(key)}`;
+					queryParam.ExpressionAttributeNames = {
+						...queryParam.ExpressionAttributeNames,
+						[key]: rawKey,
+					};
+				}
+
+				queryParam.KeyConditionExpression = queryParam?.KeyConditionExpression
+					? (queryParam.KeyConditionExpression += ` AND ${key} = ${modifiedRawKey}`)
+					: `${key} = ${modifiedRawKey}`;
+
+				queryParam.ExpressionAttributeValues = {
+					...queryParam.ExpressionAttributeValues,
+					[modifiedRawKey]: value,
+				};
+			});
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} QueryCommand`,
+					message: 'KeyConditions applied',
+					data: queryParam,
+				});
+			}
+		}
+
+		if (indexName) {
+			queryParam.IndexName = indexName as string;
+		}
+
+		if (limit) {
+			queryParam.Limit = limit;
+		}
+
+		if (select.length) {
+			queryParam.ProjectionExpression = select.length
+				? [...new Set(select)].toString()
+				: undefined;
+		}
+
+		if (paginationData && Object.keys(paginationData).length) {
+			queryParam.ExclusiveStartKey = paginationData;
+		}
+
+		// uses only contain operator cus is search
+		if (searchTerms?.properties.length && searchTerms?.value) {
+			const properties = [
+				...new Set(
+					searchTerms.properties.filter((property) => property !== 'password'),
+				),
+			];
+
+			properties.map((property, index) => {
+				const rawProperty = property;
+				// first check if aws dynamoDB reserved key is presence
+				if (
+					AWS_DYNAMODB_RESERVED_WORDS.includes(String(property).toLowerCase())
+				) {
+					property = `#${String(property)}_`;
+					queryParam.ExpressionAttributeNames = {
+						...queryParam.ExpressionAttributeNames,
+						[property]: rawProperty as string,
+					};
+				}
+				queryParam.FilterExpression =
+					index === 0
+						? `contains(${String(property)}, :searchKeyword)`
+						: (queryParam.FilterExpression += ` OR contains(${String(property)}, :searchKeyword)`);
+				queryParam.ExpressionAttributeValues = {
+					...queryParam.ExpressionAttributeValues,
+					':searchKeyword': searchTerms.value,
+				};
+			});
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} QueryCommand`,
+					message: 'Applied search/filter',
+					data: queryParam,
+				});
+			}
+		}
+
+		if (filter && Object.keys(filter).length) {
+			Object.entries(filter).map(([key, value]) => {
+				const rawKey = key;
+				const modifiedRawKey = `:${key}`;
+
+				if (AWS_DYNAMODB_RESERVED_WORDS.includes(String(key).toLowerCase())) {
+					key = `#${String(key)}`;
+					queryParam.ExpressionAttributeNames = {
+						...queryParam.ExpressionAttributeNames,
+						[key]: rawKey,
+					};
+				}
+
+				const filterExpressionValue = `${key} = ${modifiedRawKey}`;
+
+				if (queryParam.FilterExpression) {
+					queryParam.FilterExpression += ` AND ${filterExpressionValue}`;
+				} else {
+					queryParam.FilterExpression = filterExpressionValue;
+				}
+				queryParam.ExpressionAttributeValues = {
+					...queryParam.ExpressionAttributeValues,
+					[modifiedRawKey]: value,
+				};
+			});
+
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} QueryCommand`,
+					message: 'Applied FilterExpression',
+					data: queryParam,
+				});
+			}
+		}
+
+		return queryParam;
 	}
 
 	return {
@@ -892,20 +1364,7 @@ export function initDynamoDbClientWrapper<
 		 *   partition key and `createdAtDate` (not a fresh read-back).
 		 */
 		put: async ({ data }: { data: Partial<TType> }) => {
-			mapSchemaPrimaryKey(data);
-			mapSchemaCreatedDate(data);
-
-			const dataDto = await validate(data);
-
-			const item: Partial<TType> = { ...dataDto };
-			for (const systemField of [primaryKeyName, 'createdAtDate']) {
-				if (
-					item[systemField] === undefined &&
-					data[systemField] !== undefined
-				) {
-					(item as any)[systemField] = data[systemField];
-				}
-			}
+			const item = await prepareItem(data);
 
 			const { ConsumedCapacity } = await dynamoDbClientInstance.send(
 				new PutCommand({
@@ -924,6 +1383,40 @@ export function initDynamoDbClientWrapper<
 			}
 
 			return item as TType;
+		},
+
+		/**
+		 * Creates a new item only if no item with its key exists yet (`PutCommand` with
+		 * `attribute_not_exists` on the partition key). Prepared and validated exactly like `put`.
+		 * Use it where a second write must never replace the first: unique codes and names, or a
+		 * record made once per request.
+		 *
+		 * @param data The item to insert, as for `put`.
+		 * @throws {CustomException} When an item with that key already exists (nothing is written), or
+		 *   when validation fails.
+		 * @returns The item that was written, as for `put`.
+		 */
+		putOnce: async ({ data }: { data: Partial<TType> }) => {
+			const item = await prepareItem(data);
+
+			try {
+				await dynamoDbClientInstance.send(
+					new PutCommand({
+						Item: item,
+						TableName: options.tableName,
+						ConditionExpression: 'attribute_not_exists(#putOnceKey)',
+						ExpressionAttributeNames: { '#putOnceKey': primaryKeyName },
+						ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+					}),
+				);
+			} catch (error) {
+				if (isConditionFailure(error)) {
+					throw toCustomException(['An item with this key already exists']);
+				}
+				throw error;
+			}
+
+			return item;
 		},
 
 		/**
@@ -995,134 +1488,15 @@ export function initDynamoDbClientWrapper<
 			let responseData: TType[] = [];
 			let consumedCapacity = 0;
 
-			const queryParam: QueryCommandInput = {
-				TableName: options.tableName,
-				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
-			};
-
-			if (conditions && Object.keys(conditions).length) {
-				Object.entries(conditions).map(([key, value]) => {
-					const rawKey = key;
-					const modifiedRawKey = `:${key}`;
-					// first check if aws dynamoDB reserved key is present
-					if (AWS_DYNAMODB_RESERVED_WORDS.includes(String(key).toLowerCase())) {
-						key = `#${String(key)}`;
-						queryParam.ExpressionAttributeNames = {
-							...queryParam.ExpressionAttributeNames,
-							[key]: rawKey,
-						};
-					}
-
-					queryParam.KeyConditionExpression = queryParam?.KeyConditionExpression
-						? (queryParam.KeyConditionExpression += ` AND ${key} = ${modifiedRawKey}`)
-						: `${key} = ${modifiedRawKey}`;
-
-					queryParam.ExpressionAttributeValues = {
-						...queryParam.ExpressionAttributeValues,
-						[modifiedRawKey]: value,
-					};
-				});
-				if (options?.options?.enableDebug) {
-					consoleLog({
-						context: `${debugContext} QueryCommand`,
-						message: 'KeyConditions applied',
-						data: queryParam,
-					});
-				}
-			}
-
-			if (indexName) {
-				queryParam.IndexName = indexName as string;
-			}
-
-			if (limit) {
-				queryParam.Limit = limit;
-			}
-
-			if (select.length) {
-				queryParam.ProjectionExpression = select.length
-					? [...new Set(select)].toString()
-					: undefined;
-			}
-
-			if (paginationData && Object.keys(paginationData).length) {
-				queryParam.ExclusiveStartKey = paginationData;
-			}
-
-			// uses only contain operator cus is search
-			if (searchTerms?.properties.length && searchTerms?.value) {
-				const properties = [
-					...new Set(
-						searchTerms.properties.filter(
-							(property) => property !== 'password',
-						),
-					),
-				];
-
-				properties.map((property, index) => {
-					const rawProperty = property;
-					// first check if aws dynamoDB reserved key is presence
-					if (
-						AWS_DYNAMODB_RESERVED_WORDS.includes(String(property).toLowerCase())
-					) {
-						property = `#${String(property)}_`;
-						queryParam.ExpressionAttributeNames = {
-							...queryParam.ExpressionAttributeNames,
-							[property]: rawProperty as string,
-						};
-					}
-					queryParam.FilterExpression =
-						index === 0
-							? `contains(${String(property)}, :searchKeyword)`
-							: (queryParam.FilterExpression += ` OR contains(${String(property)}, :searchKeyword)`);
-					queryParam.ExpressionAttributeValues = {
-						...queryParam.ExpressionAttributeValues,
-						':searchKeyword': searchTerms.value,
-					};
-				});
-				if (options?.options?.enableDebug) {
-					consoleLog({
-						context: `${debugContext} QueryCommand`,
-						message: 'Applied search/filter',
-						data: queryParam,
-					});
-				}
-			}
-
-			if (filter && Object.keys(filter).length) {
-				Object.entries(filter).map(([key, value]) => {
-					const rawKey = key;
-					const modifiedRawKey = `:${key}`;
-
-					if (AWS_DYNAMODB_RESERVED_WORDS.includes(String(key).toLowerCase())) {
-						key = `#${String(key)}`;
-						queryParam.ExpressionAttributeNames = {
-							...queryParam.ExpressionAttributeNames,
-							[key]: rawKey,
-						};
-					}
-
-					const filterExpressionValue = `${key} = ${modifiedRawKey}`;
-
-					if (queryParam.FilterExpression) {
-						queryParam.FilterExpression += ` AND ${filterExpressionValue}`;
-					} else {
-						queryParam.FilterExpression = filterExpressionValue;
-					}
-					queryParam.ExpressionAttributeValues = {
-						...queryParam.ExpressionAttributeValues,
-						[modifiedRawKey]: value,
-					};
-				});
-
-				if (options?.options?.enableDebug) {
-					consoleLog({
-						context: `${debugContext} QueryCommand`,
-						message: 'Applied FilterExpression',
-						data: queryParam,
-					});
-				}
-			}
+			const queryParam = buildQueryParam({
+				filter,
+				conditions,
+				indexName,
+				limit,
+				paginationData,
+				searchTerms,
+				select,
+			});
 
 			if (options?.options?.enableDebug) {
 				consoleLog({
@@ -1300,35 +1674,46 @@ export function initDynamoDbClientWrapper<
 		},
 
 		/**
-		 * Updates a single item in the DynamoDB table (`UpdateCommand`), setting
-		 * only the attributes present in `data` — every other attribute on the
+		 * Updates a single item in the DynamoDB table (`UpdateCommand`). Only the
+		 * attributes named in the call change; every other attribute on the
 		 * existing item is left untouched.
 		 *
-		 * `data` is validated against `options.schema.partial()` (every field
-		 * optional) via `validate` before the `UpdateExpression` is
-		 * built — throws {@link CustomException} and never calls DynamoDB if
-		 * validation fails. Each key in `data` becomes one `SET` clause, with
-		 * DynamoDB reserved words rewritten to `ExpressionAttributeNames`
-		 * placeholders the same way `query` does.
+		 * Besides setting values (`data`) it can remove attributes (`remove`),
+		 * append to a list (`appendToList`) and add to or take out of a set
+		 * (`addToSet`, `deleteFromSet`), each in one request, so the caller never
+		 * has to read the item and write it back. Everything given is validated
+		 * against `options.schema.partial()` before the `UpdateExpression` is
+		 * built, so the item stays valid under the schema. Throws
+		 * {@link CustomException}, and never calls DynamoDB, when validation
+		 * fails, when an attribute is named by more than one change or is not in
+		 * the schema, when `remove` names a key attribute or one the schema
+		 * requires, or when there is nothing to change. DynamoDB reserved words
+		 * are rewritten to `ExpressionAttributeNames` placeholders.
 		 *
 		 * @param key The primary key (and sort key, if the table has one) of the
 		 *   item to update.
-		 * @param data The attributes to set. Does not need to (and need not)
-		 *   include every field of `options.schema` — only the attributes
-		 *   present here are updated.
+		 * @param data Attributes to set. Need not include every field of
+		 *   `options.schema`.
+		 * @param remove Attributes to delete from the item.
+		 * @param appendToList Values to add to the end of list attributes. A list
+		 *   the item does not have yet is created.
+		 * @param addToSet Values (a `Set`) to add to set attributes. A set the
+		 *   item does not have yet is created.
+		 * @param deleteFromSet Values (a `Set`) to take out of set attributes.
 		 * @returns The full updated item, as returned by DynamoDB
 		 *   (`ReturnValues: 'ALL_NEW'`).
 		 */
 		updateOne: async ({
 			key,
 			data,
+			remove,
+			appendToList,
+			addToSet,
+			deleteFromSet,
 		}: {
 			/** primaryKey and sortKey only */
 			key: Partial<TType>;
-			data: Partial<TType>;
-		}) => {
-			// mapSchemaModifiedDate(data);
-
+		} & IDynamoDbUpdateOperations<TType>) => {
 			if (options?.options?.enableDebug) {
 				consoleLog({
 					context: `${debugContext} UpdateCommand`,
@@ -1337,40 +1722,27 @@ export function initDynamoDbClientWrapper<
 				});
 			}
 
-			const dataDto = await validate(data, { skipMissingProperties: true });
+			const { expression, names, values } = await buildUpdateParts({
+				data,
+				remove,
+				appendToList,
+				addToSet,
+				deleteFromSet,
+			});
 
 			const updateParam: UpdateCommandInput = {
 				Key: key,
 				ReturnValues: 'ALL_NEW',
 				TableName: options.tableName,
 				ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+				UpdateExpression: expression,
+				...(Object.keys(names).length > 0 && {
+					ExpressionAttributeNames: names,
+				}),
+				...(Object.keys(values).length > 0 && {
+					ExpressionAttributeValues: values,
+				}),
 			};
-
-			Object.entries(dataDto).map(([propertyKey, value]) => {
-				const rawKey = propertyKey;
-				// Value placeholder tokens (`:name`) are a separate namespace from
-				// attribute-name placeholders (`#name`) and must never contain a
-				// `#` — so this is derived from `rawKey`, before `propertyKey` is
-				// possibly rewritten to its `#`-prefixed name placeholder below.
-				const valuePlaceholder = `:${rawKey}`;
-				if (AWS_DYNAMODB_RESERVED_WORDS.includes(propertyKey.toLowerCase())) {
-					propertyKey = `#${propertyKey}_`;
-					updateParam.ExpressionAttributeNames = {
-						...updateParam.ExpressionAttributeNames,
-						[propertyKey]: rawKey,
-					};
-				}
-				const filterValue = `${propertyKey} = ${valuePlaceholder}`;
-				if (updateParam.UpdateExpression) {
-					updateParam.UpdateExpression += `, ${filterValue}`;
-				} else {
-					updateParam.UpdateExpression = `SET ${filterValue}`;
-				}
-				updateParam.ExpressionAttributeValues = {
-					...updateParam.ExpressionAttributeValues,
-					[valuePlaceholder]: value,
-				};
-			});
 
 			if (options?.options?.enableDebug) {
 				consoleLog({
@@ -1459,7 +1831,7 @@ export function initDynamoDbClientWrapper<
 		}): Promise<number> => {
 			const fieldPath = String(field).split('.');
 			if (fieldPath.some((segment) => segment === '')) {
-				throw new CustomException([
+				throw toCustomException([
 					'field must be an attribute name or a dotted path',
 				]);
 			}
@@ -1468,15 +1840,15 @@ export function initDynamoDbClientWrapper<
 				([, value]) => value !== undefined && !Number.isFinite(value),
 			);
 			if (notFinite.length > 0) {
-				throw new CustomException([
+				throw toCustomException([
 					`${notFinite.map(([name]) => name).join(', ')} must be finite numbers`,
 				]);
 			}
 			if (min !== undefined && max !== undefined && min > max) {
-				throw new CustomException(['min cannot be above max']);
+				throw toCustomException(['min cannot be above max']);
 			}
 			if (ifMissing && fieldPath[0] in ifMissing) {
-				throw new CustomException([
+				throw toCustomException([
 					`ifMissing cannot set ${fieldPath[0]}, it is the attribute being incremented`,
 				]);
 			}
@@ -1491,7 +1863,7 @@ export function initDynamoDbClientWrapper<
 				)
 				.map(([name]) => name);
 			if (droppedAttributes.length > 0) {
-				throw new CustomException([
+				throw toCustomException([
 					`ifMissing: ${droppedAttributes.join(', ')} not in the schema`,
 				]);
 			}
@@ -1575,7 +1947,7 @@ export function initDynamoDbClientWrapper<
 					(error as { name?: string })?.name ===
 					'ConditionalCheckFailedException'
 				) {
-					throw new CustomException([
+					throw toCustomException([
 						`${String(field)} would go outside its allowed range`,
 					]);
 				}
@@ -1603,6 +1975,328 @@ export function initDynamoDbClientWrapper<
 			return returns === 'previous'
 				? Number(returnedValue ?? startsAt)
 				: Number(returnedValue);
+		},
+
+		/**
+		 * Writes several items as one all-or-nothing transaction (`TransactWriteCommand`): either every
+		 * operation is applied, or none is. Each operation is one of:
+		 * - `put`: create or replace an item (prepared and validated exactly like `put`), optionally only
+		 *   if it does not exist yet (`mustNotExist`), optionally only if a `condition` holds;
+		 * - `update`: the changes of `updateOne` (set, remove, append to a list, add to or delete from a
+		 *   set), plus `increment` to add to a number attribute, optionally only if a `condition` holds;
+		 * - `delete`: remove an item, optionally only if a `condition` holds;
+		 * - `conditionCheck`: change nothing, but cancel the whole transaction unless the `condition`
+		 *   holds, so a write can depend on another item.
+		 *
+		 * This is what lets related items change together, such as a counter and the record that uses
+		 * its number, or stock and the sale that took it. Everything is validated before DynamoDB is
+		 * called. DynamoDB allows 1 to 100 operations, each on a different item.
+		 *
+		 * @param operations The operations, in order.
+		 * @param idempotencyToken Optional token (`ClientRequestToken`): sending the same transaction
+		 *   again with the same token within 10 minutes does not apply it twice.
+		 * @throws {CustomException} When there are no operations or more than 100, when an operation
+		 *   has no kind or more than one, when an operation fails validation, or when DynamoDB cancels
+		 *   the transaction (the message says which operations failed and why).
+		 * @returns One entry per operation, in order: the written item for a `put`, `undefined` for the
+		 *   others.
+		 */
+		transactWrite: async ({
+			operations,
+			idempotencyToken,
+		}: {
+			operations: IDynamoDbTransactOperation<TType>[];
+			idempotencyToken?: string;
+		}): Promise<(TType | undefined)[]> => {
+			if (!operations?.length || operations.length > 100) {
+				throw toCustomException([
+					'a transaction needs between 1 and 100 operations',
+				]);
+			}
+
+			const results: (TType | undefined)[] = [];
+			const transactItems: NonNullable<
+				TransactWriteCommandInput['TransactItems']
+			> = [];
+
+			/** The shared condition parts of one operation, joined with any extra rule the operation adds. */
+			const withCondition = (
+				condition: IDynamoDbCondition<TType> | undefined,
+				extra?: { expression: string; names: Record<string, string> },
+			) => {
+				const built = buildCondition(condition);
+				const expressions = [extra?.expression, built?.expression].filter(
+					Boolean,
+				);
+				return {
+					names: { ...extra?.names, ...built?.names },
+					values: { ...built?.values },
+					expression: expressions.length
+						? expressions.join(' AND ')
+						: undefined,
+				};
+			};
+			const expressionFields = (
+				names: Record<string, string>,
+				values: Record<string, unknown>,
+				expression?: string,
+			) => ({
+				...(expression && { ConditionExpression: expression }),
+				...(Object.keys(names).length > 0 && {
+					ExpressionAttributeNames: names,
+				}),
+				...(Object.keys(values).length > 0 && {
+					ExpressionAttributeValues: values,
+				}),
+			});
+
+			for (const operation of operations) {
+				const kinds = ['put', 'update', 'delete', 'conditionCheck'].filter(
+					(kind) => kind in (operation ?? {}),
+				);
+				if (kinds.length !== 1) {
+					throw toCustomException([
+						'each operation needs exactly one of put, update, delete, conditionCheck',
+					]);
+				}
+
+				if ('put' in operation) {
+					const item = await prepareItem(operation.put.data);
+					const condition = withCondition(
+						operation.put.condition,
+						operation.put.mustNotExist
+							? {
+									expression: 'attribute_not_exists(#putKey)',
+									names: { '#putKey': primaryKeyName },
+								}
+							: undefined,
+					);
+					transactItems.push({
+						Put: {
+							TableName: options.tableName,
+							Item: item,
+							...expressionFields(
+								condition.names,
+								condition.values,
+								condition.expression,
+							),
+						},
+					});
+					results.push(item);
+				} else if ('update' in operation) {
+					const { key, condition, increment, ...changes } = operation.update;
+					const parts = await buildUpdateParts({ ...changes, increment });
+					const built = withCondition(condition);
+					transactItems.push({
+						Update: {
+							TableName: options.tableName,
+							Key: key,
+							UpdateExpression: parts.expression,
+							...expressionFields(
+								{ ...parts.names, ...built.names },
+								{ ...parts.values, ...built.values },
+								built.expression,
+							),
+						},
+					});
+					results.push(undefined);
+				} else if ('delete' in operation) {
+					const built = withCondition(operation.delete.condition);
+					transactItems.push({
+						Delete: {
+							TableName: options.tableName,
+							Key: operation.delete.key,
+							...expressionFields(built.names, built.values, built.expression),
+						},
+					});
+					results.push(undefined);
+				} else {
+					const built = withCondition(operation.conditionCheck.condition);
+					if (!built.expression) {
+						throw toCustomException([
+							'conditionCheck needs a condition with at least one rule',
+						]);
+					}
+					transactItems.push({
+						ConditionCheck: {
+							TableName: options.tableName,
+							Key: operation.conditionCheck.key,
+							ConditionExpression: built.expression,
+							...expressionFields(built.names, built.values),
+						},
+					});
+					results.push(undefined);
+				}
+			}
+
+			if (options?.options?.enableDebug) {
+				consoleLog({
+					context: `${debugContext} TransactWriteCommand`,
+					message: 'Calling with',
+					data: transactItems,
+				});
+			}
+
+			try {
+				await dynamoDbClientInstance.send(
+					new TransactWriteCommand({
+						TransactItems: transactItems,
+						ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+						...(idempotencyToken && { ClientRequestToken: idempotencyToken }),
+					}),
+				);
+			} catch (error) {
+				if (
+					(error as { name?: string })?.name === 'TransactionCanceledException'
+				) {
+					const reasons = (
+						(error as { CancellationReasons?: { Code?: string }[] })
+							.CancellationReasons ?? []
+					)
+						.map((reason, index) =>
+							reason?.Code && reason.Code !== 'None'
+								? `operation ${index + 1}: ${reason.Code}`
+								: undefined,
+						)
+						.filter(Boolean);
+					throw toCustomException([
+						`transaction cancelled${reasons.length ? ` (${reasons.join(', ')})` : ''}`,
+					]);
+				}
+				throw error;
+			}
+
+			return results;
+		},
+
+		/**
+		 * Writes many items, and deletes many by key, in as few requests as possible
+		 * (`BatchWriteCommand`, 25 at a time), retrying whatever DynamoDB leaves unprocessed.
+		 *
+		 * Every item is prepared and validated exactly like `put` BEFORE anything is sent, so one bad
+		 * item stops the whole call with nothing written. After that it is not atomic: a failure
+		 * partway can leave some items written (use `transactWrite` when it must be all or nothing).
+		 * Duplicate keys within one call are refused, since DynamoDB rejects them. Puts replace an
+		 * existing item with the same key.
+		 *
+		 * @param puts Items to write, as for `put`.
+		 * @param deletes Keys of items to delete.
+		 * @param maxRetries How many times to resend unprocessed items, waiting longer each time
+		 *   (`retryDelayMs`, doubling). @default 5
+		 * @param retryDelayMs The first wait before resending, in milliseconds. @default 50
+		 * @throws {CustomException} When an item fails validation or a key appears twice (nothing is
+		 *   sent), or when items are still unprocessed after the retries.
+		 * @returns The items that were written, in order.
+		 */
+		batchWrite: async ({
+			puts = [],
+			deletes = [],
+			maxRetries = 5,
+			retryDelayMs = 50,
+		}: {
+			puts?: Partial<TType>[];
+			deletes?: Partial<TType>[];
+			maxRetries?: number;
+			retryDelayMs?: number;
+		}): Promise<TType[]> => {
+			if (puts.length === 0 && deletes.length === 0) return [];
+
+			const items = await Promise.all(puts.map((data) => prepareItem(data)));
+
+			const sortKeyName = options.compositePrimaryKeyOptions?.sortKeyName;
+			const keyOf = (item: Partial<TType>) =>
+				JSON.stringify([
+					item[primaryKeyName],
+					sortKeyName ? item[sortKeyName] : undefined,
+				]);
+			const keys = [...items.map(keyOf), ...deletes.map(keyOf)];
+			if (new Set(keys).size !== keys.length) {
+				throw toCustomException([
+					'the same key appears more than once in one batch',
+				]);
+			}
+
+			const requests = [
+				...items.map((item) => ({ PutRequest: { Item: item } })),
+				...deletes.map((key) => ({ DeleteRequest: { Key: key } })),
+			];
+
+			for (let start = 0; start < requests.length; start += 25) {
+				let pending: typeof requests | undefined = requests.slice(
+					start,
+					start + 25,
+				);
+				for (let attempt = 0; pending && pending.length > 0; attempt++) {
+					if (attempt > maxRetries) {
+						throw toCustomException([
+							`${pending.length} items were still unprocessed after ${maxRetries} retries`,
+						]);
+					}
+					if (attempt > 0) {
+						await new Promise((resolve) =>
+							setTimeout(resolve, retryDelayMs * 2 ** (attempt - 1)),
+						);
+					}
+					const response = await dynamoDbClientInstance.send(
+						new BatchWriteCommand({
+							RequestItems: { [options.tableName]: pending },
+							ReturnConsumedCapacity: ReturnConsumedCapacity.TOTAL,
+						}),
+					);
+					pending = response.UnprocessedItems?.[options.tableName] as
+						typeof requests | undefined;
+				}
+			}
+
+			return items;
+		},
+
+		/**
+		 * Counts the items a `query` would match, without fetching them (`QueryCommand` with
+		 * `Select: 'COUNT'`), so it costs the read units of the matching items but transfers no data.
+		 * Takes the same `conditions`, `indexName`, `searchTerms` and `filter` as `query`, built the
+		 * same way. Follows every page until the whole result set is counted, since a count of one
+		 * page would be wrong. Filters are applied after the read, so a filtered count still reads
+		 * every item the key conditions match.
+		 *
+		 * @returns The number of matching items.
+		 */
+		count: async ({
+			conditions,
+			filter,
+			indexName,
+			searchTerms,
+		}: {
+			conditions: Partial<TType>;
+			filter?: Partial<TType>;
+			indexName?: TTableIndexType;
+			searchTerms?: {
+				properties: (keyof TType)[];
+				value: string | number | boolean;
+			};
+		}): Promise<number> => {
+			const queryParam = buildQueryParam({
+				conditions,
+				filter: filter ?? {},
+				indexName,
+				searchTerms,
+			});
+			queryParam.Select = 'COUNT';
+
+			let total = 0;
+			let queryResponse: QueryCommandOutput;
+			do {
+				queryResponse = await dynamoDbClientInstance.send(
+					new QueryCommand(queryParam),
+				);
+				total += queryResponse.Count ?? 0;
+				queryParam.ExclusiveStartKey = queryResponse.LastEvaluatedKey;
+			} while (
+				queryResponse.LastEvaluatedKey &&
+				Object.keys(queryResponse.LastEvaluatedKey).length
+			);
+
+			return total;
 		},
 
 		/**

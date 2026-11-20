@@ -21,16 +21,19 @@ import {
 	SSMClient,
 } from '@aws-sdk/client-ssm';
 import {
+	BatchWriteCommand,
 	DeleteCommand,
 	DynamoDBDocumentClient,
 	GetCommand,
 	PutCommand,
+	QueryCommand,
+	TransactWriteCommand,
 	UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { mockClient } from 'aws-sdk-client-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { number, object, string } from 'zod';
+import { array, number, object, set, string } from 'zod';
 
 import { CustomException } from '@incloodsolutions/toolkit/error';
 
@@ -259,11 +262,15 @@ describe('initDynamoDbClientWrapper', () => {
 	it('exposes the CRUD methods', () => {
 		expect(Object.keys(table())).toEqual([
 			'put',
+			'putOnce',
 			'query',
 			'getOne',
 			'getMany',
 			'updateOne',
 			'incrementOne',
+			'transactWrite',
+			'batchWrite',
+			'count',
 			'delete',
 		]);
 	});
@@ -640,6 +647,388 @@ describe('initDynamoDbClientWrapper incrementOne', () => {
 			CustomException,
 		);
 		expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+	});
+});
+
+describe('initDynamoDbClientWrapper putOnce, updateOne extras, transactWrite, batchWrite, count', () => {
+	type Doc = {
+		id: string;
+		name: string;
+		nickname?: string;
+		tags?: string[];
+		labels?: Set<string>;
+		visits?: number;
+		createdAtDate: string;
+	};
+
+	const docs = () =>
+		initDynamoDbClientWrapper<Doc>({
+			tableName: 'docs',
+			schema: object({
+				name: string(),
+				nickname: string().optional(),
+				tags: array(string()).optional(),
+				labels: set(string()).optional(),
+				visits: number().optional(),
+			}) as never,
+			compositePrimaryKeyOptions: {
+				primaryKeyName: 'id',
+				primaryKeyIdType: 'uuid',
+			},
+		});
+
+	const conditionFailure = () =>
+		Object.assign(new Error('The conditional request failed'), {
+			name: 'ConditionalCheckFailedException',
+		});
+
+	describe('putOnce', () => {
+		it('writes the item only if its key is free, and returns it like put', async () => {
+			ddbMock.on(PutCommand).resolves({});
+
+			const item = await docs().putOnce({ data: { name: 'Widget' } });
+
+			const input = ddbMock.commandCalls(PutCommand).at(-1)!.args[0].input;
+			expect(input.ConditionExpression).toBe(
+				'attribute_not_exists(#putOnceKey)',
+			);
+			expect(input.ExpressionAttributeNames).toEqual({ '#putOnceKey': 'id' });
+			expect(item).toMatchObject({ name: 'Widget' });
+			expect(item.id).toBeTruthy();
+			expect(item.createdAtDate).toBeTruthy();
+		});
+
+		it('throws a CustomException when the key is already taken', async () => {
+			ddbMock.on(PutCommand).rejects(conditionFailure());
+
+			await expect(
+				docs().putOnce({ data: { id: 'taken', name: 'Widget' } }),
+			).rejects.toBeInstanceOf(CustomException);
+		});
+
+		it('lets other DynamoDB errors through and validates before writing', async () => {
+			const outage = new Error('throttled');
+			ddbMock.on(PutCommand).rejects(outage);
+			await expect(docs().putOnce({ data: { name: 'Widget' } })).rejects.toBe(
+				outage,
+			);
+
+			ddbMock.reset();
+			ddbMock.on(PutCommand).resolves({});
+			await expect(
+				docs().putOnce({ data: { name: 5 } as never }),
+			).rejects.toBeInstanceOf(CustomException);
+			expect(ddbMock.commandCalls(PutCommand)).toHaveLength(0);
+		});
+	});
+
+	describe('updateOne extras', () => {
+		const lastUpdate = () =>
+			ddbMock.commandCalls(UpdateCommand).at(-1)!.args[0].input;
+
+		beforeEach(() => {
+			ddbMock.on(UpdateCommand).resolves({ Attributes: { id: '1' } });
+		});
+
+		it('removes attributes with REMOVE', async () => {
+			await docs().updateOne({
+				key: { id: '1' },
+				remove: ['nickname', 'tags'],
+			});
+			const input = lastUpdate();
+			expect(input.UpdateExpression).toBe('REMOVE #remove0, #remove1');
+			expect(input.ExpressionAttributeNames).toEqual({
+				'#remove0': 'nickname',
+				'#remove1': 'tags',
+			});
+			expect(input.ExpressionAttributeValues).toBeUndefined();
+		});
+
+		it('appends to a list, creating it when the item has none', async () => {
+			await docs().updateOne({
+				key: { id: '1' },
+				appendToList: { tags: ['new'] },
+			});
+			const input = lastUpdate();
+			expect(input.UpdateExpression).toBe(
+				'SET #append0 = list_append(if_not_exists(#append0, :emptyList), :append0)',
+			);
+			expect(input.ExpressionAttributeValues).toEqual({
+				':append0': ['new'],
+				':emptyList': [],
+			});
+		});
+
+		it('adds to and deletes from sets with ADD and DELETE', async () => {
+			await docs().updateOne({
+				key: { id: '1' },
+				addToSet: { labels: new Set(['a']) },
+			});
+			expect(lastUpdate().UpdateExpression).toBe('ADD #add0 :add0');
+			expect(lastUpdate().ExpressionAttributeValues).toEqual({
+				':add0': new Set(['a']),
+			});
+
+			await docs().updateOne({
+				key: { id: '1' },
+				deleteFromSet: { labels: new Set(['b']) },
+			});
+			expect(lastUpdate().UpdateExpression).toBe('DELETE #delete0 :delete0');
+		});
+
+		it('combines set, remove, append and set operations in one expression, in the order DynamoDB needs', async () => {
+			await docs().updateOne({
+				key: { id: '1' },
+				data: { name: 'Renamed' },
+				remove: ['nickname'],
+				appendToList: { tags: ['x'] },
+				addToSet: { labels: new Set(['a']) },
+			});
+			const expression = lastUpdate().UpdateExpression!;
+			expect(expression.indexOf('SET')).toBe(0);
+			expect(expression.indexOf('REMOVE')).toBeGreaterThan(
+				expression.indexOf('SET'),
+			);
+			expect(expression.indexOf('ADD')).toBeGreaterThan(
+				expression.indexOf('REMOVE'),
+			);
+		});
+
+		it('refuses, without calling DynamoDB, an attribute used twice, removing a key or a required field, an attribute the schema lacks, and an empty update', async () => {
+			ddbMock.reset();
+			ddbMock.on(UpdateCommand).resolves({});
+			const update = (changes: object) =>
+				docs().updateOne({ key: { id: '1' }, ...changes });
+
+			await expect(
+				update({ data: { nickname: 'n' }, remove: ['nickname'] }),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(update({ remove: ['id'] })).rejects.toBeInstanceOf(
+				CustomException,
+			);
+			await expect(update({ remove: ['name'] })).rejects.toBeInstanceOf(
+				CustomException,
+			);
+			await expect(
+				update({ appendToList: { unknownList: [1] } }),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(update({})).rejects.toBeInstanceOf(CustomException);
+			expect(ddbMock.commandCalls(UpdateCommand)).toHaveLength(0);
+		});
+	});
+
+	describe('transactWrite', () => {
+		const lastTransaction = () =>
+			ddbMock.commandCalls(TransactWriteCommand).at(-1)!.args[0].input;
+
+		beforeEach(() => {
+			ddbMock.on(TransactWriteCommand).resolves({});
+		});
+
+		it('sends put, update, delete and conditionCheck together and returns the written put items', async () => {
+			const results = await docs().transactWrite({
+				operations: [
+					{ put: { data: { name: 'New' }, mustNotExist: true } },
+					{
+						update: {
+							key: { id: 'counter' },
+							increment: { field: 'visits' },
+							condition: { equals: { visits: 4 } },
+						},
+					},
+					{ delete: { key: { id: 'old' } } },
+					{
+						conditionCheck: {
+							key: { id: 'guard' },
+							condition: { exists: ['name'] },
+						},
+					},
+				],
+				idempotencyToken: 'token-1',
+			});
+
+			const input = lastTransaction();
+			expect(input.ClientRequestToken).toBe('token-1');
+			const [put, update, remove, check] = input.TransactItems!;
+			expect(put.Put).toMatchObject({
+				TableName: 'docs',
+				ConditionExpression: 'attribute_not_exists(#putKey)',
+				ExpressionAttributeNames: { '#putKey': 'id' },
+			});
+			expect(update.Update).toMatchObject({
+				Key: { id: 'counter' },
+				UpdateExpression:
+					'SET #increment0 = if_not_exists(#increment0, :incrementStartsAt) + :incrementBy',
+				ConditionExpression: '#cond0 = :cond0',
+				ExpressionAttributeNames: {
+					'#increment0': 'visits',
+					'#cond0': 'visits',
+				},
+				ExpressionAttributeValues: {
+					':incrementBy': 1,
+					':incrementStartsAt': 0,
+					':cond0': 4,
+				},
+			});
+			expect(remove.Delete).toMatchObject({ Key: { id: 'old' } });
+			expect(check.ConditionCheck).toMatchObject({
+				Key: { id: 'guard' },
+				ConditionExpression: 'attribute_exists(#cond0)',
+			});
+			expect(results).toHaveLength(4);
+			expect(results[0]).toMatchObject({ name: 'New' });
+			expect(results.slice(1)).toEqual([undefined, undefined, undefined]);
+		});
+
+		it('turns a cancelled transaction into a CustomException naming the failed operations', async () => {
+			ddbMock.on(TransactWriteCommand).rejects(
+				Object.assign(new Error('cancelled'), {
+					name: 'TransactionCanceledException',
+					CancellationReasons: [
+						{ Code: 'None' },
+						{ Code: 'ConditionalCheckFailed' },
+					],
+				}),
+			);
+
+			await expect(
+				docs().transactWrite({
+					operations: [
+						{ delete: { key: { id: 'a' } } },
+						{ delete: { key: { id: 'b' } } },
+					],
+				}),
+			).rejects.toThrow(/operation 2: ConditionalCheckFailed/);
+		});
+
+		it('refuses, without calling DynamoDB, no operations, too many, a missing or doubled kind, an invalid put and an empty conditionCheck', async () => {
+			ddbMock.reset();
+			ddbMock.on(TransactWriteCommand).resolves({});
+			const run = (operations: unknown[]) =>
+				docs().transactWrite({ operations: operations as never });
+
+			await expect(run([])).rejects.toBeInstanceOf(CustomException);
+			await expect(
+				run(
+					Array.from({ length: 101 }, () => ({ delete: { key: { id: 'x' } } })),
+				),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(run([{}])).rejects.toBeInstanceOf(CustomException);
+			await expect(
+				run([{ delete: { key: { id: 'x' } }, put: { data: { name: 'n' } } }]),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(
+				run([{ put: { data: { name: 5 } } }]),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(
+				run([{ conditionCheck: { key: { id: 'x' }, condition: {} } }]),
+			).rejects.toBeInstanceOf(CustomException);
+			expect(ddbMock.commandCalls(TransactWriteCommand)).toHaveLength(0);
+		});
+	});
+
+	describe('batchWrite', () => {
+		const names = (count: number) =>
+			Array.from({ length: count }, (_, index) => ({ name: `Item ${index}` }));
+
+		it('writes in chunks of 25 and returns the prepared items in order', async () => {
+			ddbMock.on(BatchWriteCommand).resolves({});
+
+			const written = await docs().batchWrite({ puts: names(30) });
+
+			const calls = ddbMock.commandCalls(BatchWriteCommand);
+			expect(calls).toHaveLength(2);
+			expect(calls[0].args[0].input.RequestItems!.docs).toHaveLength(25);
+			expect(calls[1].args[0].input.RequestItems!.docs).toHaveLength(5);
+			expect(written).toHaveLength(30);
+			expect(written[0]).toMatchObject({ name: 'Item 0' });
+		});
+
+		it('writes puts and deletes together', async () => {
+			ddbMock.on(BatchWriteCommand).resolves({});
+
+			await docs().batchWrite({
+				puts: names(1),
+				deletes: [{ id: 'gone' }],
+			});
+
+			const requests =
+				ddbMock.commandCalls(BatchWriteCommand)[0].args[0].input.RequestItems!
+					.docs;
+			expect(requests[0].PutRequest).toBeDefined();
+			expect(requests[1].DeleteRequest).toEqual({ Key: { id: 'gone' } });
+		});
+
+		it('resends what DynamoDB leaves unprocessed, then stops', async () => {
+			const leftover = [{ PutRequest: { Item: { id: 'a', name: 'A' } } }];
+			ddbMock
+				.on(BatchWriteCommand)
+				.resolvesOnce({ UnprocessedItems: { docs: leftover } })
+				.resolvesOnce({});
+
+			await docs().batchWrite({ puts: names(1), retryDelayMs: 0 });
+			expect(ddbMock.commandCalls(BatchWriteCommand)).toHaveLength(2);
+			expect(
+				ddbMock.commandCalls(BatchWriteCommand)[1].args[0].input.RequestItems!
+					.docs,
+			).toEqual(leftover);
+
+			ddbMock.reset();
+			ddbMock
+				.on(BatchWriteCommand)
+				.resolves({ UnprocessedItems: { docs: leftover } });
+			await expect(
+				docs().batchWrite({ puts: names(1), maxRetries: 2, retryDelayMs: 0 }),
+			).rejects.toBeInstanceOf(CustomException);
+			expect(ddbMock.commandCalls(BatchWriteCommand)).toHaveLength(3);
+		});
+
+		it('validates every item and refuses duplicate keys before sending anything', async () => {
+			ddbMock.on(BatchWriteCommand).resolves({});
+
+			await expect(
+				docs().batchWrite({ puts: [{ name: 'ok' }, { name: 5 } as never] }),
+			).rejects.toBeInstanceOf(CustomException);
+			await expect(
+				docs().batchWrite({ deletes: [{ id: 'same' }, { id: 'same' }] }),
+			).rejects.toBeInstanceOf(CustomException);
+			expect(ddbMock.commandCalls(BatchWriteCommand)).toHaveLength(0);
+		});
+
+		it('does nothing for an empty call', async () => {
+			await expect(docs().batchWrite({})).resolves.toEqual([]);
+			expect(ddbMock.commandCalls(BatchWriteCommand)).toHaveLength(0);
+		});
+	});
+
+	describe('count', () => {
+		it('counts across pages with Select COUNT, using the same conditions and filter as query', async () => {
+			ddbMock
+				.on(QueryCommand)
+				.resolvesOnce({ Count: 40, LastEvaluatedKey: { id: 'page-1' } })
+				.resolvesOnce({ Count: 2 });
+
+			const total = await docs().count({
+				conditions: { name: 'Widget' },
+				filter: { nickname: 'w' },
+			});
+
+			expect(total).toBe(42);
+			const calls = ddbMock.commandCalls(QueryCommand);
+			expect(calls).toHaveLength(2);
+			const first = calls[0].args[0].input;
+			expect(first.Select).toBe('COUNT');
+			expect(first.KeyConditionExpression).toContain(':name');
+			expect(first.FilterExpression).toContain(':nickname');
+			expect(first.ExclusiveStartKey).toBeUndefined();
+		});
+
+		it('is 0 when nothing matches', async () => {
+			ddbMock.on(QueryCommand).resolves({ Count: 0 });
+			await expect(
+				docs().count({ conditions: { name: 'none' } }),
+			).resolves.toBe(0);
+		});
 	});
 });
 
